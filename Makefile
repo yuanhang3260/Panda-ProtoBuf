@@ -21,9 +21,9 @@ OBJ = $(OBJ_DIR)/Utility/BufferedDataReader.o \
 
 TESTOBJ = $(OBJ_DIR)/Utility/BufferedDataReader_test.o \
           test/cgi_test_prog.o
-TESTEXE = test/BufferedDataReader_test.out \
-          test/BufferedDataWriter_main.out \
-          test/CGIChannel_test.out
+# TESTEXE = test/BufferedDataReader_test.out \
+#           test/BufferedDataWriter_main.out \
+#           test/CGIChannel_test.out
 
 TESTBIN = test/cgi_test_prog \
           test/helloworld
@@ -51,14 +51,14 @@ $(OBJ_DIR)/Utility/%.o: $(SRC_DIR)/Utility/%.cpp
 $(OBJ_DIR)/Network/%.o: $(SRC_DIR)/Network/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-#test/%.out: $(OBJ_DIR)/Utility/%.o libsnp.a
-#	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -o $@
+# test/%.out: $(OBJ_DIR)/Utility/%.o libsnp.a
+# 	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -o $@
 
-#test/%.out: $(OBJ_DIR)/Network/%.o libsnp.a
-#	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -lssl -lcrypto -o $@
+# test/%.out: $(OBJ_DIR)/Network/%.o libsnp.a
+# 	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -lssl -lcrypto -o $@
 
-#test/%.out: test/%.o libsnp.a
-#	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -o $@
+# test/%.out: test/%.o libsnp.a
+# 	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -o $@
 
 clean:
 	rm -rf libsnp.a
