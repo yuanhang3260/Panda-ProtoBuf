@@ -34,7 +34,7 @@ int TextPrinterImpl::Print_Impl(
 
   std::vector<int> matched_indexes;
   std::vector<std::string> pieces;
-  int last_index = -1;
+  unsigned int last_index = -1;
   for (unsigned int i = 0; i < content.length(); i++) {
     if (content[i] == '$') {
       if (i > 0 && content[i - 1] == '\\') {
@@ -44,11 +44,16 @@ int TextPrinterImpl::Print_Impl(
         matched_indexes.push_back(i);
         pieces.push_back(content.substr(last_index + 1, i));
         last_index = i;
+        if (matched_indexes.size() >= matches.size()) {
+          break;
+        }
       }
-    } else if (i == content.length()) {
-      pieces.push_back(content.substr(last_index + 1, i + 1));
     }
   }
+  if (last_index < content.length()) {
+    pieces.push_back(content.substr(last_index + 1));
+  }
+
   int num = matched_indexes.size() < matches.size()?
                 matched_indexes.size() : matches.size();
   std::stringstream sstr;
