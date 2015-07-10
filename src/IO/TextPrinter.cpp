@@ -70,6 +70,10 @@ int TextPrinterImpl::Print_Impl(
   return 0;
 }
 
+int TextPrinterImpl::DoPrint(std::string content) {
+  return fd_->Write(content.c_str(), content.length());
+}
+
 // TextPrinter functions
 TextPrinter::TextPrinter(std::string outputfile) {
   text_printer_impl_.reset(new TextPrinterImpl(outputfile));
