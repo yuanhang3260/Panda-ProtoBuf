@@ -1,7 +1,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
-#include <sstream>
 
 #include "TextPrinter.h"
 
@@ -28,55 +27,76 @@ TextPrinterImpl::TextPrinterImpl(std::string outputfile) :
 
 int TextPrinterImpl::Print_Impl(
     std::string content, std::vector<std::string> matches) {
-  if (matches.size() == 0) {
-    return DoPrint(content);
-  }
-
-  std::vector<int> matched_indexes;
   std::vector<std::string> pieces;
-  unsigned int last_index = -1;
+  unsigned last_index = 0, matched_num = 0;
+  int printed_size = 0;
   for (unsigned int i = 0; i < content.length(); i++) {
     if (content[i] == '$') {
       if (i > 0 && content[i - 1] == '\\') {
         continue;
       }
       else {
-        matched_indexes.push_back(i);
-        pieces.push_back(content.substr(last_index + 1, i));
-        last_index = i;
-        if (matched_indexes.size() >= matches.size()) {
-          break;
+        printed_size += DoPrint(content.substr(last_index, i));
+        if (matched_num < matches.size()) {
+          printed_size += DoPrint(matches[matched_num]);
         }
+        last_index = i + 1;
       }
     }
   }
   if (last_index < content.length()) {
-    pieces.push_back(content.substr(last_index + 1));
+    printed_size += DoPrint(content.substr(last_index));
   }
 
-  int num = matched_indexes.size() < matches.size()?
-                matched_indexes.size() : matches.size();
-  std::stringstream sstr;
-  for (unsigned int i = 0; i < pieces.size(); i++) {
-    if (num > 0) {
-      sstr << pieces[i] << matches[i];
-      num--;
-    }
-    else {
-      sstr << pieces[i]; 
-    }
-  }
-
-  return DoPrint(sstr.str());
+  return printed_size;
 }
 
 int TextPrinterImpl::Print_Impl(
     std::string content, std::map<std::string, std::string> matches) {
-  return 0;
+  std::vector<std::string> pieces;
+  unsigned left = 0, right = 0, last_right = 0;
+  int printed_size = 0;
+  int matching = 0;
+  for (unsigned int i = 0; i < content.length(); i++) {
+    if (matching) {
+      if (content[i] == '{') {
+        if (i > 0 && content[i-1] == '\\') {
+          continue;
+        }
+        left = i;
+        printed_size += DoPrint(content.substr(last_right + 1, left));
+        matching = 1;
+      }
+    }
+    else {
+      if (content[i] == '}') {
+        if (i > 0 && content[i-1] == '\\') {
+          continue;
+        }
+        right = i;
+        std::string key = content.substr(left, right + 1);
+        if (matches.find(key) != matches.end()) {
+          printed_size += DoPrint(matches[key]);
+        }
+        last_right = right;
+        matching = 0;
+      }
+    }
+  }
+  if (last_right < content.length()) {
+    printed_size += DoPrint(content.substr(last_right));
+  }
+
+  return printed_size;
 }
 
 int TextPrinterImpl::DoPrint(std::string content) {
-  return fd_->Write(content.c_str(), content.length());
+  int nwrite = fd_->Write(content.c_str(), content.length());
+  if (nwrite < 0) {
+    fprintf(stderr, "ERROR: DoPrint %d chars failed\n", content.length());
+    return 0;
+  }
+  return nwrite;
 }
 
 // TextPrinter functions
