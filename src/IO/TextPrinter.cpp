@@ -36,11 +36,13 @@ int TextPrinterImpl::Print_Impl(
   int printed_size = 0;
   for (unsigned int i = 0; i < content.length(); i++) {
     if (content[i] == '$') {
-      if (i > 0 && content[i - 1] == '\\') {
+      printed_size += DoPrint(content.substr(last_index, i - last_index));
+      if (i < content.length() - 1 && content[i + 1] == '$') {
+        printed_size += DoPrint("$");
+        last_index = (++i) + 1;
         continue;
       }
       else {
-        printed_size += DoPrint(content.substr(last_index, i - last_index));
         if (matched_num < matches.size()) {
           printed_size += DoPrint(matches[matched_num++]);
         }
@@ -64,20 +66,20 @@ int TextPrinterImpl::Print_Impl(
   for (unsigned int i = 0; i < content.length(); i++) {
     if (!matching) {
       if (content[i] == '{') {
-        if (i > 0 && content[i-1] == '\\') {
+        if (i > 0 && content[i-1] == '^') {
           continue;
         }
         left = i;
-        printed_size += DoPrint(content.substr(last_right, left - last_right));
         matching = 1;
       }
     }
     else {
       if (content[i] == '}') {
-        if (i > 0 && content[i-1] == '\\') {
+        if (i > 0 && content[i-1] == '^') {
           continue;
         }
         right = i;
+        printed_size += DoPrint(content.substr(last_right, left - last_right));
         std::string key = content.substr(left + 1, right - left - 1);
         if (matches.find(key) != matches.end()) {
           printed_size += DoPrint(matches[key]);
