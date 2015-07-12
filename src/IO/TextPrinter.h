@@ -18,6 +18,7 @@ class TextPrinter {
   
   void Print(std::string content, std::vector<std::string> matches);
   void Print(std::string content, std::map<std::string, std::string> map);
+  void Flush();
 
  protected:
   std::unique_ptr<TextPrinterImpl> text_printer_impl_;

@@ -12,9 +12,10 @@ namespace Utility {
 class BufferedDataWriter {
  public:
   // Constructors
-  BufferedDataWriter(IO::FileDescriptorInterface* fd, int bufSize);
+  BufferedDataWriter(
+      std::unique_ptr<IO::FileDescriptorInterface> fd, int bufSize);
 
-  BufferedDataWriter(IO::FileDescriptorInterface* fd);
+  BufferedDataWriter(std::unique_ptr<IO::FileDescriptorInterface> fd);
 
   virtual ~BufferedDataWriter() {
     //std::cout << "deleting BufferedDataWriter\n";
@@ -22,10 +23,10 @@ class BufferedDataWriter {
   }
 
   // write a byte
-  int Write(char c);
+  int Write(const char c);
 
   // write a chunk of data from buffer
-  int Write(char* buf, int off, const int len);
+  int Write(const char* buf, int off, const int len);
 
   // flush the buffer
   int Flush();
@@ -39,7 +40,7 @@ private:
 
   int bufSize;
   char* buffer;
-  IO::FileDescriptorInterface* fdscrpt_;
+  std::unique_ptr<IO::FileDescriptorInterface> fdscrpt_;
   int head = 0;
   int tail = 0;
   int dataLen = 0;

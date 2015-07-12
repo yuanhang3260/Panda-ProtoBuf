@@ -18,16 +18,10 @@ OBJ = $(OBJ_DIR)/Utility/BufferedDataReader.o \
       $(OBJ_DIR)/IO/FileDescriptor.o \
       $(OBJ_DIR)/IO/TextPrinter.o \
       $(OBJ_DIR)/Network/Socket.o \
- 
 
-TESTOBJ = $(OBJ_DIR)/Utility/BufferedDataReader_test.o \
-          test/cgi_test_prog.o
-# TESTEXE = test/BufferedDataReader_test.out \
-#           test/BufferedDataWriter_main.out \
-#           test/CGIChannel_test.out
+TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
 
-TESTBIN = test/cgi_test_prog \
-          test/helloworld
+TESTEXE = test/TextPrinter_test.out \
 
 CLIENTOBJ = $(OBJ_DIR)/HttpClient_main.o
 
@@ -35,7 +29,7 @@ SERVEROBJ = $(OBJ_DIR)/HttpServer_main.o
 
 default: library
 
-# test: $(TESTEXE) $(TESTBIN) library
+test: $(TESTEXE) library
 
 library: $(OBJ)
 	ar cr libsnp.a $(OBJ)
@@ -49,16 +43,22 @@ $(OBJ_DIR)/Utility/%.o: $(SRC_DIR)/Utility/%.cpp $(SRC_DIR)/Utility/%.h
 $(OBJ_DIR)/Utility/%.o: $(SRC_DIR)/Utility/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(OBJ_DIR)/IO/%.o: $(SRC_DIR)/IO/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
 $(OBJ_DIR)/Network/%.o: $(SRC_DIR)/Network/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
-# test/%.out: $(OBJ_DIR)/Utility/%.o libsnp.a
+# test/%.out: $(OBJ_DIR)/Utility/%.o library
 # 	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -o $@
 
-# test/%.out: $(OBJ_DIR)/Network/%.o libsnp.a
+# test/%.out: $(OBJ_DIR)/Network/%.o library
 # 	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -lssl -lcrypto -o $@
 
-# test/%.out: test/%.o libsnp.a
+test/%.out: $(OBJ_DIR)/IO/%.o library
+	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -lssl -lcrypto -o $@
+
+# test/%.out: test/%.o library
 # 	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -o $@
 
 clean:
@@ -67,4 +67,5 @@ clean:
 	rm -rf $(OBJ_DIR)/Utility/*.o
 	rm -rf $(OBJ_DIR)/IO/*.o
 	rm -rf $(OBJ_DIR)/Network/*.o
+	rm -rf *.output
 

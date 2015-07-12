@@ -3,6 +3,7 @@
 #include <fcntl.h>
 
 #include "TextPrinter.h"
+#include "../Utility/BufferedDataWriter.h"
 
 namespace IO {
 
@@ -14,15 +15,18 @@ class TextPrinterImpl {
   int Print_Impl(std::string, std::vector<std::string>);
   int Print_Impl(std::string, std::map<std::string, std::string>);
   int DoPrint(std::string content);
+  void Flush_Impl();
 
  private:
   std::string outputfile_;
-  std::unique_ptr<FileDescriptor> fd_;
+  std::unique_ptr<Utility::BufferedDataWriter> writer_;
 };
 
 TextPrinterImpl::TextPrinterImpl(std::string outputfile) :
     outputfile_(outputfile) {
+  std::unique_ptr<FileDescriptor> fd_;
   fd_.reset(new FileDescriptor(outputfile, FileDescriptor::WRITE_ONLY));
+  writer_.reset(new Utility::BufferedDataWriter(std::move(fd_)));
 }
 
 int TextPrinterImpl::Print_Impl(
@@ -36,9 +40,9 @@ int TextPrinterImpl::Print_Impl(
         continue;
       }
       else {
-        printed_size += DoPrint(content.substr(last_index, i));
+        printed_size += DoPrint(content.substr(last_index, i - last_index));
         if (matched_num < matches.size()) {
-          printed_size += DoPrint(matches[matched_num]);
+          printed_size += DoPrint(matches[matched_num++]);
         }
         last_index = i + 1;
       }
@@ -58,13 +62,13 @@ int TextPrinterImpl::Print_Impl(
   int printed_size = 0;
   int matching = 0;
   for (unsigned int i = 0; i < content.length(); i++) {
-    if (matching) {
+    if (!matching) {
       if (content[i] == '{') {
         if (i > 0 && content[i-1] == '\\') {
           continue;
         }
         left = i;
-        printed_size += DoPrint(content.substr(last_right + 1, left));
+        printed_size += DoPrint(content.substr(last_right, left - last_right));
         matching = 1;
       }
     }
@@ -74,11 +78,11 @@ int TextPrinterImpl::Print_Impl(
           continue;
         }
         right = i;
-        std::string key = content.substr(left, right + 1);
+        std::string key = content.substr(left + 1, right - left - 1);
         if (matches.find(key) != matches.end()) {
           printed_size += DoPrint(matches[key]);
         }
-        last_right = right;
+        last_right = right + 1;
         matching = 0;
       }
     }
@@ -90,13 +94,21 @@ int TextPrinterImpl::Print_Impl(
   return printed_size;
 }
 
-int TextPrinterImpl::DoPrint(std::string content) {
-  int nwrite = fd_->Write(content.c_str(), content.length());
+int TextPrinterImpl::DoPrint(std::string piece) {
+  if (piece.length() <= 0) {
+    return 0;
+  }
+  // std::cout << "printing " << piece << std::endl;
+  int nwrite = writer_->Write(piece.c_str(), 0, piece.length());
   if (nwrite < 0) {
-    fprintf(stderr, "ERROR: DoPrint %d chars failed\n", content.length());
+    fprintf(stderr, "ERROR: DoPrint %d chars failed\n", piece.length());
     return 0;
   }
   return nwrite;
+}
+
+void TextPrinterImpl::Flush_Impl() {
+  writer_->Flush();
 }
 
 // TextPrinter functions
@@ -105,7 +117,6 @@ TextPrinter::TextPrinter(std::string outputfile) {
 }
 
 TextPrinter::~TextPrinter() {
-  text_printer_impl_->fd_->Close();
 }
 
 void TextPrinter::Print(std::string content, std::vector<std::string> matches) {
@@ -115,6 +126,10 @@ void TextPrinter::Print(std::string content, std::vector<std::string> matches) {
 void TextPrinter::Print(
     std::string content, std::map<std::string, std::string> matches) {
   text_printer_impl_->Print_Impl(content, matches);
+}
+
+void TextPrinter::Flush() {
+  text_printer_impl_->Flush_Impl();
 }
 
 

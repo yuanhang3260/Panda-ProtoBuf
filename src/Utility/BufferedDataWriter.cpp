@@ -11,9 +11,9 @@
 
 namespace Utility {
 
-BufferedDataWriter::BufferedDataWriter(IO::FileDescriptorInterface* fd,
-                                       int bufSize) {
-  fdscrpt_ = fd;
+BufferedDataWriter::BufferedDataWriter(
+    std::unique_ptr<IO::FileDescriptorInterface> fd, int bufSize) {
+  fdscrpt_ = std::move(fd);
 
   if (bufSize < 0 || bufSize > MAX_BUFSIZE) {
     bufSize = 1024;
@@ -24,8 +24,9 @@ BufferedDataWriter::BufferedDataWriter(IO::FileDescriptorInterface* fd,
   buffer = new char[bufSize];
 }
 
-BufferedDataWriter::BufferedDataWriter(IO::FileDescriptorInterface* fd) {
-  fdscrpt_ = fd;
+BufferedDataWriter::BufferedDataWriter(
+    std::unique_ptr<IO::FileDescriptorInterface> fd) {
+  fdscrpt_ = std::move(fd);;
   bufSize = BUFSIZE;
   buffer = new char[bufSize];
 }
@@ -42,7 +43,7 @@ int BufferedDataWriter::Write(const char c) {
   return 1;
 }
 
-int BufferedDataWriter::Write(char* src_buf, int off, const int len) {
+int BufferedDataWriter::Write(const char* src_buf, int off, const int len) {
   // check args
 
   int left_to_write = len;
@@ -71,6 +72,10 @@ int BufferedDataWriter::Write(char* src_buf, int off, const int len) {
 }
 
 int BufferedDataWriter::Flush() {
+  if (dataLen <= 0) {
+    return 0;
+  }
+  // printf("flushing %d bytes\n", dataLen);
   int nwrite = fdscrpt_->Write(buffer, dataLen);
   if (nwrite <= 0) {
     return nwrite;
@@ -87,6 +92,7 @@ int BufferedDataWriter::Flush() {
 }
 
 int BufferedDataWriter::Close() {
+  Flush();
   delete buffer;
   head = tail = 0;
   dataLen = 0;

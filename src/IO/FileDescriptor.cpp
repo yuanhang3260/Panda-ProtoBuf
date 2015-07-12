@@ -12,7 +12,9 @@ FileDescriptor::FileDescriptor(std::string filename, MODE mode) {
       fd_ = open(filename.c_str(), O_RDONLY);
       break;
     case WRITE_ONLY:
-      fd_ = open(filename.c_str(), O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR);
+      fd_ = open(filename.c_str(),
+                 O_WRONLY | O_TRUNC | O_CREAT,
+                 S_IRUSR | S_IWUSR);
       break;
     case READ_WRITE:
       fd_ = open(filename.c_str(), O_RDWR);
