@@ -19,6 +19,7 @@ OBJ = $(OBJ_DIR)/Utility/BufferedDataReader.o \
       $(OBJ_DIR)/IO/FileDescriptor.o \
       $(OBJ_DIR)/IO/TextPrinter.o \
       $(OBJ_DIR)/Network/Socket.o \
+      $(OBJ_DIR)/Compiler/PBClassGenerator.o
 
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
           $(OBJ_DIR)/Utility/StringBuilder_test.o \
@@ -50,6 +51,9 @@ $(OBJ_DIR)/IO/%.o: $(SRC_DIR)/IO/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Network/%.o: $(SRC_DIR)/Network/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/Compiler/%.o: $(SRC_DIR)/Compiler/%.cpp $(SRC_DIR)/Compiler/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 test/%.out: $(OBJ_DIR)/Utility/%.o library
