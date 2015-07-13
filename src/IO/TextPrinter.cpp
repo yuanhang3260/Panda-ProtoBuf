@@ -4,6 +4,8 @@
 
 #include "TextPrinter.h"
 #include "../Utility/BufferedDataWriter.h"
+#include "../Utility/StringBuilder.h"
+
 
 namespace IO {
 
@@ -14,12 +16,14 @@ class TextPrinterImpl {
   TextPrinterImpl(std::string outputfile);
   int Print_Impl(std::string, std::vector<std::string>);
   int Print_Impl(std::string, std::map<std::string, std::string>);
-  int DoPrint(std::string content);
+  int DoPrint(const char* piece, const int size);
+  int DoPrint(std::string piece);
   void Flush_Impl();
 
  private:
   std::string outputfile_;
   std::unique_ptr<Utility::BufferedDataWriter> writer_;
+  int ValidateContentFormat(std::string content);
 };
 
 TextPrinterImpl::TextPrinterImpl(std::string outputfile) :
@@ -59,54 +63,111 @@ int TextPrinterImpl::Print_Impl(
 
 int TextPrinterImpl::Print_Impl(
     std::string content, std::map<std::string, std::string> matches) {
-  std::vector<std::string> pieces;
-  unsigned left = 0, right = 0, last_right = 0;
+  if (!ValidateContentFormat(content)) {
+    fprintf(stderr, "ERROR in %s(): Incorrect bracket format of \"%s\"\n",
+            __FUNCTION__, content.c_str());
+    return -1;
+  }
+
   int printed_size = 0;
   int matching = 0;
+  Utility::StringBuilder strbuf;
   for (unsigned int i = 0; i < content.length(); i++) {
+    // "{{" and "}}" are escaped as '{' and '}' in any case.
+    if (content[i] == '{' && i < content.length() - 1 && content[i+1] == '{') {
+      strbuf.Append('{');
+      i++;
+      continue;
+    }
+    if (content[i] == '}' && i < content.length() - 1 && content[i+1] == '}') {
+      strbuf.Append('}');
+      i++;
+      continue;
+    }
+    // Matching or not
     if (!matching) {
       if (content[i] == '{') {
-        if (i > 0 && content[i-1] == '^') {
-          continue;
-        }
-        left = i;
+        printed_size += DoPrint(strbuf.CharArray(), strbuf.size());
+        strbuf.Clear();
         matching = 1;
+      }
+      else {
+        strbuf.Append(content[i]);
       }
     }
     else {
       if (content[i] == '}') {
-        if (i > 0 && content[i-1] == '^') {
-          continue;
-        }
-        right = i;
-        printed_size += DoPrint(content.substr(last_right, left - last_right));
-        std::string key = content.substr(left + 1, right - left - 1);
+        std::string key = strbuf.ToString();
+        strbuf.Clear();
         if (matches.find(key) != matches.end()) {
           printed_size += DoPrint(matches[key]);
         }
-        last_right = right + 1;
         matching = 0;
+      }
+      else {
+        strbuf.Append(content[i]);
       }
     }
   }
-  if (last_right < content.length()) {
-    printed_size += DoPrint(content.substr(last_right));
+  if (!strbuf.IsEmpty()) {
+    printed_size += DoPrint(strbuf.CharArray(), strbuf.size());
   }
 
   return printed_size;
 }
 
-int TextPrinterImpl::DoPrint(std::string piece) {
-  if (piece.length() <= 0) {
+int TextPrinterImpl::ValidateContentFormat(std::string content) {
+  int matching = 0;
+  for (unsigned int i = 0; i < content.length(); i++) {
+    if (content[i] == '{') {
+      if (i < content.length() - 1 && content[i+1] == '{') {
+        i++;
+        continue;
+      }
+      if (matching) {
+        fprintf(stderr,
+                "ERROR in %s(): \"{\" mismatch at index %d\n",
+                __FUNCTION__, i);
+        return 0;
+      }
+      matching = 1;
+    }
+    else if (content[i] == '}') {
+      if (i < content.length() - 1 && content[i+1] == '}') {
+        i++;
+        continue;
+      }
+      if (!matching) {
+        fprintf(stderr,
+                "ERROR in %s(): \"}\" mismatch at index %d\n",
+                __FUNCTION__, i);
+        return 0;
+      }
+      matching = 0;
+    }
+  }
+  if(matching) {
+    fprintf(stderr, "ERROR in %s(): bracket mismatch at end\n", __FUNCTION__);
+    return 0;
+  }
+  return 1;
+}
+
+int TextPrinterImpl::DoPrint(const char* piece, const int size) {
+  if (!piece) {
     return 0;
   }
   // std::cout << "printing " << piece << std::endl;
-  int nwrite = writer_->Write(piece.c_str(), 0, piece.length());
+  int nwrite = writer_->Write(piece, 0, size);
   if (nwrite < 0) {
-    fprintf(stderr, "ERROR: DoPrint %d chars failed\n", piece.length());
+    fprintf(stderr, "ERROR: DoPrint %d chars failed\n", size);
     return 0;
   }
   return nwrite;
+}
+
+int TextPrinterImpl::DoPrint(std::string piece) {
+  return DoPrint(piece.c_str(), piece.length());
 }
 
 void TextPrinterImpl::Flush_Impl() {
