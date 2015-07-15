@@ -15,6 +15,7 @@ OBJ = $(OBJ_DIR)/Utility/BufferedDataReader.o \
       $(OBJ_DIR)/Utility/BufferedDataWriter.o \
       $(OBJ_DIR)/Utility/Strings.o \
       $(OBJ_DIR)/Utility/StringBuilder.o \
+      $(OBJ_DIR)/Utility/Utils.o \
       $(OBJ_DIR)/IO/FileDescriptorInterface.o \
       $(OBJ_DIR)/IO/FileDescriptor.o \
       $(OBJ_DIR)/IO/TextPrinter.o \
@@ -23,9 +24,11 @@ OBJ = $(OBJ_DIR)/Utility/BufferedDataReader.o \
 
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
           $(OBJ_DIR)/Utility/StringBuilder_test.o \
+          $(OBJ_DIR)/Utility/Strings_test.o \
 
 TESTEXE = test/TextPrinter_test.out \
-					test/StringBuilder_test.out
+					test/StringBuilder_test.out \
+					test/Strings_test.out
 
 CLIENTOBJ = $(OBJ_DIR)/HttpClient_main.o
 

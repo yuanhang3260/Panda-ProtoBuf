@@ -3,6 +3,7 @@
 
 #include <string>
 
+namespace PandaProto {
 namespace Compiler {
 
 class PBClassGenerator {
@@ -13,16 +14,17 @@ class PBClassGenerator {
   };
 
   PBClassGenerator(LANGUAGE lang) : lang_(lang) {}
-  ~PBClassGenerator();
-  virtual void GeneratePBClass() = 0;
+  virtual ~PBClassGenerator();
+  virtual bool GeneratePBClass() = 0;
 
- private:
-  int ParseProtoFile(std::string proto_file);
+ protected:
+  bool ParseProtoFile(std::string proto_file);
 
   LANGUAGE lang_;
   std::string proto_file_;
 };
 
-}
+}  // Compiler
+}  // PandaProto
 
 #endif /* PB_CLASS_GENERATOR_ */

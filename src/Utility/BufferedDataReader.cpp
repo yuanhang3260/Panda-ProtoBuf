@@ -13,9 +13,9 @@
 namespace Utility {
 
 // Constructors
-BufferedDataReader::BufferedDataReader(IO::FileDescriptorInterface* fd,
-                                       int bufSize) {
-  fdscrpt_ = fd;
+BufferedDataReader::BufferedDataReader(
+    std::unique_ptr<IO::FileDescriptorInterface> fd, int bufSize) {
+  fdscrpt_ = std::move(fd);
 
   if (bufSize < 0 || bufSize > MAX_BUFSIZE) {
     bufSize = 1024;
@@ -26,8 +26,9 @@ BufferedDataReader::BufferedDataReader(IO::FileDescriptorInterface* fd,
   buffer = new char[bufSize];
 }
 
-BufferedDataReader::BufferedDataReader(IO::FileDescriptorInterface* fd) {
-  fdscrpt_ = fd;
+BufferedDataReader::BufferedDataReader(
+    std::unique_ptr<IO::FileDescriptorInterface> fd) {
+  fdscrpt_ = std::move(fd);
   bufSize = BUFSIZE;
   buffer = new char[bufSize];
 }
