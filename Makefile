@@ -77,6 +77,7 @@ clean:
 	rm -rf $(OBJ_DIR)/Utility/*.o
 	rm -rf $(OBJ_DIR)/IO/*.o
 	rm -rf $(OBJ_DIR)/Network/*.o
+	rm -rf $(OBJ_DIR)/Compiler/*.o
 	rm -rf test/*.out
 	rm -rf *.output
 
