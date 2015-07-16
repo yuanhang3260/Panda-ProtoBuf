@@ -18,10 +18,15 @@ class PBClassGenerator {
   virtual bool GeneratePBClass() = 0;
 
  protected:
-  bool ParseProtoFile(std::string proto_file);
+  bool ReadProtoFile(std::string proto_file);
+ 
+ private:
+  std::string ParsePackageName(std::string line);
 
   LANGUAGE lang_;
   std::string proto_file_;
+
+  std::string package_ = "";
 };
 
 }  // Compiler

@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <string>
 #include <map>
+#include <vector>
 #include <memory>
 
 class StringUtils {
@@ -21,6 +22,13 @@ class StringUtils {
   static std::string Strip(std::string str, std::string match);
 
   static bool StartWith(std::string& str, std::string match);
+
+  static std::vector<std::string> Split(std::string& str, const char c);
+  static std::vector<std::string> Split(std::string& str, std::string match);
+
+  static std::vector<std::string> SplitGreedy(std::string& str, const char c);
+  static std::vector<std::string> SplitGreedy(std::string& str,
+                                              std::string match);
 };
 
 #endif /* __STRINGS_H_ */

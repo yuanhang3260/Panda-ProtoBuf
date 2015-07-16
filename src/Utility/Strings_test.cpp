@@ -5,6 +5,8 @@
 
 #include "Strings.h"
 
+int rd;
+
 void test_Strip() {
   std::cout << __FUNCTION__ << "()..." << std::endl;
   std::string result;
@@ -120,8 +122,106 @@ void test_StartWith() {
   std::cout << "Passed ^_^" << std::endl;
 }
 
+void test_Split_Impl(std::vector<std::string>& expect1,
+                     std::vector<std::string>& result1,
+                     std::vector<std::string>& expect2,
+                     std::vector<std::string>& result2) {
+  if (expect1 != result1) {
+    fprintf(stderr,
+            "ERROR Round %d, Split(\"ab cd efg \", \" \")\n", rd);
+    fprintf(stderr, "returns: ");
+    for (auto& str: result1) {
+      fprintf(stderr, "\"%s\", ", str.c_str());
+    }
+    fprintf(stderr, "\n");
+    exit(-1);
+  }
+
+  if (expect2 != result2) {
+    fprintf(stderr,
+            "ERROR Round %d SplitGreedy(\"ab cd efg \", \" \")\n", rd);
+    fprintf(stderr, "returns: ");
+    for (auto& str: result2) {
+      fprintf(stderr, "\"%s\", ", str.c_str());
+    }
+    fprintf(stderr, "\n");
+    exit(-1);
+  }
+  rd++;
+}
+
+void test_Split() {
+  std::cout << __FUNCTION__ << "()..." << std::endl;
+  rd = 0;
+  std::string str;
+
+  // Round 0
+  {
+    str = "ab cd efg ";
+    std::vector<std::string> expect1{"ab", "cd", "efg", ""};
+    std::vector<std::string> result1 = StringUtils::Split(str, ' ');
+    std::vector<std::string> expect2{"ab", "cd", "efg"};
+    std::vector<std::string> result2 = StringUtils::SplitGreedy(str, ' ');
+    test_Split_Impl(expect1, result1, expect2, result2);
+  }
+
+  // Round 1
+  {
+    str = " ab cd efg";
+    std::vector<std::string> expect1{"", "ab", "cd", "efg"};
+    std::vector<std::string> result1 = StringUtils::Split(str, " ");
+    std::vector<std::string> expect2{"ab", "cd", "efg"};
+    std::vector<std::string> result2 = StringUtils::SplitGreedy(str, " ");
+    test_Split_Impl(expect1, result1, expect2, result2);
+  }
+
+  // Round 2
+  {
+    str = " ab cdcd efg";
+    std::vector<std::string> expect1{" ab ", "", " efg"};
+    std::vector<std::string> result1 = StringUtils::Split(str, "cd");
+    std::vector<std::string> expect2{" ab ", " efg"};
+    std::vector<std::string> result2 = StringUtils::SplitGreedy(str, "cd");
+    test_Split_Impl(expect1, result1, expect2, result2);
+  }
+
+  // Round 3
+  {
+    str = " ab cd";
+    std::vector<std::string> expect1;
+    std::vector<std::string> result1 = StringUtils::Split(str, " ab cd ");
+    std::vector<std::string> expect2{" "};
+    std::vector<std::string> result2 = StringUtils::SplitGreedy(str, "ab cd");
+    test_Split_Impl(expect1, result1, expect2, result2);
+  }
+
+  // Round 4
+  {
+    str = "ab abab";
+    std::vector<std::string> expect1{"", " ", "", ""};
+    std::vector<std::string> result1 = StringUtils::Split(str, "ab");
+    std::vector<std::string> expect2{" "};
+    std::vector<std::string> result2 = StringUtils::SplitGreedy(str, "ab");
+    test_Split_Impl(expect1, result1, expect2, result2);
+  }
+
+  // Round 5
+  {
+    str = "x ayaaza";
+    std::vector<std::string> expect1{"x ", "y", "", "z", ""};
+    std::vector<std::string> result1 = StringUtils::Split(str, 'a');
+    str = "ax ayaaza";
+    std::vector<std::string> expect2{"x ", "y", "z"};
+    std::vector<std::string> result2 = StringUtils::SplitGreedy(str, "a");
+    test_Split_Impl(expect1, result1, expect2, result2);
+  }
+
+  std::cout << "Passed ^_^" << std::endl;
+}
+
 int main(int argc, char** argv) {
   test_Strip();
   test_StartWith();
+  test_Split();
   return 0;
 }
