@@ -20,7 +20,10 @@ OBJ = $(OBJ_DIR)/Utility/BufferedDataReader.o \
       $(OBJ_DIR)/IO/FileDescriptor.o \
       $(OBJ_DIR)/IO/TextPrinter.o \
       $(OBJ_DIR)/Network/Socket.o \
-      $(OBJ_DIR)/Compiler/PBClassGenerator.o
+      $(OBJ_DIR)/Compiler/PBClassGenerator.o \
+      $(OBJ_DIR)/Compiler/Message.o  \
+      $(OBJ_DIR)/Compiler/MessageField.o
+
 
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
           $(OBJ_DIR)/Utility/StringBuilder_test.o \

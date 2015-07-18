@@ -18,6 +18,12 @@ class StringUtils {
     return c >= 'a' && c <= 'z';
   }
 
+  static bool IsLetterOrDigitOrUnderScore(const char c) {
+    return (c >= 'a' && c <= 'z') ||
+           (c >= '0' && c <= '9') ||
+           (c == '_');
+  }
+
   static std::string Strip(std::string str);
   static std::string Strip(std::string str, std::string match);
 
@@ -29,6 +35,8 @@ class StringUtils {
   static std::vector<std::string> SplitGreedy(std::string& str, const char c);
   static std::vector<std::string> SplitGreedy(std::string& str,
                                               std::string match);
+
+  static bool IsSingleWord(std::string str);
 };
 
 #endif /* __STRINGS_H_ */

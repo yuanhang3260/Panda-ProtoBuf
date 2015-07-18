@@ -2,6 +2,11 @@
 #define PB_CLASS_GENERATOR_
 
 #include <string>
+#include <vector>
+#include <map>
+#include <memory>
+
+#include "Message.h"
 
 namespace PandaProto {
 namespace Compiler {
@@ -21,12 +26,24 @@ class PBClassGenerator {
   bool ReadProtoFile(std::string proto_file);
  
  private:
-  std::string ParsePackageName(std::string line);
+  bool ParsePackageName(std::string line);
+  bool ParseMessageName(std::string line);
+  bool ParseMessageField(std::string line);
+  bool ParseAssignExpression(std::string line,
+                             std::string* left, std::string* right) const;
+
+  static bool IsMessageFiledLine(std::string line);
+  static bool IsValidVariableName(std::string str);
+  Message* CurrentMessage() const;
+
+
 
   LANGUAGE lang_;
   std::string proto_file_;
 
-  std::string package_ = "";
+  std::string current_package_ = "";
+  std::map<std::string, std::shared_ptr<Message>> messages_map_;
+  std::vector<std::shared_ptr<Message>> messages_list_;
 };
 
 }  // Compiler

@@ -127,3 +127,7 @@ std::vector<std::string> StringUtils::SplitGreedy(std::string& str,
   }
   return result;
 }
+
+bool StringUtils::IsSingleWord(std::string str) {
+  return SplitGreedy(str, ' ').size() == 0;
+}
