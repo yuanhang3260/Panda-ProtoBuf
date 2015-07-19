@@ -16,14 +16,22 @@ class PBClassGenerator {
   enum LANGUAGE {
     CPP,
     PYTHON,
+    JAVA,
+    UNKNOWN_LANGUAGE,
   };
 
-  PBClassGenerator(LANGUAGE lang) : lang_(lang) {}
-  virtual ~PBClassGenerator();
-  virtual bool GeneratePBClass() = 0;
+  PBClassGenerator(LANGUAGE lang, std::string file);
+  ~PBClassGenerator();
+  PBClassGenerator(const PBClassGenerator&) = delete;
+  PBClassGenerator& operator=(const PBClassGenerator&) = delete;
+
+  bool GeneratePBClass();
+  void PrintParsedProto() const;
+
+  static LANGUAGE GetLanguageFromString(std::string lang);
 
  protected:
-  bool ReadProtoFile(std::string proto_file);
+  bool ReadProtoFile();
  
  private:
   bool ParsePackageName(std::string line);
@@ -31,12 +39,12 @@ class PBClassGenerator {
   bool ParseMessageField(std::string line);
   bool ParseAssignExpression(std::string line,
                              std::string* left, std::string* right) const;
+  Message* CurrentMessage() const;
 
   static bool IsMessageFiledLine(std::string line);
   static bool IsValidVariableName(std::string str);
-  Message* CurrentMessage() const;
 
-
+  void PrintToken(std::string description, std::string str);
 
   LANGUAGE lang_;
   std::string proto_file_;
@@ -44,6 +52,7 @@ class PBClassGenerator {
   std::string current_package_ = "";
   std::map<std::string, std::shared_ptr<Message>> messages_map_;
   std::vector<std::shared_ptr<Message>> messages_list_;
+  int line_number_ = 0;
 };
 
 }  // Compiler

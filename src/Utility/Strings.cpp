@@ -131,3 +131,12 @@ std::vector<std::string> StringUtils::SplitGreedy(std::string& str,
 bool StringUtils::IsSingleWord(std::string str) {
   return SplitGreedy(str, ' ').size() == 0;
 }
+
+std::string StrCat(std::vector<std::string> v, unsigned int start = 0) {
+  std::string result = "";
+  for (unsigned int i = start; i < v.size(); i++) {
+    result += v[i];
+  }
+  return result;
+}
+

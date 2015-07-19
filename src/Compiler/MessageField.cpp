@@ -30,6 +30,20 @@ MessageField::GetMessageFieldModifier(std::string line) {
   return MessageField::UNKNOWN_MODIFIER;
 }
 
+std::string
+MessageField::GetModifierAsString(MessageField::FIELD_MODIFIER modifier) {
+  if (modifier == MessageField::OPTIONAL) {
+    return "optional";
+  }
+  if (modifier == MessageField::REQUIRED) {
+    return "required";
+  }
+  if (modifier == MessageField::REPEATED) {
+    return "repeated";
+  }
+  return "unknown_modifer";
+}
+
 MessageField::FIELD_TYPE
 MessageField::GetMessageFieldType(std::string type) {
   if (type == "int32") {
@@ -50,8 +64,44 @@ MessageField::GetMessageFieldType(std::string type) {
   if (type == "string") {
     return MessageField::STRING;
   }
+  if (type == "bool") {
+    return MessageField::BOOL;
+  }
   return MessageField::UNDETERMINED;
 }
+
+std::string
+MessageField::GetTypeAsString(MessageField::FIELD_TYPE type) {
+  if (type == MessageField::INT32) {
+    return "int32";
+  }
+  if (type == MessageField::INT64) {
+    return "int64";
+  }
+  if (type == MessageField::UINT32) {
+    return "uint32";
+  }
+  if (type == MessageField::UINT64) {
+    return "uint64";
+  }
+  if (type == MessageField::DOUBLE) {
+    return "double";
+  }
+  if (type == MessageField::STRING) {
+    return "string";
+  }
+  if (type == MessageField::BOOL) {
+    return "bool";
+  }
+  if (type == MessageField::ENUM) {
+    return "enum";
+  }
+  if (type == MessageField::MESSAGE) {
+    return "MESSAGE";
+  }
+  return "undermined";
+}
+
 
 }  // namespace Compiler
 }  // namespace PandaProto

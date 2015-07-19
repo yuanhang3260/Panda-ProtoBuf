@@ -16,6 +16,7 @@ class Message {
   virtual ~Message();
 
   bool AddField(std::shared_ptr<MessageField> field);
+  void Print();
 
   std::string name() const { return name_; }
   std::string package() const { return package_; }
@@ -24,6 +25,7 @@ class Message {
   std::string name_;
   std::string package_ = "";  // namespace
   std::map<std::string, std::shared_ptr<MessageField>> fields_map_;
+  std::vector<std::shared_ptr<MessageField>> fileds_list_;
 };
 
 }  // namespace Compiler

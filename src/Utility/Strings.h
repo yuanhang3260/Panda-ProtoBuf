@@ -37,6 +37,8 @@ class StringUtils {
                                               std::string match);
 
   static bool IsSingleWord(std::string str);
+
+  static std::string StrCat(std::vector<std::string>, unsigned int start = 0);
 };
 
 #endif /* __STRINGS_H_ */

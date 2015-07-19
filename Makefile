@@ -33,16 +33,18 @@ TESTEXE = test/TextPrinter_test.out \
 					test/StringBuilder_test.out \
 					test/Strings_test.out
 
-CLIENTOBJ = $(OBJ_DIR)/HttpClient_main.o
+COMPILEROBJ = $(OBJ_DIR)/Compiler/CppCompiler_main.o
 
-SERVEROBJ = $(OBJ_DIR)/HttpServer_main.o
-
-default: library
+default: library compiler
 
 test: $(TESTEXE) library
 
 library: $(OBJ)
 	ar cr libsnp.a $(OBJ)
+
+compiler: $(SRC_DIR)/Compiler/Compiler_main.cpp library
+	$(CC) $(CFLAGS) $(LFLAGS) -c $(SRC_DIR)/Compiler/Compiler_main.cpp -o $(COMPILEROBJ)
+	$(CC) $(CFLAGS) $(LFLAGS) $(COMPILEROBJ) libsnp.a -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(SRC_DIR)/%.h
 	$(CC) $(CFLAGS) -c $< -o $@

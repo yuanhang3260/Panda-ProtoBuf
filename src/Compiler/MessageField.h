@@ -33,11 +33,15 @@ class MessageField {
   virtual ~MessageField();
 
   static FIELD_MODIFIER GetMessageFieldModifier(std::string modifier);
+  static std::string GetModifierAsString(MessageField::FIELD_MODIFIER modifier);
   static FIELD_TYPE GetMessageFieldType(std::string type);
+  static std::string GetTypeAsString(MessageField::FIELD_TYPE type);
 
-  std::string name() const { return name_; }
+  FIELD_MODIFIER modifier() const { return modifier_; }
   FIELD_TYPE type() const { return type_; }
+  std::string name() const { return name_; }
   int tag() const { return tag_; }
+  std::string default_value() const { return default_value_; }
 
  private:
   FIELD_MODIFIER modifier_;

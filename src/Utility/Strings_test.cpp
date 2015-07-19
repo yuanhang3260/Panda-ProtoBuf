@@ -64,6 +64,14 @@ void test_Strip() {
     exit(-1);
   }
 
+  result = StringUtils::Strip(" [abcdfe] ");
+  if (result != "[abcdfe]") {
+    fprintf(stderr,
+            "ERROR in Strip(\" [abcdfe] \", \"[]\"), returns \"%s\"\n",
+            result.c_str());
+    exit(-1);
+  }
+
   std::cout << "Passed ^_^" << std::endl;
 }
 
@@ -71,8 +79,8 @@ void test_StartWith() {
   std::cout << __FUNCTION__ << "()..." << std::endl;
   std::string str;
 
-  str = "//abcdefg ";
-  if (!StringUtils::StartWith(str, "//")) {
+  str = "package snoopy;";
+  if (!StringUtils::StartWith(str, "package ")) {
     fprintf(stderr,
             "ERROR in StartWith(\"//abcdefg \", \"//\"), should return true\n");
     exit(-1);
