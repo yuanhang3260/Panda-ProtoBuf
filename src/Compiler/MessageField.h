@@ -24,12 +24,14 @@ class MessageField {
     DOUBLE,
     STRING,
     BOOL,
-    ENUM,
-    MESSAGE,
+    ENUMTYPE,
+    MESSAGETYPE,
   };
 
   MessageField(FIELD_MODIFIER modifier, FIELD_TYPE type, std::string name,
                int tag, std::string default_value);
+  MessageField(FIELD_MODIFIER modifier, FIELD_TYPE type, std::string type_name,
+               std::string name, int tag, std::string default_value);
   virtual ~MessageField();
 
   static FIELD_MODIFIER GetMessageFieldModifier(std::string modifier);
@@ -42,10 +44,14 @@ class MessageField {
   std::string name() const { return name_; }
   int tag() const { return tag_; }
   std::string default_value() const { return default_value_; }
+  std::string type_name() const { return type_name_; }
+
+  void set_type_name(std::string type_name) { type_name_ = type_name; }
 
  private:
   FIELD_MODIFIER modifier_;
   FIELD_TYPE type_;
+  std::string type_name_;
   std::string name_;
   int tag_;
   std::string default_value_;

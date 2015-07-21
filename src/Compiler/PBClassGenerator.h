@@ -46,6 +46,8 @@ class PBClassGenerator {
 
   void PrintToken(std::string description, std::string str);
 
+  void LogError(const char* error_msg, ...) const;
+
   LANGUAGE lang_;
   std::string proto_file_;
 

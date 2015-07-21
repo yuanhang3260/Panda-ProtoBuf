@@ -31,11 +31,11 @@ bool FieldComparator(const std::shared_ptr<MessageField>& field1,
 }
 
 void Message::Print() {
-  std::cout << "\nMessage " << name_ << "in Package " << package_ << std::endl;
+  std::cout << "\nMessage " << name_ << " in Package " << package_ << std::endl;
   std::sort(fileds_list_.begin(), fileds_list_.end(), FieldComparator);
   for (auto& field: fileds_list_) {
     std::cout << "  " << MessageField::GetModifierAsString(field->modifier());
-    std::cout << " " << MessageField::GetTypeAsString(field->type());
+    std::cout << " " << field->type_name();
     std::cout << " " << field->name() << " = " << field->tag();
     if (field->default_value() != "") {
       std::cout << " [ default = " << field->default_value() << " ]";

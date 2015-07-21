@@ -95,7 +95,7 @@ std::string* BufferedDataReader::ReadLine(std::string* str) {
   int re = 0;
 
   if (dataLen == 0 && (re = refill()) <= 0) {
-    fprintf(stderr, "LOG: Refill in readline() returns %d\n", re);
+    // fprintf(stderr, "LOG: Refill in readline() returns %d\n", re);
     return NULL;
   }
 

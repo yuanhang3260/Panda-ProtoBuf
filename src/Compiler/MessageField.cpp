@@ -12,7 +12,28 @@ MessageField::MessageField(FIELD_MODIFIER modifier,
     type_(type),
     name_(name),
     tag_(tag),
-    default_value_(default_value) {}
+    default_value_(default_value) {
+  type_name_ = GetTypeAsString(type);
+}
+
+MessageField::MessageField(FIELD_MODIFIER modifier,
+                           FIELD_TYPE type,
+                           std::string type_name,
+                           std::string name,
+                           int tag,
+                           std::string default_value) :
+    modifier_(modifier),
+    type_(type),
+    type_name_(type_name),
+    name_(name),
+    tag_(tag),
+    default_value_(default_value) {
+  if (type != MessageField::ENUMTYPE &&
+      type != MessageField::MESSAGETYPE &&
+      GetMessageFieldType(type_name_) != type) {
+    type_name_ = GetTypeAsString(type);
+  }
+}
 
 MessageField::~MessageField() {}
 
@@ -93,11 +114,11 @@ MessageField::GetTypeAsString(MessageField::FIELD_TYPE type) {
   if (type == MessageField::BOOL) {
     return "bool";
   }
-  if (type == MessageField::ENUM) {
+  if (type == MessageField::ENUMTYPE) {
     return "enum";
   }
-  if (type == MessageField::MESSAGE) {
-    return "MESSAGE";
+  if (type == MessageField::MESSAGETYPE) {
+    return "message";
   }
   return "undermined";
 }

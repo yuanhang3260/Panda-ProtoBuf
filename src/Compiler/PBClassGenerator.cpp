@@ -1,5 +1,8 @@
-#include "PBClassGenerator.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include <stdarg.h>
 
+#include "PBClassGenerator.h"
 #include "../IO/FileDescriptor.h"
 #include "../Utility/BufferedDataReader.h"
 #include "../Utility/BufferedDataWriter.h"
@@ -23,7 +26,7 @@ bool PBClassGenerator::ReadProtoFile() {
   while (br.ReadLine(&line)) {
     line_number_++;
     line = StringUtils::Strip(line);
-    std::cout << "\nParsing: \"" << line << "\"" << std::endl;
+    // std::cout << "\nParsing: \"" << line << "\"" << std::endl;
     // Skip empty and comment lines.
     if (line.length() == 0 || StringUtils::StartWith(line, "//")) {
       continue;
@@ -58,8 +61,7 @@ bool PBClassGenerator::ReadProtoFile() {
     }
     // Syntax Error
     else {
-      fprintf(stderr, "ERROR: Illegal line %d \"%s\"\n",
-                      line_number_, line.c_str());
+      LogError("Illegal line, can't parse");
       return false;
     }
   }
@@ -68,22 +70,17 @@ bool PBClassGenerator::ReadProtoFile() {
 
 bool PBClassGenerator::ParsePackageName(std::string line) {
   if (line[line.length()-1] != ';') {
-    fprintf(stderr, "ERROR: Syntax error in line %d - "
-                    "Expect \";\" at end\n.", line_number_);
+    LogError("Expect \";\" at line end");
     return false;
   }
   line = StringUtils::Strip(line, ";");
   std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
   if (result.size() != 2) {
-    fprintf(stderr,
-            "ERROR: Syntax error in line %d - "
-            "more than one packet name\n", line_number_);
+    LogError("Expect 2 tokens, actual %d", result.size());
     return false;
   }
   if (result[0] != "package") {
-    fprintf(stderr,
-            "ERROR: Syntax error in line %d, unknown keyword %s\n",
-            line_number_, result[0].c_str());
+    LogError("Unknown key word", result[0].c_str());
     return false;
   }
   current_package_ = result[1];
@@ -93,18 +90,15 @@ bool PBClassGenerator::ParsePackageName(std::string line) {
 bool PBClassGenerator::ParseMessageName(std::string line) {
   std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
   if (result.size() != 3) {
-    fprintf(stderr, "ERROR: Syntax error in line %d\n", line_number_);
+    LogError("Expect 3 tokens, actual %d", result.size());
     return false;
   }
   if (result[0] != "message") {
-    fprintf(stderr, "ERROR: Syntax error in line %d - "
-                    "unknown keyword \"%s\"\n",
-                    line_number_, result[0].c_str());
+    LogError("Unknown keyword \"%s\"\n", result[0].c_str());
     return false;
   }
   if (result[2] != "{") {
-    fprintf(stderr, "ERROR: Syntax error in line %d - "
-                    "Expect \"{\" at line end\n", line_number_);
+    LogError("Syntax error, expect \"{\" at line end\n");
     return false;
   }
   std::string message_name = result[1];
@@ -117,32 +111,36 @@ bool PBClassGenerator::ParseMessageName(std::string line) {
 
 bool PBClassGenerator::ParseMessageField(std::string line) {
   if (line[line.length()-1] != ';') {
-    fprintf(stderr, "ERROR: Syntax error in message field line - "
-                    "Expect \";\" at line end\n");
+    LogError("Expect \";\" at line end");
+    return false;
   }
   line = StringUtils::Strip(line, ";");
   std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
 
   if (result.size() < 3) {
-    fprintf(stderr, "ERROR: Syntax error in message field line\n");
+    LogError("Syntax error");
     return false;
   }
   // Parse field modifier.
   MessageField::FIELD_MODIFIER modifier;
   if ((modifier = MessageField::GetMessageFieldModifier(result[0])) ==
       MessageField::UNKNOWN_MODIFIER) {
-    fprintf(stderr, "ERROR: Syntax error in message field line - "
-                    "unknown modifier \"%s\"\n", result[0].c_str());
+    LogError("Unknown modifier \"%s\"", result[0].c_str());
     return false;
   }
   // Parse field type.
   MessageField::FIELD_TYPE type;
   if ((type = MessageField::GetMessageFieldType(result[1])) ==
       MessageField::UNDETERMINED) {
-    fprintf(stderr, "ERROR: Syntax error in message field line - "
-                    "unknown field type \"%s\"\n", result[1].c_str());
-    return false;
+    if (messages_map_.find(result[1]) == messages_map_.end()) {
+      LogError("Unknown field type \"%s\"", result[1].c_str());
+      return false;
+    }
+    else {
+      type = MessageField::MESSAGETYPE;
+    }
   }
+  std::string type_name = result[1];
 
   // Parse name and tag.
   std::string remain;
@@ -155,8 +153,7 @@ bool PBClassGenerator::ParseMessageField(std::string line) {
     nametag = StringUtils::Strip(remain.substr(0, pos));
     defaultblock = StringUtils::Strip(remain.substr(pos));
     if (defaultblock[defaultblock.length()-1] != ']') {
-      fprintf(stderr, "ERROR: Syntax error in message field line - "
-                      "illegal default assign: \"%s\"\n", defaultblock.c_str());
+      LogError("Expect \"]\" after default assignement");
       return false;
     }
     defaultblock = StringUtils::Strip(defaultblock, "[]");   
@@ -174,14 +171,19 @@ bool PBClassGenerator::ParseMessageField(std::string line) {
       return false;
     }
     if (default_name != "default") {
+      LogError("Can't recognize \"%s\", should be \"default\"",
+               default_name.c_str());
       return false;
     }
   }
 
   // Add new field to current message.
   std::shared_ptr<MessageField> new_field(
-      new MessageField(modifier, type, name, tag_num, default_value));
+      new MessageField(modifier, type, type_name, name, tag_num,
+                       default_value));
   if (!CurrentMessage()->AddField(new_field)) {
+    LogError("Add field \"%s\" to message \"%s\" failed",
+             name.c_str(), CurrentMessage()->name().c_str());
     return false;
   }
   return true;
@@ -199,19 +201,17 @@ bool PBClassGenerator::ParseAssignExpression(std::string line,
   line = StringUtils::Strip(line);
   unsigned int pos = line.find("=");
   if (pos == std::string::npos) {
-    fprintf(stderr, "ERROR: Syntax error in \"name = tag\" assignement - "
-                    "Expect \"=\" but actual \"%s\"\n",
-                    line.c_str());
+    LogError("Expect \"variable = value\" but actual \"%s\"\n", line.c_str());
     return false;
   }
   *left = StringUtils::Strip(line.substr(0, pos));
   *right = StringUtils::Strip(line.substr(pos + 1));
-  if (!IsValidVariableName(*left)) {
-    fprintf(stderr, "invalid variable name %s\n", (*left).c_str());
+  if ((*left).length() == 0 || !IsValidVariableName(*left)) {
+    LogError("invalid variable name \"%s\"\n", (*left).c_str());
     return false;
   }
-  if (!IsValidVariableName(*right)) {
-    fprintf(stderr, "invalid right value %s\n", (*right).c_str());
+  if ((*right).length() == 0 || !IsValidVariableName(*right)) {
+    LogError("invalid variable name \"%s\"\n", (*right).c_str());
     return false;
   }
   return true;
@@ -219,7 +219,7 @@ bool PBClassGenerator::ParseAssignExpression(std::string line,
 
 bool PBClassGenerator::GeneratePBClass() {
   if (!ReadProtoFile()) {
-    fprintf(stderr, "Parse proto file failed\n");
+    fprintf(stderr, "Parse %s failed\n", proto_file_.c_str());
     return false;
   }
   PrintParsedProto();
@@ -261,6 +261,15 @@ PBClassGenerator::GetLanguageFromString(std::string lang) {
 
 void PBClassGenerator::PrintToken(std::string description, std::string str) {
   std::cout << "[" << description << "] = \"" << str << "\"" << std::endl;
+}
+
+void PBClassGenerator::LogError(const char* error_msg, ...) const {
+  fprintf(stderr, "%s:%d: ", proto_file_.c_str(), line_number_);
+  va_list args;
+  va_start(args, error_msg);
+  vfprintf(stderr, error_msg, args);
+  va_end(args);
+  fprintf(stderr, ".\n");
 }
 
 }  // Compiler
