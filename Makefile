@@ -79,11 +79,13 @@ test/%.out: $(OBJ_DIR)/IO/%.o library
 
 clean:
 	rm -rf libsnp.a
+	rm -rf compiler
 	rm -rf $(OBJ_DIR)/*.o
 	rm -rf $(OBJ_DIR)/Utility/*.o
 	rm -rf $(OBJ_DIR)/IO/*.o
 	rm -rf $(OBJ_DIR)/Network/*.o
 	rm -rf $(OBJ_DIR)/Compiler/*.o
+	rm -rf $(OBJ_DIR)/Log/*.o
 	rm -rf test/*.out
 	rm -rf *.output
 
