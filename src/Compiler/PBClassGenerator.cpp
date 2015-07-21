@@ -26,13 +26,13 @@ bool PBClassGenerator::ReadProtoFile() {
   while (br.ReadLine(&line)) {
     line_number_++;
     line = StringUtils::Strip(line);
-    // std::cout << "\nParsing: \"" << line << "\"" << std::endl;
+    //std::cout << "\nParsing: \"" << line << "\"" << std::endl;
     // Skip empty and comment lines.
     if (line.length() == 0 || StringUtils::StartWith(line, "//")) {
       continue;
     }
     // remove comment in the line.
-    unsigned int pos;
+    std::size_t pos;
     if ((pos = line.find("//")) != std::string::npos) {
       line = StringUtils::Strip(line.substr(0, pos));
     }
@@ -147,8 +147,9 @@ bool PBClassGenerator::ParseMessageField(std::string line) {
   for (unsigned int i = 2; i < result.size(); i++) {
     remain += (result[i] + " ");
   }
-  unsigned int pos = remain.find("[");
+
   std::string nametag = remain, defaultblock = "";
+  std::size_t pos = remain.find("[");
   if (pos != std::string::npos) {
     nametag = StringUtils::Strip(remain.substr(0, pos));
     defaultblock = StringUtils::Strip(remain.substr(pos));
@@ -158,6 +159,7 @@ bool PBClassGenerator::ParseMessageField(std::string line) {
     }
     defaultblock = StringUtils::Strip(defaultblock, "[]");   
   }
+
   std::string name, tag;
   if (!ParseAssignExpression(nametag, &name, &tag)) {
     return false;
@@ -199,19 +201,19 @@ bool PBClassGenerator::ParseAssignExpression(std::string line,
                                              std::string* left,
                                              std::string* right) const {
   line = StringUtils::Strip(line);
-  unsigned int pos = line.find("=");
+  std::size_t pos = line.find("=");
   if (pos == std::string::npos) {
-    LogError("Expect \"variable = value\" but actual \"%s\"\n", line.c_str());
+    LogError("Expect \"variable = value\" but actual \"%s\"", line.c_str());
     return false;
   }
   *left = StringUtils::Strip(line.substr(0, pos));
   *right = StringUtils::Strip(line.substr(pos + 1));
   if ((*left).length() == 0 || !IsValidVariableName(*left)) {
-    LogError("invalid variable name \"%s\"\n", (*left).c_str());
+    LogError("invalid variable name \"%s\"", (*left).c_str());
     return false;
   }
   if ((*right).length() == 0 || !IsValidVariableName(*right)) {
-    LogError("invalid variable name \"%s\"\n", (*right).c_str());
+    LogError("invalid variable name \"%s\"", (*right).c_str());
     return false;
   }
   return true;
