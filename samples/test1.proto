@@ -6,8 +6,8 @@ message DogInfo {
   required string name= 2;
   required int32 age =1;
   enum Sex {
-    MALE,
-    FEMALE,
+    Male,
+    Female,
   }
   required Sex sex = 6;
   optional double height=3 ;
@@ -16,8 +16,8 @@ message DogInfo {
 }
 
 enum FriendType{
-  HUMAN,
-  ANIMAL,
+  Human,
+  Animal,
 }
 
 message DogFriendInfo {

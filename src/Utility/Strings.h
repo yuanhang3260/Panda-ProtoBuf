@@ -18,6 +18,32 @@ class StringUtils {
     return c >= 'a' && c <= 'z';
   }
 
+  static std::string Upper(std::string str) {
+    char c[str.length()];
+    for (unsigned int i = 0; i < str.length(); i++) {
+      if (str[i] >= 'a' && str[i] <= 'z') {
+        c[i] = str[i] - 32;
+      }
+      else {
+        c[i] = str[i];
+      }
+    }
+    return std::string(c, str.length());
+  }
+
+  static std::string Lower(std::string str) {
+    char c[str.length()];
+    for (unsigned int i = 0; i < str.length(); i++) {
+      if (str[i] >= 'A' && str[i] <= 'Z') {
+        c[i] = str[i] + 32;
+      }
+      else {
+        c[i] = str[i];
+      }
+    }
+    return std::string(c, str.length());
+  }
+
   static bool IsLetterOrDigitOrUnderScore(const char c) {
     return (c >= 'a' && c <= 'z') ||
            (c >= 'A' && c <= 'Z') ||
@@ -29,6 +55,7 @@ class StringUtils {
   static std::string Strip(std::string str, std::string match);
 
   static bool StartWith(std::string& str, std::string match);
+  static bool EndWith(std::string& str, std::string match);
 
   static std::vector<std::string> Split(std::string& str, const char c);
   static std::vector<std::string> Split(std::string& str, std::string match);

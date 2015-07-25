@@ -11,6 +11,8 @@
 namespace PandaProto {
 namespace Compiler {
 
+class CppGeneratorImpl;
+
 class PBClassGenerator {
  public:
   enum LANGUAGE {
@@ -39,23 +41,13 @@ class PBClassGenerator {
 
  protected:
   bool ReadProtoFile();
- 
- private:
-  bool ParsePackageName(std::string line);
-  bool ParseMessageName(std::string line);
-  bool ParseMessageField(std::string line);
-  bool ParseEnumName(std::string line);
-  bool ParseEnumValue(std::string line);
-  bool ParseAssignExpression(std::string line,
-                             std::string* left, std::string* right) const;
-
-  static bool IsMessageFiledLine(std::string line);
-  static bool IsValidVariableName(std::string str);
 
   void PrintToken(std::string description, std::string str);
 
   void LogError(const char* error_msg, ...) const;
   void PrintParseState() const;
+
+  void GenerateCppCode();
 
   LANGUAGE lang_;
   std::string proto_file_;
@@ -69,6 +61,20 @@ class PBClassGenerator {
   std::string current_package_;
   Message* current_message_;
   EnumType* currentEnum_;
+ 
+ private:
+  bool ParsePackageName(std::string line);
+  bool ParseMessageName(std::string line);
+  bool ParseMessageField(std::string line);
+  bool ParseEnumName(std::string line);
+  bool ParseEnumValue(std::string line);
+  bool ParseAssignExpression(std::string line,
+                             std::string* left, std::string* right) const;
+
+  static bool IsMessageFiledLine(std::string line);
+  static bool IsValidVariableName(std::string str);
+
+  bool init_success_ = false;
 };
 
 }  // Compiler

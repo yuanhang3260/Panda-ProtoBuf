@@ -14,6 +14,7 @@ class TextPrinterImpl {
  public:
   friend class TextPrinter;
   TextPrinterImpl(std::string outputfile);
+  int Print_Impl(std::string);
   int Print_Impl(std::string, std::vector<std::string>);
   int Print_Impl(std::string, std::map<std::string, std::string>);
   int DoPrint(const char* piece, const int size);
@@ -31,6 +32,11 @@ TextPrinterImpl::TextPrinterImpl(std::string outputfile) :
   std::unique_ptr<FileDescriptor> fd_;
   fd_.reset(new FileDescriptor(outputfile, FileDescriptor::WRITE_ONLY));
   writer_.reset(new Utility::BufferedDataWriter(std::move(fd_)));
+}
+
+int TextPrinterImpl::Print_Impl(std::string content) {
+  DoPrint(content.c_str(), content.length());
+  return content.length();
 }
 
 int TextPrinterImpl::Print_Impl(
@@ -180,6 +186,10 @@ TextPrinter::TextPrinter(std::string outputfile) {
 }
 
 TextPrinter::~TextPrinter() {
+}
+
+void TextPrinter::Print(std::string content) {
+  text_printer_impl_->Print_Impl(content);
 }
 
 void TextPrinter::Print(std::string content, std::vector<std::string> matches) {

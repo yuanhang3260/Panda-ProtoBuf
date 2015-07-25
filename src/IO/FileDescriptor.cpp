@@ -24,6 +24,7 @@ FileDescriptor::FileDescriptor(std::string filename, MODE mode) {
   }
   if (fd_ < 0) {
     fprintf(stderr, "ERROR: open file %s failed\n", filename.c_str());
+    return;
   }
   closed_ = false;
 }

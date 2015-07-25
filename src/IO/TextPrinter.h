@@ -16,6 +16,7 @@ class TextPrinter {
   TextPrinter(std::string outputfile);
   ~TextPrinter();
   
+  void Print(std::string content);
   void Print(std::string content, std::vector<std::string> matches);
   void Print(std::string content, std::map<std::string, std::string> map);
   void Flush();

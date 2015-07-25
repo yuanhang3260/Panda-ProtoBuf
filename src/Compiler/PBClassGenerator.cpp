@@ -4,6 +4,7 @@
 
 #include "PBClassGenerator.h"
 #include "../IO/FileDescriptor.h"
+#include "../IO/TextPrinter.h"
 #include "../Utility/BufferedDataReader.h"
 #include "../Utility/BufferedDataWriter.h"
 #include "../Utility/Strings.h"
@@ -13,13 +14,27 @@ namespace Compiler {
 
 PBClassGenerator::PBClassGenerator(LANGUAGE lang, std::string file) :
     lang_(lang),
-    proto_file_(file) {}
+    proto_file_(file) {
+  if (!StringUtils::EndWith(proto_file_, ".proto")) {
+    init_success_ = false;
+    fprintf(stderr, "ERROR: proto file name must have \".proto\" postfix.\n");
+    return;
+  }
+  init_success_ = true;
+}
 
 PBClassGenerator::~PBClassGenerator() {}
 
 bool PBClassGenerator::ReadProtoFile() {
+  if (!init_success_) {
+    return false;
+  }
+
   std::unique_ptr<IO::FileDescriptor> fd(
       new IO::FileDescriptor(proto_file_, IO::FileDescriptor::READ_ONLY));
+  if (fd->closed()) {
+    return false;
+  }
   Utility::BufferedDataReader br(std::move(fd));
 
   // Read each line and parse in a finite state machine.
@@ -197,22 +212,22 @@ bool PBClassGenerator::ParseMessageField(std::string line) {
     return false;
   }
   // Parse field type.
+  std::string type_name = result[1];
   MessageField::FIELD_TYPE type;
-  if ((type = MessageField::GetMessageFieldType(result[1])) ==
+  if ((type = MessageField::GetMessageFieldType(type_name)) ==
       MessageField::UNDETERMINED) {
-    if (messages_map_.find(result[1]) != messages_map_.end() ||
-        current_message_->FindEnumType(result[1])) {
+    if (messages_map_.find(type_name) != messages_map_.end() ||
+        current_message_->FindEnumType(type_name)) {
       type = MessageField::MESSAGETYPE;
     }
-    else if (enums_map_.find(result[1]) != enums_map_.end()) {
+    else if (enums_map_.find(type_name) != enums_map_.end()) {
       type = MessageField::ENUMTYPE;
     }
     else {
-      LogError("Unknown field type \"%s\"", result[1].c_str());
+      LogError("Unknown field type \"%s\"", type_name.c_str());
       return false;
     }
   }
-  std::string type_name = result[1];
 
   // Parse name and tag.
   std::string remain;
@@ -353,10 +368,17 @@ bool PBClassGenerator::ParseAssignExpression(std::string line,
 
 bool PBClassGenerator::GeneratePBClass() {
   if (!ReadProtoFile()) {
-    fprintf(stderr, "Parse %s failed\n", proto_file_.c_str());
+    fprintf(stderr, "ERROR: Can't parse proto %s\n", proto_file_.c_str());
     return false;
   }
   PrintParsedProto();
+  
+  switch (lang_) {
+    case CPP:
+      GenerateCppCode();
+      break;
+    default: break;
+  }
   return true;
 }
 
@@ -429,6 +451,97 @@ void PBClassGenerator::PrintParseState() const {
   }
 }
 
+void PBClassGenerator::GenerateCppCode() {
+  std::string outfile;
+  outfile = proto_file_.substr(0, proto_file_.length() - 6) + "_pb";
+
+  // Generate .h file
+  IO::TextPrinter printer(outfile + ".h");
+
+  std::vector<std::string> result = StringUtils::Split(outfile, '/');
+  std::string filename = result[result.size() - 1];
+
+  printer.Print("#ifndef _" + StringUtils::Upper(filename) + "_H\n");
+  printer.Print("#define _" + StringUtils::Upper(filename) + "_H\n\n");
+  printer.Print("#include <string>\n");
+  printer.Print("#include <vector>\n\n");
+
+  std::string crt_namespace;
+  // Print global enums.
+  for (auto& e: enums_map_) {
+    EnumType* enum_p = e.second.get();
+    if (enum_p->package() != crt_namespace) {
+      if (!crt_namespace.empty()) {
+        printer.Print("}  // namespace " + crt_namespace + "\n\n");
+      }
+      printer.Print("namespace " + enum_p->package() + " {\n\n");
+      crt_namespace = enum_p->package();
+    }
+    printer.Print("enum " + enum_p->name() + " {\n");
+    for (auto& enumvalue: enum_p->enums()) {
+      printer.Print("  " + enumvalue + ",\n");
+    }
+    printer.Print("};\n\n");
+  }
+
+  std::map<MessageField::FIELD_TYPE, std::string> pbCppTypeMap{
+    {MessageField::INT32, "int"},
+    {MessageField::INT64, "long long"},
+    {MessageField::UINT32, "unsigned int"},
+    {MessageField::UINT64, "unsigned long long"},
+    {MessageField::DOUBLE, "dobule"},
+    {MessageField::STRING, "std::string"},
+    {MessageField::BOOL, "bool"},
+  };
+  // Print classes.
+  for (auto& message: messages_list_) {
+    if (message->package() != crt_namespace) {
+      if (!crt_namespace.empty()) {
+        printer.Print("}  // namespace " + crt_namespace + "\n\n");
+      }
+      printer.Print("namespace " + message->package() + " {\n\n");
+      crt_namespace = message->package();
+    }
+    printer.Print("class " + message->name() + " {\n");
+
+    // Public fields.
+    printer.Print(" public:\n");
+    // Print enums declearation.
+    for (auto& e: message->enums_map()) {
+      EnumType* enum_p = e.second.get();
+      printer.Print("  enum " + enum_p->name() + " {\n");
+      for (auto& enumvalue: enum_p->enums()) {
+        printer.Print("    " + enumvalue + ",\n");
+      }
+      printer.Print("  };\n\n");
+    }
+
+    
+
+    // Private fields.
+    printer.Print(" private:\n");
+    for (auto& field: message->fields_list()) {
+      std::string type_name = field->type_name();
+      if (field->type() != MessageField::ENUMTYPE &&
+          field->type() != MessageField::MESSAGETYPE) {
+        type_name = pbCppTypeMap.at(field->type());
+      }
+      if (field->modifier() == MessageField::REPEATED) {
+        type_name = "std::vector<" + type_name + ">";
+      }
+      printer.Print("  $ $",
+                    std::vector<std::string>{type_name, field->name()});
+      if (!field->default_value().empty()) {
+        printer.Print(" = " + field->default_value());
+      }
+      printer.Print(";\n");
+    }
+    printer.Print("};\n\n");
+  }
+
+  printer.Print("}  // namespace " + crt_namespace + "\n\n");
+  printer.Flush();
+}
 
 }  // Compiler
 }  // PandaProto

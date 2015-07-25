@@ -22,6 +22,8 @@ class Message {
 
   std::string name() const { return name_; }
   std::string package() const { return package_; }
+  const std::vector<std::shared_ptr<MessageField>>& fields_list() const;
+  const std::map<std::string, std::shared_ptr<EnumType>>& enums_map() const;
   MessageField* FindMessage(std::string name) const;
   EnumType* FindEnumType(std::string name) const;
 

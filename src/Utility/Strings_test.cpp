@@ -130,6 +130,61 @@ void test_StartWith() {
   std::cout << "Passed ^_^" << std::endl;
 }
 
+void test_EndWith() {
+  std::cout << __FUNCTION__ << "()..." << std::endl;
+  std::string str;
+
+  str = "package snoopy;";
+  if (!StringUtils::EndWith(str, "snoopy;")) {
+    fprintf(stderr,
+            "ERROR in EndWith(\"//abcdefg \", \"snoopy;\"), should return true\n");
+    exit(-1);
+  }
+
+  str = "//abcdefg";
+  if (StringUtils::EndWith(str, "g ")) {
+    fprintf(stderr,
+            "ERROR in EndWith(\" /abcdefg\", \"g \"), should return false\n");
+    exit(-1);
+  }
+
+  str = "abc";
+  if (!StringUtils::EndWith(str, "")) {
+    fprintf(stderr, "ERROR in EndWith(\"abc\", \"\"), should return true\n");
+    exit(-1);
+  }
+
+  str = "abc";
+  if (StringUtils::EndWith(str, "abcdef")) {
+    fprintf(stderr,
+            "ERROR in EndWith(\"abc\", \"abcdefg\"), should return false\n");
+    exit(-1);
+  }
+
+  str = "abc";
+  if (!StringUtils::EndWith(str, "abc")) {
+    fprintf(stderr,
+            "ERROR in EndWith(\"abc\", \"abc\"), should return true\n");
+    exit(-1);
+  }
+
+  str = "";
+  if (!StringUtils::EndWith(str, "")) {
+    fprintf(stderr,
+            "ERROR in EndWith(\"\", \"\"), should return true\n");
+    exit(-1);
+  }
+
+  str = "";
+  if (StringUtils::EndWith(str, "a")) {
+    fprintf(stderr,
+            "ERROR in EndWith(\"\", \"a\"), should return false\n");
+    exit(-1);
+  }
+
+  std::cout << "Passed ^_^" << std::endl;
+}
+
 void test_Split_Impl(std::vector<std::string>& expect1,
                      std::vector<std::string>& result1,
                      std::vector<std::string>& expect2,
@@ -230,6 +285,7 @@ void test_Split() {
 int main(int argc, char** argv) {
   test_Strip();
   test_StartWith();
+  test_EndWith();
   test_Split();
   return 0;
 }

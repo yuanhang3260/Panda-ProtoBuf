@@ -55,6 +55,19 @@ bool StringUtils::StartWith(std::string& str, std::string match) {
   return true;
 }
 
+bool StringUtils::EndWith(std::string& str, std::string match) {
+  if (match.length() > str.length()) {
+    return false;
+  }
+  int strlength = str.length(), matchlength = match.length();
+  for (unsigned int i = 0; i < match.length(); i++) {
+    if (str[strlength - 1 - i] != match[matchlength - 1 - i]) {
+      return false;
+    }
+  }
+  return true;
+}
+
 std::vector<std::string> StringUtils::Split(std::string& str, const char c) {
   std::vector<std::string> result;
   unsigned int start = 0;

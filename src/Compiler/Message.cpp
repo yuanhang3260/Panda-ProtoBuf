@@ -72,5 +72,15 @@ EnumType* Message::FindEnumType(std::string name) const {
   return enums_map_.at(name).get();
 }
 
+const std::vector<std::shared_ptr<MessageField>>&
+Message::fields_list() const {
+  return fileds_list_;
+}
+
+const std::map<std::string, std::shared_ptr<EnumType>>&
+Message::enums_map() const {
+  return enums_map_;
+}
+
 }  // namespace Compiler
 }  // namespace PandaProto
