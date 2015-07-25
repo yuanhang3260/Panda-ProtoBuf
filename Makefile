@@ -23,6 +23,7 @@ OBJ = $(OBJ_DIR)/Utility/BufferedDataReader.o \
       $(OBJ_DIR)/Compiler/PBClassGenerator.o \
       $(OBJ_DIR)/Compiler/Message.o  \
       $(OBJ_DIR)/Compiler/MessageField.o \
+      $(OBJ_DIR)/Compiler/EnumType.o \
       $(OBJ_DIR)/Log/Log.o
 
 
