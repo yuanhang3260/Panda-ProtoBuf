@@ -20,6 +20,13 @@ class PBClassGenerator {
     UNKNOWN_LANGUAGE,
   };
 
+  enum ParseState {
+    GLOBAL,
+    PARSINGMSG,
+    PARSINGENUM,
+    PARSINGNESTEDENUM,
+  };
+
   PBClassGenerator(LANGUAGE lang, std::string file);
   ~PBClassGenerator();
   PBClassGenerator(const PBClassGenerator&) = delete;
@@ -37,9 +44,10 @@ class PBClassGenerator {
   bool ParsePackageName(std::string line);
   bool ParseMessageName(std::string line);
   bool ParseMessageField(std::string line);
+  bool ParseEnumName(std::string line);
+  bool ParseEnumValue(std::string line);
   bool ParseAssignExpression(std::string line,
                              std::string* left, std::string* right) const;
-  Message* CurrentMessage() const;
 
   static bool IsMessageFiledLine(std::string line);
   static bool IsValidVariableName(std::string str);
@@ -47,14 +55,20 @@ class PBClassGenerator {
   void PrintToken(std::string description, std::string str);
 
   void LogError(const char* error_msg, ...) const;
+  void PrintParseState() const;
 
   LANGUAGE lang_;
   std::string proto_file_;
 
-  std::string current_package_ = "";
   std::map<std::string, std::shared_ptr<Message>> messages_map_;
   std::vector<std::shared_ptr<Message>> messages_list_;
+  std::map<std::string, std::shared_ptr<EnumType>> enums_map_;
+
   int line_number_ = 0;
+  ParseState state_ = GLOBAL;
+  std::string current_package_;
+  Message* current_message_;
+  EnumType* currentEnum_;
 };
 
 }  // Compiler

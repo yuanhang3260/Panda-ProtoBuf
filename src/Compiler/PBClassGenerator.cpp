@@ -22,11 +22,15 @@ bool PBClassGenerator::ReadProtoFile() {
       new IO::FileDescriptor(proto_file_, IO::FileDescriptor::READ_ONLY));
   Utility::BufferedDataReader br(std::move(fd));
 
+  // Read each line and parse in a finite state machine.
   std::string line;
   while (br.ReadLine(&line)) {
     line_number_++;
     line = StringUtils::Strip(line);
-    //std::cout << "\nParsing: \"" << line << "\"" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
+    PrintParseState();
+    std::cout << "Parsing: \"" << line << "\"\n" << std::endl;
+
     // Skip empty and comment lines.
     if (line.length() == 0 || StringUtils::StartWith(line, "//")) {
       continue;
@@ -37,28 +41,76 @@ bool PBClassGenerator::ReadProtoFile() {
       line = StringUtils::Strip(line.substr(0, pos));
     }
 
-    // Parse package name.
-    if (StringUtils::StartWith(line, "package ")) {
-      if (!ParsePackageName(line)) {
+    // Parse in Global state: Only accept line start with "package ",
+    // "message ", "enum ".
+    if (state_ == GLOBAL) {
+      if (StringUtils::StartWith(line, "package ")) {
+        if (!ParsePackageName(line)) {
+          return false;
+        }
+      }
+      // Parse message.
+      else if (StringUtils::StartWith(line, "message ")) {
+        if (!ParseMessageName(line)) {
+          return false;
+        }
+        state_ = PARSINGMSG;
+      }
+      else if (StringUtils::StartWith(line, "enum ")) {
+        if (!ParseEnumName(line)) {
+          return false;
+        }
+        state_ = PARSINGENUM;
+      }
+      else {
+        LogError("Illegal line in global");
         return false;
       }
     }
-    // Parse message.
-    else if (StringUtils::StartWith(line, "message ")) {
-      if (!ParseMessageName(line)) {
+
+    // Parse a message state.
+    else if (state_ == PARSINGMSG) {
+      // Parse message field.
+      if (StringUtils::StartWith(line, "enum ")) {
+        if (!ParseEnumName(line)) {
+          return false;
+        }
+        state_ = PARSINGNESTEDENUM;
+      }
+      else if (line == "}") {
+        state_ = GLOBAL;
+      }
+      else if (IsMessageFiledLine(line)) {
+        if (!ParseMessageField(line)) {
+          return false;
+        }
+      }
+      else {
+        LogError("Illegal line in Parsing a message");
         return false;
       }
     }
-    // Parse message field.
-    else if (IsMessageFiledLine(line)) {
-      if (!ParseMessageField(line)) {
+
+    // Parse a enum state.
+    else if (state_ == PARSINGENUM) {
+      if (line == "}") {
+        state_ = GLOBAL;
+      }
+      else if (!ParseEnumValue(line)) {
         return false;
       }
     }
-    // End of a message.
-    else if (line == "}") {
-      // Do nothing.
+
+    // Parse a nested enum state.
+    else if (state_ == PARSINGNESTEDENUM) {
+      if (line == "}") {
+        state_ = PARSINGMSG;
+      }
+      else if (!ParseEnumValue(line)) {
+        return false;
+      }
     }
+
     // Syntax Error
     else {
       LogError("Illegal line, can't parse");
@@ -89,23 +141,39 @@ bool PBClassGenerator::ParsePackageName(std::string line) {
 
 bool PBClassGenerator::ParseMessageName(std::string line) {
   std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
-  if (result.size() != 3) {
-    LogError("Expect 3 tokens, actual %d", result.size());
+  if (result.size() != 2 && result.size() != 3) {
+    LogError("Expect 2 or 3 tokens, actual %d", result.size());
     return false;
   }
   if (result[0] != "message") {
     LogError("Unknown keyword \"%s\"\n", result[0].c_str());
     return false;
   }
-  if (result[2] != "{") {
+  if (result.size() > 2 && result[2] != "{") {
     LogError("Syntax error, expect \"{\" at line end\n");
     return false;
   }
+  if (result.size() == 2 && result[1][result[1].length()-1] != '{') {
+    LogError("Syntax error, expect \"{\" at line end\n");
+    return false;
+  }
+
+  // Get message name.
   std::string message_name = result[1];
+  if (result.size() == 2) {
+    message_name = message_name.substr(0, message_name.length() - 1);
+  }
+  if (!IsValidVariableName(message_name)) {
+    LogError("invalid message name \"%s\"", message_name.c_str());
+    return false;
+  }
+
+  // Add new message to message map.
   std::shared_ptr<Message> new_message(new Message(message_name,
                                                    current_package_));
   messages_list_.push_back(new_message);
-  messages_map_[message_name] = new_message; 
+  messages_map_[message_name] = new_message;
+  current_message_ = new_message.get();
   return true;
 }
 
@@ -132,12 +200,16 @@ bool PBClassGenerator::ParseMessageField(std::string line) {
   MessageField::FIELD_TYPE type;
   if ((type = MessageField::GetMessageFieldType(result[1])) ==
       MessageField::UNDETERMINED) {
-    if (messages_map_.find(result[1]) == messages_map_.end()) {
-      LogError("Unknown field type \"%s\"", result[1].c_str());
-      return false;
+    if (messages_map_.find(result[1]) != messages_map_.end() ||
+        current_message_->FindEnumType(result[1])) {
+      type = MessageField::MESSAGETYPE;
+    }
+    else if (enums_map_.find(result[1]) != enums_map_.end()) {
+      type = MessageField::ENUMTYPE;
     }
     else {
-      type = MessageField::MESSAGETYPE;
+      LogError("Unknown field type \"%s\"", result[1].c_str());
+      return false;
     }
   }
   std::string type_name = result[1];
@@ -183,11 +255,71 @@ bool PBClassGenerator::ParseMessageField(std::string line) {
   std::shared_ptr<MessageField> new_field(
       new MessageField(modifier, type, type_name, name, tag_num,
                        default_value));
-  if (!CurrentMessage()->AddField(new_field)) {
+  if (!current_message_->AddField(new_field)) {
     LogError("Add field \"%s\" to message \"%s\" failed",
-             name.c_str(), CurrentMessage()->name().c_str());
+             name.c_str(), current_message_->name().c_str());
     return false;
   }
+  return true;
+}
+
+bool PBClassGenerator::ParseEnumName(std::string line) {
+  std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
+  if (result.size() != 2 && result.size() != 3) {
+    LogError("Expect 2 or 3 least tokens, actual %d", result.size());
+    return false;
+  }
+  if (result[0] != "enum") {
+    LogError("Unknown keyword \"%s\"\n", result[0].c_str());
+    return false;
+  }
+  if (result.size() > 2 && result[2] != "{") {
+    LogError("Syntax error, expect \"{\" at line end\n");
+    return false;
+  }
+  if (result.size() == 2 && result[1][result[1].length()-1] != '{') {
+    LogError("Syntax error, expect \"{\" at line end\n");
+    return false;
+  }
+
+  // Get enum name.
+  std::string enum_name = result[1];
+  if (result.size() == 2) {
+    enum_name = enum_name.substr(0, enum_name.length() - 1);
+  }
+  if (!IsValidVariableName(enum_name)) {
+    LogError("invalid enum name \"%s\"", enum_name.c_str());
+    return false;
+  }
+
+  // Add new enum to the enum map
+  std::shared_ptr<EnumType> new_enum;
+  if (state_ == GLOBAL) {
+    new_enum.reset(new EnumType(enum_name, current_package_));
+    enums_map_[enum_name] = new_enum;
+    currentEnum_ = new_enum.get();
+  }
+  else if (state_ == PARSINGMSG) {
+    new_enum.reset(new EnumType(enum_name, current_package_,
+                                current_message_->name()));
+    current_message_->AddEnum(new_enum);
+    currentEnum_ = new_enum.get();
+  }
+
+  return true;
+}
+
+bool PBClassGenerator::ParseEnumValue(std::string line) {
+  if (line[line.length()-1] != ',') {
+    LogError("Expect \",\" at line end");
+    return false;
+  }
+  std::string name = line.substr(0, line.length() - 1);
+  if (!IsValidVariableName(name)) {
+    LogError("invalid enum field name \"%s\"", name.c_str());
+    return false;
+  }
+  currentEnum_->AddEnumValue(name);
   return true;
 }
 
@@ -231,14 +363,18 @@ bool PBClassGenerator::GeneratePBClass() {
 void PBClassGenerator::PrintParsedProto() const {
   for (auto& message : messages_list_) {
     message->Print();
+    std::cout << std::endl << std::endl;
+  }
+  for (auto& e : enums_map_) {
+    e.second->Print();
+    std::cout << std::endl << std::endl;
   }
 }
 
-Message* PBClassGenerator::CurrentMessage() const {
-  return messages_list_[messages_list_.size()-1].get();
-}
-
 bool PBClassGenerator::IsValidVariableName(std::string str) {
+  if (str.length() == 0) {
+    return false;
+  }
   for (unsigned int i = 0; i < str.length(); i++) {
     if (!StringUtils::IsLetterOrDigitOrUnderScore(str[i])) {
       return false;
@@ -271,8 +407,28 @@ void PBClassGenerator::LogError(const char* error_msg, ...) const {
   va_start(args, error_msg);
   vfprintf(stderr, error_msg, args);
   va_end(args);
-  fprintf(stderr, ".\n");
+  fprintf(stderr, "\n");
 }
+
+void PBClassGenerator::PrintParseState() const {
+  switch (state_) {
+    case GLOBAL:
+      std::cout << "State: Global" << std::endl;
+      break;
+    case PARSINGMSG:
+      std::cout << "State: Parsing Messsage" << std::endl;
+      break;
+    case PARSINGENUM:
+      std::cout << "State: Parsing Enum" << std::endl;
+      break;
+    case PARSINGNESTEDENUM:
+      std::cout << "State: Parsing Nested Enum" << std::endl;
+      break;
+    default:
+      break;
+  }
+}
+
 
 }  // Compiler
 }  // PandaProto

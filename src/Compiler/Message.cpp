@@ -25,14 +25,28 @@ bool Message::AddField(std::shared_ptr<MessageField> field) {
   return true;
 }
 
-bool FieldComparator(const std::shared_ptr<MessageField>& field1,
-                     const std::shared_ptr<MessageField>& field2) {
+bool Message::AddEnum(std::shared_ptr<EnumType> newenum) {
+  if (enums_map_.find(newenum->name()) != enums_map_.end()) {
+    fprintf(stderr,
+            "ERROR: enum name \"%s\" already exisits in Message \"%s\"\n", 
+            newenum->name().c_str(), name_.c_str());
+    return false;
+  }
+  enums_map_[newenum->name()] = newenum;
+  return true;
+}
+
+bool FieldComparatorByTag(const std::shared_ptr<MessageField>& field1,
+                          const std::shared_ptr<MessageField>& field2) {
   return field1->tag() < field2->tag();
 }
 
 void Message::Print() {
-  std::cout << "\nMessage " << name_ << " in Package " << package_ << std::endl;
-  std::sort(fileds_list_.begin(), fileds_list_.end(), FieldComparator);
+  std::cout << "Message " << name_ << " in Package " << package_ << std::endl;
+  std::sort(fileds_list_.begin(), fileds_list_.end(), FieldComparatorByTag);
+  for (auto& e: enums_map_) {
+    e.second->Print();
+  }
   for (auto& field: fileds_list_) {
     std::cout << "  " << MessageField::GetModifierAsString(field->modifier());
     std::cout << " " << field->type_name();
@@ -42,7 +56,20 @@ void Message::Print() {
     }
     std::cout << std::endl;
   }
-  std::cout << std::endl;
+}
+
+MessageField* Message::FindMessage(std::string name) const {
+  if (fields_map_.find(name) == fields_map_.end()) {
+    return NULL;
+  }
+  return fields_map_.at(name).get();
+}
+
+EnumType* Message::FindEnumType(std::string name) const {
+  if (enums_map_.find(name) == enums_map_.end()) {
+    return NULL;
+  }
+  return enums_map_.at(name).get();
 }
 
 }  // namespace Compiler

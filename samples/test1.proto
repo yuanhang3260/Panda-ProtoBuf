@@ -5,14 +5,25 @@ package snoopy;
 message DogInfo {
   required string name= 2;
   required int32 age =1;
+  enum Sex {
+    MALE,
+    FEMALE,
+  }
+  required Sex sex = 6;
   optional double height=3 ;
   optional bool like = 4[default = true ];
   repeated int64 luckynumber = 5;
 }
 
+enum FriendType{
+  HUMAN,
+  ANIMAL,
+}
+
 message DogFriendInfo {
   required string name = 1;
   optional int32 years = 2 [ default= 3] ;  	
+  optional FriendType  friend_type = 4; 
 }
 
 message DogFamily {

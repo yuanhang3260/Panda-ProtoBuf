@@ -13,7 +13,7 @@ class EnumType {
   EnumType(std::string name, std::string package);
   EnumType(std::string name, std::string package, std::string message_);
 
-  void AddEnum(std::string newenum);
+  void AddEnumValue(std::string newenum);
   int NumberEnums() const;
   void Print() const;
   std::string name() const { return name_; }
