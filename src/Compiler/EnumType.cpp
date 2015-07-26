@@ -1,5 +1,6 @@
 #include <iostream>
 
+#include "../Utility/Strings.h"
 #include "EnumType.h"
 
 namespace PandaProto {
@@ -8,12 +9,22 @@ namespace Compiler {
 
 EnumType::EnumType(std::string name, std::string package) :
     name_(name),
-    package_(package) {}
+    package_(package) {
+  std::vector<std::string> result = StringUtils::Split(package_, '.');
+  for (auto& pkg: result) {
+    pkg_stack_.push_back(pkg);
+  }
+}
 
 EnumType::EnumType(std::string name, std::string package, std::string message) :
     name_(name),
     package_(package),
-    message_(message) {}
+    message_(message) {
+  std::vector<std::string> result = StringUtils::Split(package_, '.');
+  for (auto& pkg: result) {
+    pkg_stack_.push_back(pkg);
+  }
+}
 
 void EnumType::AddEnumValue(std::string newenum) {
   enums_.push_back(newenum);

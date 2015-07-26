@@ -24,12 +24,14 @@ class Message {
   std::string package() const { return package_; }
   const std::vector<std::shared_ptr<MessageField>>& fields_list() const;
   const std::map<std::string, std::shared_ptr<EnumType>>& enums_map() const;
+  const std::vector<std::string>& pkg_stack() const;
   MessageField* FindMessage(std::string name) const;
   EnumType* FindEnumType(std::string name) const;
 
  private:
   std::string name_;
   std::string package_ = "";  // namespace
+  std::vector<std::string> pkg_stack_;
   std::map<std::string, std::shared_ptr<MessageField>> fields_map_;
   std::vector<std::shared_ptr<MessageField>> fileds_list_;
   std::map<std::string, std::shared_ptr<EnumType>> enums_map_;

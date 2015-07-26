@@ -13,9 +13,12 @@ class TextPrinterImpl;
 
 class TextPrinter {
  public:
+  TextPrinter();
   TextPrinter(std::string outputfile);
   ~TextPrinter();
   
+  bool Open(std::string outputfile);
+
   void Print(const std::string& content);
   void Print(const std::string& content,
              const std::vector<std::string>& matches);

@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <vector>
 
+#include "../Utility/Strings.h"
 #include "Message.h"
 
 namespace PandaProto {
@@ -9,7 +10,12 @@ namespace Compiler {
 
 Message::Message(std::string name, std::string package) :
     name_(name),
-    package_(package) {}
+    package_(package) {
+  std::vector<std::string> result = StringUtils::Split(package_, '.');
+  for (auto& pkg: result) {
+    pkg_stack_.push_back(pkg);
+  }
+}
 
 Message::~Message() {}
 
@@ -80,6 +86,10 @@ Message::fields_list() const {
 const std::map<std::string, std::shared_ptr<EnumType>>&
 Message::enums_map() const {
   return enums_map_;
+}
+
+const std::vector<std::string>& Message::pkg_stack() const {
+  return pkg_stack_;
 }
 
 }  // namespace Compiler

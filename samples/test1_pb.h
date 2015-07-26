@@ -4,12 +4,15 @@
 #include <string>
 #include <vector>
 
-namespace snoopy {
+namespace AA {
+namespace BB {
 
 enum FriendType {
   Human,
   Animal,
 };
+
+}  // namespace BB
 
 class DogInfo {
  public:
@@ -71,6 +74,9 @@ class DogInfo {
   Sex* sex_;
 };
 
+namespace BB {
+namespace CC {
+
 class DogFriendInfo {
  public:
   // constructors and destructor
@@ -104,6 +110,11 @@ class DogFriendInfo {
   FriendType friend_type_;
 };
 
+}  // namespace CC
+}  // namespace BB
+
+namespace DD {
+
 class DogFamily {
  public:
   // constructors and destructor
@@ -127,7 +138,8 @@ class DogFamily {
   std::vector<DogInfo> dogs_;
 };
 
-}  // namespace snoopy
+}  // namespace DD
+}  // namespace AA
 
 
 #endif  /* _TEST1_PB_H */

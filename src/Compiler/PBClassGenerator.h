@@ -6,6 +6,7 @@
 #include <map>
 #include <memory>
 
+#include "../IO/TextPrinter.h"
 #include "Message.h"
 
 namespace PandaProto {
@@ -59,6 +60,7 @@ class PBClassGenerator {
   int line_number_ = 0;
   ParseState state_ = GLOBAL;
   std::string current_package_;
+  std::vector<std::string> pkg_stack_;
   Message* current_message_;
   EnumType* currentEnum_;
  
@@ -74,7 +76,11 @@ class PBClassGenerator {
   static bool IsMessageFiledLine(std::string line);
   static bool IsValidVariableName(std::string str);
 
+  void CheckoutNameSpace(std::vector<std::string>& context_stk,
+                         const std::vector<std::string>& target_stk);
+
   bool init_success_ = false;
+  IO::TextPrinter printer;
 };
 
 }  // Compiler

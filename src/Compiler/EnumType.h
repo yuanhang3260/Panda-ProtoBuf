@@ -20,12 +20,14 @@ class EnumType {
   std::string package() const { return package_; }
   std::string message() const { return message_; }
   const std::vector<std::string>& enums() const { return enums_; }
+  const std::vector<std::string>& pkg_stack() const { return pkg_stack_; }
 
  private:
   std::string name_;
   std::string package_;
   std::string message_ = "";
   std::vector<std::string> enums_;
+  std::vector<std::string> pkg_stack_;
 };
 
 

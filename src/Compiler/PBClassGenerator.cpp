@@ -4,10 +4,10 @@
 
 #include "PBClassGenerator.h"
 #include "../IO/FileDescriptor.h"
-#include "../IO/TextPrinter.h"
 #include "../Utility/BufferedDataReader.h"
 #include "../Utility/BufferedDataWriter.h"
 #include "../Utility/Strings.h"
+#include "../Utility/Utils.h"
 
 namespace PandaProto {
 namespace Compiler {
@@ -151,6 +151,15 @@ bool PBClassGenerator::ParsePackageName(std::string line) {
     return false;
   }
   current_package_ = result[1];
+  result = StringUtils::Split(current_package_, '.');
+  pkg_stack_.clear();
+  for (auto& pkg: result) {
+    if (!IsValidVariableName(pkg)) {
+      LogError("Invalid package name %s in %s",
+               pkg.c_str(), current_package_.c_str());
+      return false;
+    }
+  }
   return true;
 }
 
@@ -456,7 +465,9 @@ void PBClassGenerator::GenerateCppCode() {
   outfile = proto_file_.substr(0, proto_file_.length() - 6) + "_pb";
 
   // Generate .h file
-  IO::TextPrinter printer(outfile + ".h");
+  if (!printer.Open(outfile + ".h")) {
+    fprintf(stderr, "ERROR: Open output file %s.h failed\n", outfile.c_str());
+  }
 
   std::vector<std::string> result = StringUtils::Split(outfile, '/');
   std::string filename = result[result.size() - 1];
@@ -466,17 +477,11 @@ void PBClassGenerator::GenerateCppCode() {
   printer.Print("#include <string>\n");
   printer.Print("#include <vector>\n\n");
 
-  std::string crt_namespace;
+  std::vector<std::string> pkg_stack;
   // Print global enums.
   for (auto& e: enums_map_) {
     EnumType* enum_p = e.second.get();
-    if (enum_p->package() != crt_namespace) {
-      if (!crt_namespace.empty()) {
-        printer.Print("}  // namespace " + crt_namespace + "\n\n");
-      }
-      printer.Print("namespace " + enum_p->package() + " {\n\n");
-      crt_namespace = enum_p->package();
-    }
+    CheckoutNameSpace(pkg_stack_, enum_p->pkg_stack());
     printer.Print("enum " + enum_p->name() + " {\n");
     for (auto& enumvalue: enum_p->enums()) {
       printer.Print("  " + enumvalue + ",\n");
@@ -495,13 +500,7 @@ void PBClassGenerator::GenerateCppCode() {
   };
   // Print classes.
   for (auto& message: messages_list_) {
-    if (message->package() != crt_namespace) {
-      if (!crt_namespace.empty()) {
-        printer.Print("}  // namespace " + crt_namespace + "\n\n");
-      }
-      printer.Print("namespace " + message->package() + " {\n\n");
-      crt_namespace = message->package();
-    }
+    CheckoutNameSpace(pkg_stack_, message->pkg_stack());
     printer.Print("class " + message->name() + " {\n");
 
     // Public fields.
@@ -670,9 +669,41 @@ void PBClassGenerator::GenerateCppCode() {
     printer.Print("};\n\n");
   }
 
-  printer.Print("}  // namespace " + crt_namespace + "\n\n");
+  CheckoutNameSpace(pkg_stack_, std::vector<std::string>());
   printer.Print("\n#endif  /* _" + StringUtils::Upper(filename) + "_H */\n");
   printer.Flush();
+}
+
+void PBClassGenerator::CheckoutNameSpace(
+    std::vector<std::string>& context_stk,
+    const std::vector<std::string>& target_stk) {
+  int len = Utils::Min(context_stk.size(), target_stk.size());
+  int i, index = len;
+  for (i = 0; i < len; i++) {
+    if (context_stk[i] != target_stk[i]) {
+      index = i;
+      break;
+    }
+  }
+  bool printed = false;
+  for (i = context_stk.size() - 1; i >= index; i--) {
+    printer.Print("}  // namespace " + context_stk[i] + "\n");
+    printed = true;
+  }
+  context_stk.resize(index);
+  if (printed) {
+    printer.Print("\n");
+  }
+  
+  printed = false;
+  for (i = index; i < (int)target_stk.size(); i++) {
+    printer.Print("namespace " + target_stk[i] + " {\n");
+    context_stk.push_back(target_stk[i]);
+    printed = true;
+  }
+  if (printed) {
+    printer.Print("\n");
+  }
 }
 
 }  // Compiler

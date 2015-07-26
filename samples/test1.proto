@@ -1,6 +1,6 @@
 // test1 proto
 
-package snoopy;
+package AA;
 
 message DogInfo {
   required string name= 2;
@@ -15,16 +15,22 @@ message DogInfo {
   repeated int64 luckynumber = 5;
 }
 
+package AA.BB;
+
 enum FriendType{
   Human,
   Animal,
 }
+
+package AA.BB.CC;
 
 message DogFriendInfo {
   required string name = 1;
   optional int32 years = 2 [ default= 3] ;  	
   optional FriendType  friend_type = 4; 
 }
+
+package AA.DD;
 
 message DogFamily {
 	repeated DogInfo dogs = 1;
