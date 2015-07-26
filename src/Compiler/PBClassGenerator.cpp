@@ -516,7 +516,132 @@ void PBClassGenerator::GenerateCppCode() {
       printer.Print("  };\n\n");
     }
 
+    // Print constructors and destructor.
+    std::map<std::string, std::string> msg_match{
+       {"msg_name", message->name()},
+    };
+    printer.Print("  // constructors and destructor\n");
+    printer.Print("  " + message->name() + "() = default;\n");
+    printer.Print("  ~" + message->name() + "();\n");
+    printer.Print(
+        "  {msg_name}(const {msg_name}& other);  // copy constructor\n",
+        msg_match);
+    printer.Print(
+        "  {msg_name}({msg_name}&& other);  // move constructor\n",
+        msg_match);
+    printer.Print(
+        "  {msg_name}& operator=(const {msg_name}& other);"
+        "  // copy assignment\n",
+        msg_match);
+    printer.Print(
+        "  {msg_name}& operator=({msg_name}&& other);  // move assignment\n",
+        msg_match);
+    printer.Print("  void Swap({msg_name}* other);\n", msg_match);
+    printer.Print("\n");
     
+    // Print public methods.
+    for (auto& field: message->fields_list()) {
+      std::string type_name = field->type_name();
+      if (field->type() != MessageField::ENUMTYPE &&
+          field->type() != MessageField::MESSAGETYPE) {
+        type_name = pbCppTypeMap.at(field->type());
+      }
+      printer.Print("  // Access \"" + field->name() + "\"\n");
+      
+      // methods for required and optional fields
+      if (field->modifier() != MessageField::REPEATED) {
+        // get method and set method
+        std::string get_method_line = "  {type} {field_name}() const;\n";
+        std::string set_method_line =
+              "  void set_{field_name}(const {type} {field_name});\n";
+        if (field->type() == MessageField::STRING) {
+          get_method_line = "  const {type}& {field_name}() const;\n";
+          set_method_line =
+              "  void set_{field_name}(const {type}& {field_name});\n";
+        }
+        std::map<std::string, std::string> matches{
+           {"field_name", field->name()},
+           {"type", type_name},
+        };
+
+        // define: int get_foo() const / const Bar& get_foo()
+        printer.Print(get_method_line, matches);
+        // define: void set_foo(int foo) / void set_foo(const Bar& foo)
+        printer.Print(set_method_line, matches);
+        
+        // string type has other methods.
+        if (field->type() == MessageField::STRING) {
+          // define: const set_foo(char* value)
+          printer.Print(
+              "  void set_{field_name}(const char* {field_name});\n",
+              matches);
+          // define: const set_foo(char* value, int size)
+          printer.Print(
+              "  void set_{field_name}(const char* {field_name}, int size);\n",
+              matches);
+          // define: string* mutable_foo()
+          printer.Print(
+              "  std::string* mutable_{field_name}();\n", matches);
+          // define: void clear_foo()
+          printer.Print(
+              "  void clear_{field_name}();\n", matches);
+        }
+        // message type has other methods.
+        if (field->type() == MessageField::MESSAGETYPE &&
+            field->modifier() != MessageField::REPEATED) {
+          // define: Bar* mutable_foo()
+          printer.Print("  {type}* mutable_{field_name}();\n", matches);
+          // define: void set_allocated_foo(Bar* foo)
+          printer.Print(
+              "  void set_allocated_{field_name}({type}* {field_name});\n",
+              matches);
+          // define: Bar* release_foo()
+          printer.Print("  {type}* release_{field_name}();\n", matches);
+        }
+      }
+      // methods of repeated field.
+      else {
+        // get method and set method
+        std::map<std::string, std::string> matches{
+           {"field_name", field->name()},
+           {"type", type_name},
+        };
+        // define: int foo_size() const
+        printer.Print("  int {field_name}_size() const;\n", matches);
+        if (field->type() != MessageField::MESSAGETYPE) {
+          // define: Bar foo(int index) const
+          printer.Print("  {type} {field_name}(int index) const;\n", matches);
+          // define: void set_foo(int index, Bar& foo)
+          printer.Print(
+              "  void set_{field_name}(int index, {type} {field_name});\n",
+              matches);
+          // define: void add_foo(Bar& foo)
+          printer.Print(
+              "  void add_{field_name}({type} {field_name});\n", matches);
+        }
+        else {
+          // define: const Bar& foo(int index) const
+          printer.Print("  const {type}& {field_name}(int index) const;\n",
+                        matches);
+          // define: void set_foo(int index, Bar& foo)
+          printer.Print(
+            "  void set_{field_name}(int index, const {type}& {field_name});\n",
+            matches);
+          // define: void add_foo(Bar& foo)
+          printer.Print(
+              "  void add_{field_name}(const {type}& {field_name});\n",
+              matches);
+        } 
+        // define: const std::vector<Bar> foo() const
+        printer.Print(
+            "  const std::vector<{type}>& {field_name}() const;\n", matches);
+        // define: std::vector<Bar>* mutable_foo()
+        printer.Print(
+            "  std::vector<{type}>* mutable_{field_name}();\n", matches);
+      }
+
+      printer.Print("\n");
+    }
 
     // Private fields.
     printer.Print(" private:\n");
@@ -529,7 +654,13 @@ void PBClassGenerator::GenerateCppCode() {
       if (field->modifier() == MessageField::REPEATED) {
         type_name = "std::vector<" + type_name + ">";
       }
-      printer.Print("  $ $",
+
+      std::string declearation_line = "  $ $_";
+      if (field->type() == MessageField::MESSAGETYPE &&
+          field->modifier() != MessageField::REPEATED) {
+        declearation_line = "  $* $_";
+      }
+      printer.Print(declearation_line,
                     std::vector<std::string>{type_name, field->name()});
       if (!field->default_value().empty()) {
         printer.Print(" = " + field->default_value());
@@ -540,6 +671,7 @@ void PBClassGenerator::GenerateCppCode() {
   }
 
   printer.Print("}  // namespace " + crt_namespace + "\n\n");
+  printer.Print("\n#endif  /* _" + StringUtils::Upper(filename) + "_H */\n");
   printer.Flush();
 }
 

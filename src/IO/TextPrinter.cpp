@@ -14,9 +14,9 @@ class TextPrinterImpl {
  public:
   friend class TextPrinter;
   TextPrinterImpl(std::string outputfile);
-  int Print_Impl(std::string);
-  int Print_Impl(std::string, std::vector<std::string>);
-  int Print_Impl(std::string, std::map<std::string, std::string>);
+  int Print_Impl(const std::string&);
+  int Print_Impl(const std::string&, const std::vector<std::string>&);
+  int Print_Impl(const std::string&, const std::map<std::string, std::string>&);
   int DoPrint(const char* piece, const int size);
   int DoPrint(std::string piece);
   void Flush_Impl();
@@ -34,13 +34,13 @@ TextPrinterImpl::TextPrinterImpl(std::string outputfile) :
   writer_.reset(new Utility::BufferedDataWriter(std::move(fd_)));
 }
 
-int TextPrinterImpl::Print_Impl(std::string content) {
+int TextPrinterImpl::Print_Impl(const std::string& content) {
   DoPrint(content.c_str(), content.length());
   return content.length();
 }
 
 int TextPrinterImpl::Print_Impl(
-    std::string content, std::vector<std::string> matches) {
+    const std::string& content, const std::vector<std::string>& matches) {
   std::vector<std::string> pieces;
   unsigned last_index = 0, matched_num = 0;
   int printed_size = 0;
@@ -54,7 +54,7 @@ int TextPrinterImpl::Print_Impl(
       }
       else {
         if (matched_num < matches.size()) {
-          printed_size += DoPrint(matches[matched_num++]);
+          printed_size += DoPrint(matches.at(matched_num++));
         }
         last_index = i + 1;
       }
@@ -68,7 +68,8 @@ int TextPrinterImpl::Print_Impl(
 }
 
 int TextPrinterImpl::Print_Impl(
-    std::string content, std::map<std::string, std::string> matches) {
+    const std::string& content,
+    const std::map<std::string, std::string>& matches) {
   if (!ValidateContentFormat(content)) {
     fprintf(stderr, "ERROR in %s(): Incorrect bracket format of \"%s\"\n",
             __FUNCTION__, content.c_str());
@@ -106,7 +107,7 @@ int TextPrinterImpl::Print_Impl(
         std::string key = strbuf.ToString();
         strbuf.Clear();
         if (matches.find(key) != matches.end()) {
-          printed_size += DoPrint(matches[key]);
+          printed_size += DoPrint(matches.at(key));
         }
         matching = 0;
       }
@@ -188,16 +189,19 @@ TextPrinter::TextPrinter(std::string outputfile) {
 TextPrinter::~TextPrinter() {
 }
 
-void TextPrinter::Print(std::string content) {
+void TextPrinter::Print(const std::string& content) {
   text_printer_impl_->Print_Impl(content);
 }
 
-void TextPrinter::Print(std::string content, std::vector<std::string> matches) {
+void
+TextPrinter::Print(const std::string& content,
+                   const std::vector<std::string>& matches) {
   text_printer_impl_->Print_Impl(content, matches);
 }
 
 void TextPrinter::Print(
-    std::string content, std::map<std::string, std::string> matches) {
+    const std::string& content,
+    const std::map<std::string, std::string>& matches) {
   text_printer_impl_->Print_Impl(content, matches);
 }
 

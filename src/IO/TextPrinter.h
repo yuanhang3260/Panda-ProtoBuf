@@ -16,9 +16,11 @@ class TextPrinter {
   TextPrinter(std::string outputfile);
   ~TextPrinter();
   
-  void Print(std::string content);
-  void Print(std::string content, std::vector<std::string> matches);
-  void Print(std::string content, std::map<std::string, std::string> map);
+  void Print(const std::string& content);
+  void Print(const std::string& content,
+             const std::vector<std::string>& matches);
+  void Print(const std::string& content,
+             const std::map<std::string, std::string>& map);
   void Flush();
 
  protected:
