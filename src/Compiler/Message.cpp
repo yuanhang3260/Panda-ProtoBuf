@@ -9,12 +9,7 @@ namespace PandaProto {
 namespace Compiler {
 
 Message::Message(std::string name, std::string package) :
-    name_(name),
-    package_(package) {
-  std::vector<std::string> result = StringUtils::Split(package_, '.');
-  for (auto& pkg: result) {
-    pkg_stack_.push_back(pkg);
-  }
+    PbType(name, package) {
 }
 
 Message::~Message() {}
@@ -50,9 +45,11 @@ bool FieldComparatorByTag(const std::shared_ptr<MessageField>& field1,
 void Message::Print() {
   std::cout << "Message " << name_ << " in Package " << package_ << std::endl;
   std::sort(fileds_list_.begin(), fileds_list_.end(), FieldComparatorByTag);
+  // Print enums defined in this message.
   for (auto& e: enums_map_) {
     e.second->Print();
   }
+  // Print message fields.
   for (auto& field: fileds_list_) {
     std::cout << "  " << MessageField::GetModifierAsString(field->modifier());
     std::cout << " " << field->type_name();
@@ -88,9 +85,6 @@ Message::enums_map() const {
   return enums_map_;
 }
 
-const std::vector<std::string>& Message::pkg_stack() const {
-  return pkg_stack_;
-}
 
 }  // namespace Compiler
 }  // namespace PandaProto

@@ -1,5 +1,5 @@
-#ifndef PB_CLASS_GENERATOR_
-#define PB_CLASS_GENERATOR_
+#ifndef PROTO_PARSER_
+#define PROTO_PARSER_
 
 #include <string>
 #include <vector>
@@ -7,6 +7,7 @@
 #include <memory>
 
 #include "../IO/TextPrinter.h"
+#include "Type.h"
 #include "Message.h"
 
 namespace PandaProto {
@@ -14,7 +15,7 @@ namespace Compiler {
 
 class CppGeneratorImpl;
 
-class PBClassGenerator {
+class ProtoParser {
  public:
   enum LANGUAGE {
     CPP,
@@ -30,10 +31,10 @@ class PBClassGenerator {
     PARSINGNESTEDENUM,
   };
 
-  PBClassGenerator(LANGUAGE lang, std::string file);
-  ~PBClassGenerator();
-  PBClassGenerator(const PBClassGenerator&) = delete;
-  PBClassGenerator& operator=(const PBClassGenerator&) = delete;
+  ProtoParser(LANGUAGE lang, std::string file);
+  ~ProtoParser();
+  ProtoParser(const ProtoParser&) = delete;
+  ProtoParser& operator=(const ProtoParser&) = delete;
 
   bool GeneratePBClass();
   void PrintParsedProto() const;
@@ -78,6 +79,8 @@ class PBClassGenerator {
 
   void CheckoutNameSpace(std::vector<std::string>& context_stk,
                          const std::vector<std::string>& target_stk);
+  std::string GetNameSpacePrefix(const std::vector<std::string>& context_stk,
+                                 const std::vector<std::string>& target_stk);
 
   bool init_success_ = false;
   IO::TextPrinter printer;
@@ -86,4 +89,4 @@ class PBClassGenerator {
 }  // Compiler
 }  // PandaProto
 
-#endif /* PB_CLASS_GENERATOR_ */
+#endif /* PROTO_PARSER_ */

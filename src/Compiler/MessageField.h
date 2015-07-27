@@ -2,6 +2,8 @@
 #define MESSAGE_FIELD_
 
 #include <string>
+#include "PbCommon.h"
+#include "Type.h"
 
 namespace PandaProto {
 namespace Compiler {
@@ -15,32 +17,16 @@ class MessageField {
     REPEATED,
   };
 
-  enum FIELD_TYPE {
-    UNDETERMINED,
-    INT32,
-    INT64,
-    UINT32,
-    UINT64,
-    DOUBLE,
-    STRING,
-    BOOL,
-    ENUMTYPE,
-    MESSAGETYPE,
-  };
-
-  MessageField(FIELD_MODIFIER modifier, FIELD_TYPE type, std::string name,
-               int tag, std::string default_value);
-  MessageField(FIELD_MODIFIER modifier, FIELD_TYPE type, std::string type_name,
+  MessageField(FIELD_MODIFIER modifier, FIELD_TYPE type, PbType* type_class,
                std::string name, int tag, std::string default_value);
   virtual ~MessageField();
 
   static FIELD_MODIFIER GetMessageFieldModifier(std::string modifier);
   static std::string GetModifierAsString(MessageField::FIELD_MODIFIER modifier);
-  static FIELD_TYPE GetMessageFieldType(std::string type);
-  static std::string GetTypeAsString(MessageField::FIELD_TYPE type);
 
   FIELD_MODIFIER modifier() const { return modifier_; }
   FIELD_TYPE type() const { return type_; }
+  PbType* type_class() const { return type_class_; }
   std::string name() const { return name_; }
   int tag() const { return tag_; }
   std::string default_value() const { return default_value_; }
@@ -51,10 +37,11 @@ class MessageField {
  private:
   FIELD_MODIFIER modifier_;
   FIELD_TYPE type_;
-  std::string type_name_;
+  PbType* type_class_;
   std::string name_;
   int tag_;
   std::string default_value_;
+  std::string type_name_;
 };
 
 }  // namespace Compiler

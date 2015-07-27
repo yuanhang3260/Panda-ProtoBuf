@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "PBClassGenerator.h"
+#include "ProtoParser.h"
 #include "../IO/FileDescriptor.h"
 #include "../Utility/BufferedDataReader.h"
 #include "../Utility/BufferedDataWriter.h"
@@ -12,7 +12,7 @@
 namespace PandaProto {
 namespace Compiler {
 
-PBClassGenerator::PBClassGenerator(LANGUAGE lang, std::string file) :
+ProtoParser::ProtoParser(LANGUAGE lang, std::string file) :
     lang_(lang),
     proto_file_(file) {
   if (!StringUtils::EndWith(proto_file_, ".proto")) {
@@ -23,9 +23,9 @@ PBClassGenerator::PBClassGenerator(LANGUAGE lang, std::string file) :
   init_success_ = true;
 }
 
-PBClassGenerator::~PBClassGenerator() {}
+ProtoParser::~ProtoParser() {}
 
-bool PBClassGenerator::ReadProtoFile() {
+bool ProtoParser::ReadProtoFile() {
   if (!init_success_) {
     return false;
   }
@@ -135,7 +135,7 @@ bool PBClassGenerator::ReadProtoFile() {
   return true;
 }
 
-bool PBClassGenerator::ParsePackageName(std::string line) {
+bool ProtoParser::ParsePackageName(std::string line) {
   if (line[line.length()-1] != ';') {
     LogError("Expect \";\" at line end");
     return false;
@@ -163,7 +163,7 @@ bool PBClassGenerator::ParsePackageName(std::string line) {
   return true;
 }
 
-bool PBClassGenerator::ParseMessageName(std::string line) {
+bool ProtoParser::ParseMessageName(std::string line) {
   std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
   if (result.size() != 2 && result.size() != 3) {
     LogError("Expect 2 or 3 tokens, actual %d", result.size());
@@ -191,6 +191,15 @@ bool PBClassGenerator::ParseMessageName(std::string line) {
     LogError("invalid message name \"%s\"", message_name.c_str());
     return false;
   }
+  // Check name duplication.
+  if (messages_map_.find(message_name) != messages_map_.end()) {
+    LogError("message name \"%s\" already exists", message_name.c_str());
+    return false;
+  }
+  if (enums_map_.find(message_name) != enums_map_.end()) {
+    LogError("name \"%s\" already exists as a enum type", message_name.c_str());
+    return false;
+  }
 
   // Add new message to message map.
   std::shared_ptr<Message> new_message(new Message(message_name,
@@ -201,7 +210,7 @@ bool PBClassGenerator::ParseMessageName(std::string line) {
   return true;
 }
 
-bool PBClassGenerator::ParseMessageField(std::string line) {
+bool ProtoParser::ParseMessageField(std::string line) {
   if (line[line.length()-1] != ';') {
     LogError("Expect \";\" at line end");
     return false;
@@ -222,15 +231,21 @@ bool PBClassGenerator::ParseMessageField(std::string line) {
   }
   // Parse field type.
   std::string type_name = result[1];
-  MessageField::FIELD_TYPE type;
-  if ((type = MessageField::GetMessageFieldType(type_name)) ==
-      MessageField::UNDETERMINED) {
-    if (messages_map_.find(type_name) != messages_map_.end() ||
-        current_message_->FindEnumType(type_name)) {
-      type = MessageField::MESSAGETYPE;
+  FIELD_TYPE type;
+  PbType* type_class = NULL;
+  if ((type = PbCommon::GetMessageFieldType(type_name)) == UNDETERMINED) {
+    if (current_message_->FindEnumType(type_name)) {
+      type = ENUMTYPE;
+      type_class =
+          static_cast<PbType*>(current_message_->FindEnumType(type_name));
     }
     else if (enums_map_.find(type_name) != enums_map_.end()) {
-      type = MessageField::ENUMTYPE;
+      type = ENUMTYPE;
+      type_class = static_cast<PbType*>(enums_map_.at(type_name).get());
+    }
+    else if (messages_map_.find(type_name) != messages_map_.end()) {
+      type = MESSAGETYPE;
+      type_class = static_cast<PbType*>(messages_map_.at(type_name).get());
     }
     else {
       LogError("Unknown field type \"%s\"", type_name.c_str());
@@ -277,7 +292,7 @@ bool PBClassGenerator::ParseMessageField(std::string line) {
 
   // Add new field to current message.
   std::shared_ptr<MessageField> new_field(
-      new MessageField(modifier, type, type_name, name, tag_num,
+      new MessageField(modifier, type, type_class, name, tag_num,
                        default_value));
   if (!current_message_->AddField(new_field)) {
     LogError("Add field \"%s\" to message \"%s\" failed",
@@ -287,7 +302,7 @@ bool PBClassGenerator::ParseMessageField(std::string line) {
   return true;
 }
 
-bool PBClassGenerator::ParseEnumName(std::string line) {
+bool ProtoParser::ParseEnumName(std::string line) {
   std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
   if (result.size() != 2 && result.size() != 3) {
     LogError("Expect 2 or 3 least tokens, actual %d", result.size());
@@ -315,6 +330,20 @@ bool PBClassGenerator::ParseEnumName(std::string line) {
     LogError("invalid enum name \"%s\"", enum_name.c_str());
     return false;
   }
+  // Check name duplication
+  if (state_ == PARSINGMSG && 
+      current_message_->enums_map().find(enum_name) !=
+          current_message_->enums_map().end()) {
+    LogError("enum name \"%s\" already exists in message \"%s\"",
+             enum_name.c_str(), current_message_->name().c_str());
+    return false;
+  }
+  if (state_ == GLOBAL && 
+      enums_map_.find(enum_name) != enums_map_.end()) {
+    LogError("enum name \"%s\" already exists", enum_name.c_str());
+    return false;
+  }
+
 
   // Add new enum to the enum map
   std::shared_ptr<EnumType> new_enum;
@@ -333,7 +362,7 @@ bool PBClassGenerator::ParseEnumName(std::string line) {
   return true;
 }
 
-bool PBClassGenerator::ParseEnumValue(std::string line) {
+bool ProtoParser::ParseEnumValue(std::string line) {
   if (line[line.length()-1] != ',') {
     LogError("Expect \",\" at line end");
     return false;
@@ -347,13 +376,13 @@ bool PBClassGenerator::ParseEnumValue(std::string line) {
   return true;
 }
 
-bool PBClassGenerator::IsMessageFiledLine(std::string line) {
+bool ProtoParser::IsMessageFiledLine(std::string line) {
   return StringUtils::StartWith(line, "optional ") ||
          StringUtils::StartWith(line, "required ") ||
          StringUtils::StartWith(line, "repeated ");
 }
 
-bool PBClassGenerator::ParseAssignExpression(std::string line,
+bool ProtoParser::ParseAssignExpression(std::string line,
                                              std::string* left,
                                              std::string* right) const {
   line = StringUtils::Strip(line);
@@ -375,7 +404,7 @@ bool PBClassGenerator::ParseAssignExpression(std::string line,
   return true;
 }
 
-bool PBClassGenerator::GeneratePBClass() {
+bool ProtoParser::GeneratePBClass() {
   if (!ReadProtoFile()) {
     fprintf(stderr, "ERROR: Can't parse proto %s\n", proto_file_.c_str());
     return false;
@@ -391,7 +420,7 @@ bool PBClassGenerator::GeneratePBClass() {
   return true;
 }
 
-void PBClassGenerator::PrintParsedProto() const {
+void ProtoParser::PrintParsedProto() const {
   for (auto& message : messages_list_) {
     message->Print();
     std::cout << std::endl << std::endl;
@@ -402,7 +431,7 @@ void PBClassGenerator::PrintParsedProto() const {
   }
 }
 
-bool PBClassGenerator::IsValidVariableName(std::string str) {
+bool ProtoParser::IsValidVariableName(std::string str) {
   if (str.length() == 0) {
     return false;
   }
@@ -414,8 +443,8 @@ bool PBClassGenerator::IsValidVariableName(std::string str) {
   return true;
 }
 
-PBClassGenerator::LANGUAGE
-PBClassGenerator::GetLanguageFromString(std::string lang) {
+ProtoParser::LANGUAGE
+ProtoParser::GetLanguageFromString(std::string lang) {
   if (lang == "cpp") {
     return CPP;
   }
@@ -428,11 +457,11 @@ PBClassGenerator::GetLanguageFromString(std::string lang) {
   return UNKNOWN_LANGUAGE;
 }
 
-void PBClassGenerator::PrintToken(std::string description, std::string str) {
+void ProtoParser::PrintToken(std::string description, std::string str) {
   std::cout << "[" << description << "] = \"" << str << "\"" << std::endl;
 }
 
-void PBClassGenerator::LogError(const char* error_msg, ...) const {
+void ProtoParser::LogError(const char* error_msg, ...) const {
   fprintf(stderr, "%s:%d: ", proto_file_.c_str(), line_number_);
   va_list args;
   va_start(args, error_msg);
@@ -441,7 +470,7 @@ void PBClassGenerator::LogError(const char* error_msg, ...) const {
   fprintf(stderr, "\n");
 }
 
-void PBClassGenerator::PrintParseState() const {
+void ProtoParser::PrintParseState() const {
   switch (state_) {
     case GLOBAL:
       std::cout << "State: Global" << std::endl;
@@ -460,7 +489,7 @@ void PBClassGenerator::PrintParseState() const {
   }
 }
 
-void PBClassGenerator::GenerateCppCode() {
+void ProtoParser::GenerateCppCode() {
   std::string outfile;
   outfile = proto_file_.substr(0, proto_file_.length() - 6) + "_pb";
 
@@ -472,8 +501,8 @@ void PBClassGenerator::GenerateCppCode() {
   std::vector<std::string> result = StringUtils::Split(outfile, '/');
   std::string filename = result[result.size() - 1];
 
-  printer.Print("#ifndef _" + StringUtils::Upper(filename) + "_H\n");
-  printer.Print("#define _" + StringUtils::Upper(filename) + "_H\n\n");
+  printer.Print("#ifndef " + StringUtils::Upper(filename) + "_H_\n");
+  printer.Print("#define " + StringUtils::Upper(filename) + "_H_\n\n");
   printer.Print("#include <string>\n");
   printer.Print("#include <vector>\n\n");
 
@@ -489,14 +518,14 @@ void PBClassGenerator::GenerateCppCode() {
     printer.Print("};\n\n");
   }
 
-  std::map<MessageField::FIELD_TYPE, std::string> pbCppTypeMap{
-    {MessageField::INT32, "int"},
-    {MessageField::INT64, "long long"},
-    {MessageField::UINT32, "unsigned int"},
-    {MessageField::UINT64, "unsigned long long"},
-    {MessageField::DOUBLE, "dobule"},
-    {MessageField::STRING, "std::string"},
-    {MessageField::BOOL, "bool"},
+  std::map<FIELD_TYPE, std::string> pbCppTypeMap{
+    {INT32, "int"},
+    {INT64, "long long"},
+    {UINT32, "unsigned int"},
+    {UINT64, "unsigned long long"},
+    {DOUBLE, "dobule"},
+    {STRING, "std::string"},
+    {BOOL, "bool"},
   };
   // Print classes.
   for (auto& message: messages_list_) {
@@ -537,13 +566,19 @@ void PBClassGenerator::GenerateCppCode() {
         msg_match);
     printer.Print("  void Swap({msg_name}* other);\n", msg_match);
     printer.Print("\n");
-    
+
     // Print public methods.
     for (auto& field: message->fields_list()) {
       std::string type_name = field->type_name();
-      if (field->type() != MessageField::ENUMTYPE &&
-          field->type() != MessageField::MESSAGETYPE) {
+      if (field->type() != ENUMTYPE &&
+          field->type() != MESSAGETYPE) {
         type_name = pbCppTypeMap.at(field->type());
+      }
+      else {
+        // enum and message types: first get the correct namespace prefix
+        type_name = GetNameSpacePrefix(message->pkg_stack(),
+                                       field->type_class()->pkg_stack())
+                    + type_name;
       }
       printer.Print("  // Access \"" + field->name() + "\"\n");
       
@@ -553,7 +588,7 @@ void PBClassGenerator::GenerateCppCode() {
         std::string get_method_line = "  {type} {field_name}() const;\n";
         std::string set_method_line =
               "  void set_{field_name}(const {type} {field_name});\n";
-        if (field->type() == MessageField::STRING) {
+        if (field->type() == STRING) {
           get_method_line = "  const {type}& {field_name}() const;\n";
           set_method_line =
               "  void set_{field_name}(const {type}& {field_name});\n";
@@ -569,7 +604,7 @@ void PBClassGenerator::GenerateCppCode() {
         printer.Print(set_method_line, matches);
         
         // string type has other methods.
-        if (field->type() == MessageField::STRING) {
+        if (field->type() == STRING) {
           // define: const set_foo(char* value)
           printer.Print(
               "  void set_{field_name}(const char* {field_name});\n",
@@ -586,7 +621,7 @@ void PBClassGenerator::GenerateCppCode() {
               "  void clear_{field_name}();\n", matches);
         }
         // message type has other methods.
-        if (field->type() == MessageField::MESSAGETYPE &&
+        if (field->type() == MESSAGETYPE &&
             field->modifier() != MessageField::REPEATED) {
           // define: Bar* mutable_foo()
           printer.Print("  {type}* mutable_{field_name}();\n", matches);
@@ -607,7 +642,7 @@ void PBClassGenerator::GenerateCppCode() {
         };
         // define: int foo_size() const
         printer.Print("  int {field_name}_size() const;\n", matches);
-        if (field->type() != MessageField::MESSAGETYPE) {
+        if (field->type() != MESSAGETYPE) {
           // define: Bar foo(int index) const
           printer.Print("  {type} {field_name}(int index) const;\n", matches);
           // define: void set_foo(int index, Bar& foo)
@@ -646,16 +681,23 @@ void PBClassGenerator::GenerateCppCode() {
     printer.Print(" private:\n");
     for (auto& field: message->fields_list()) {
       std::string type_name = field->type_name();
-      if (field->type() != MessageField::ENUMTYPE &&
-          field->type() != MessageField::MESSAGETYPE) {
+      if (field->type() != ENUMTYPE &&
+          field->type() != MESSAGETYPE) {
         type_name = pbCppTypeMap.at(field->type());
       }
+      else {
+        // Add namespace prefix for enum and message types.
+        type_name = GetNameSpacePrefix(message->pkg_stack(),
+                                       field->type_class()->pkg_stack())
+                    + type_name;
+      }
+      // repeated fields are "vector<Bar>* foo" type
       if (field->modifier() == MessageField::REPEATED) {
         type_name = "std::vector<" + type_name + ">";
       }
 
       std::string declearation_line = "  $ $_";
-      if (field->type() == MessageField::MESSAGETYPE &&
+      if (field->type() == MESSAGETYPE &&
           field->modifier() != MessageField::REPEATED) {
         declearation_line = "  $* $_";
       }
@@ -670,11 +712,11 @@ void PBClassGenerator::GenerateCppCode() {
   }
 
   CheckoutNameSpace(pkg_stack_, std::vector<std::string>());
-  printer.Print("\n#endif  /* _" + StringUtils::Upper(filename) + "_H */\n");
+  printer.Print("\n#endif  /* " + StringUtils::Upper(filename) + "_H_ */\n");
   printer.Flush();
 }
 
-void PBClassGenerator::CheckoutNameSpace(
+void ProtoParser::CheckoutNameSpace(
     std::vector<std::string>& context_stk,
     const std::vector<std::string>& target_stk) {
   int len = Utils::Min(context_stk.size(), target_stk.size());
@@ -704,6 +746,45 @@ void PBClassGenerator::CheckoutNameSpace(
   if (printed) {
     printer.Print("\n");
   }
+}
+
+std::string ProtoParser::GetNameSpacePrefix(
+    const std::vector<std::string>& context_stk, // AA.DD
+    const std::vector<std::string>& target_stk) { // AA
+  int len = Utils::Min(context_stk.size(), target_stk.size());
+  int i, index = len;
+  for (i = 0; i < len; i++) {
+    if (context_stk[i] != target_stk[i]) {
+      index = i;
+      break;
+    }
+  }
+
+  // std::cout << "index = " << index << ", " << context_stk.size()
+  //           << ", " << target_stk.size() << std::endl;
+  // for (auto& s: context_stk) {
+  //   std::cout << s << ".";
+  // }
+  // std::cout << std::endl;
+  // for (auto& s: target_stk) {
+  //   std::cout << s << ".";
+  // }
+  // std::cout << std::endl;
+
+  std::string prefix = "";
+  if (index < (int)context_stk.size()) {
+    for (i = 0; i < (int)target_stk.size(); i++) {
+      prefix += (target_stk[i] + "::");
+    }
+  }
+  else {
+    prefix = "::";
+    for (i = context_stk.size(); i < (int)target_stk.size(); i++) {
+      prefix += (target_stk[i] + "::");
+    }
+  }
+  std::cout << "prefix = " << prefix << std::endl;
+  return prefix;
 }
 
 }  // Compiler

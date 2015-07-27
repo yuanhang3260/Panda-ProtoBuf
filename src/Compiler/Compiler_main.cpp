@@ -3,7 +3,7 @@
 #include <string>
 #include <memory>
 
-#include "PBClassGenerator.h"
+#include "ProtoParser.h"
 
 using namespace PandaProto;
 
@@ -13,10 +13,10 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  Compiler::PBClassGenerator::LANGUAGE lang =
-      Compiler::PBClassGenerator::GetLanguageFromString(std::string(argv[1]));
+  Compiler::ProtoParser::LANGUAGE lang =
+      Compiler::ProtoParser::GetLanguageFromString(std::string(argv[1]));
   std::string proto = std::string(argv[2]);
-  Compiler::PBClassGenerator compiler(lang, proto);
+  Compiler::ProtoParser compiler(lang, proto);
   compiler.GeneratePBClass();
   return 0;
 }

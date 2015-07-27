@@ -30,6 +30,13 @@ message DogFriendInfo {
   optional FriendType  friend_type = 4; 
 }
 
+package AA;
+
+message DogFriends {
+	repeated DogFriendInfo friends = 1;
+}
+
+
 package AA.DD;
 
 message DogFamily {

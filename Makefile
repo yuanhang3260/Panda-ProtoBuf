@@ -19,12 +19,17 @@ OBJ = $(OBJ_DIR)/Utility/BufferedDataReader.o \
       $(OBJ_DIR)/IO/FileDescriptorInterface.o \
       $(OBJ_DIR)/IO/FileDescriptor.o \
       $(OBJ_DIR)/IO/TextPrinter.o \
+      $(OBJ_DIR)/Log/Log.o \
       $(OBJ_DIR)/Network/Socket.o \
-      $(OBJ_DIR)/Compiler/PBClassGenerator.o \
+      
+COMPILER_OBJ = \
+      $(OBJ_DIR)/Compiler/ProtoParser.o \
+      $(OBJ_DIR)/Compiler/CppCodeGenerator.o \
+      $(OBJ_DIR)/Compiler/PbCommon.o \
       $(OBJ_DIR)/Compiler/Message.o  \
       $(OBJ_DIR)/Compiler/MessageField.o \
       $(OBJ_DIR)/Compiler/EnumType.o \
-      $(OBJ_DIR)/Log/Log.o
+      $(OBJ_DIR)/Compiler/Type.o \
 
 
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
@@ -41,8 +46,8 @@ default: library compiler
 
 test: $(TESTEXE) library
 
-library: $(OBJ)
-	ar cr libsnp.a $(OBJ)
+library: $(OBJ) $(COMPILER_OBJ)
+	ar cr libsnp.a $(OBJ) $(COMPILER_OBJ)
 
 compiler: $(SRC_DIR)/Compiler/Compiler_main.cpp library
 	$(CC) $(CFLAGS) $(LFLAGS) -c $(SRC_DIR)/Compiler/Compiler_main.cpp -o $(COMPILEROBJ)
@@ -87,6 +92,14 @@ clean:
 	rm -rf $(OBJ_DIR)/Network/*.o
 	rm -rf $(OBJ_DIR)/Compiler/*.o
 	rm -rf $(OBJ_DIR)/Log/*.o
+	rm -rf test/*.out
+	rm -rf *.output
+
+tinyclean:
+	rm -rf libsnp.a
+	rm -rf compiler
+	rm -rf $(OBJ_DIR)/*.o
+	rm -rf $(OBJ_DIR)/Compiler/*.o
 	rm -rf test/*.out
 	rm -rf *.output
 
