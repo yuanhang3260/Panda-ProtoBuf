@@ -17,6 +17,9 @@ class CppCodeGenerator : public ProtoParser {
   void GenerateCode() override;
  
  private:
+  void GenerateHeader();
+  void GenerateCC();
+
   void CheckoutNameSpace(std::vector<std::string>& context_stk,
                          const std::vector<std::string>& target_stk);
   std::string GetNameSpacePrefix(const std::vector<std::string>& context_stk,

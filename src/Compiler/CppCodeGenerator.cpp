@@ -6,11 +6,25 @@
 namespace PandaProto {
 namespace Compiler {
 
+std::map<FIELD_TYPE, std::string> pbCppTypeMap{
+  {INT32, "int"},
+  {INT64, "long long"},
+  {UINT32, "unsigned int"},
+  {UINT64, "unsigned long long"},
+  {DOUBLE, "dobule"},
+  {STRING, "std::string"},
+  {BOOL, "bool"},
+};
+
 void CppCodeGenerator::GenerateCode() {
+  GenerateHeader();
+}
+
+void CppCodeGenerator::GenerateHeader() {
   std::string outfile;
   outfile = proto_file_.substr(0, proto_file_.length() - 6) + "_pb";
 
-  // Generate .h file
+  // Open .h file
   if (!printer.Open(outfile + ".h")) {
     fprintf(stderr, "ERROR: Open output file %s.h failed\n", outfile.c_str());
   }
@@ -23,7 +37,6 @@ void CppCodeGenerator::GenerateCode() {
   printer.Print("#include <string>\n");
   printer.Print("#include <vector>\n\n");
 
-  std::vector<std::string> pkg_stack;
   // Print global enums.
   for (auto& e: enums_map_) {
     EnumType* enum_p = e.second.get();
@@ -35,15 +48,6 @@ void CppCodeGenerator::GenerateCode() {
     printer.Print("};\n\n");
   }
 
-  std::map<FIELD_TYPE, std::string> pbCppTypeMap{
-    {INT32, "int"},
-    {INT64, "long long"},
-    {UINT32, "unsigned int"},
-    {UINT64, "unsigned long long"},
-    {DOUBLE, "dobule"},
-    {STRING, "std::string"},
-    {BOOL, "bool"},
-  };
   // Print classes.
   for (auto& message: messages_list_) {
     CheckoutNameSpace(pkg_stack_, message->pkg_stack());
