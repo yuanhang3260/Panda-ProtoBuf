@@ -6,7 +6,6 @@
 #include <map>
 #include <memory>
 
-#include "../IO/TextPrinter.h"
 #include "Type.h"
 #include "Message.h"
 
@@ -32,12 +31,13 @@ class ProtoParser {
   };
 
   ProtoParser(LANGUAGE lang, std::string file);
-  ~ProtoParser();
+  virtual ~ProtoParser();
   ProtoParser(const ProtoParser&) = delete;
   ProtoParser& operator=(const ProtoParser&) = delete;
 
-  bool GeneratePBClass();
+  bool ParseProto();
   void PrintParsedProto() const;
+  virtual void GenerateCode() = 0;
 
   static LANGUAGE GetLanguageFromString(std::string lang);
 
@@ -48,8 +48,6 @@ class ProtoParser {
 
   void LogError(const char* error_msg, ...) const;
   void PrintParseState() const;
-
-  void GenerateCppCode();
 
   LANGUAGE lang_;
   std::string proto_file_;
@@ -77,13 +75,7 @@ class ProtoParser {
   static bool IsMessageFiledLine(std::string line);
   static bool IsValidVariableName(std::string str);
 
-  void CheckoutNameSpace(std::vector<std::string>& context_stk,
-                         const std::vector<std::string>& target_stk);
-  std::string GetNameSpacePrefix(const std::vector<std::string>& context_stk,
-                                 const std::vector<std::string>& target_stk);
-
   bool init_success_ = false;
-  IO::TextPrinter printer;
 };
 
 }  // Compiler
