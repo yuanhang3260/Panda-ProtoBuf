@@ -15,13 +15,14 @@ class TextPrinterImpl {
   friend class TextPrinter;
   TextPrinterImpl() {};
   TextPrinterImpl(std::string outputfile);
-  bool Open(std::string outputfile);
+  bool Open_Impl(std::string outputfile);
   int Print_Impl(const std::string&);
   int Print_Impl(const std::string&, const std::vector<std::string>&);
   int Print_Impl(const std::string&, const std::map<std::string, std::string>&);
   int DoPrint(const char* piece, const int size);
   int DoPrint(std::string piece);
   void Flush_Impl();
+  void Close_Impl();
 
  private:
   std::string outputfile_;
@@ -29,7 +30,7 @@ class TextPrinterImpl {
   int ValidateContentFormat(std::string content);
 };
 
-bool TextPrinterImpl::Open(std::string outputfile) {
+bool TextPrinterImpl::Open_Impl(std::string outputfile) {
   outputfile_ = outputfile;
   std::unique_ptr<FileDescriptor> fd_;
   fd_.reset(new FileDescriptor(outputfile, FileDescriptor::WRITE_ONLY));
@@ -38,6 +39,10 @@ bool TextPrinterImpl::Open(std::string outputfile) {
   }
   writer_.reset(new Utility::BufferedDataWriter(std::move(fd_)));
   return true;
+}
+
+void TextPrinterImpl::Close_Impl() {
+  writer_.reset(NULL);
 }
 
 TextPrinterImpl::TextPrinterImpl(std::string outputfile) :
@@ -207,7 +212,7 @@ TextPrinter::~TextPrinter() {
 }
 
 bool TextPrinter::Open(std::string outputfile) {
-  return text_printer_impl_->Open(outputfile);
+  return text_printer_impl_->Open_Impl(outputfile);
 }
 
 void TextPrinter::Print(const std::string& content) {
@@ -230,6 +235,9 @@ void TextPrinter::Flush() {
   text_printer_impl_->Flush_Impl();
 }
 
+void TextPrinter::Close() {
+  text_printer_impl_->Close_Impl();
+}
 
 
 }  // namespace IO

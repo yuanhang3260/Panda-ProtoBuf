@@ -53,6 +53,9 @@ MessageField::GetModifierAsString(MessageField::FIELD_MODIFIER modifier) {
   return "unknown_modifer";
 }
 
+bool MessageField::IsPrimitiveType() const {
+  return type_ != STRING && type_ != MESSAGETYPE;
+}
 
 }  // namespace Compiler
 }  // namespace PandaProto

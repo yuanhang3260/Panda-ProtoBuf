@@ -23,6 +23,15 @@ bool Message::AddField(std::shared_ptr<MessageField> field) {
   }
   fields_map_[field->name()] = field;
   fileds_list_.push_back(field);
+  if (field->type() == MESSAGETYPE) {
+    has_message_field_  = true;
+  }
+  if (field->type() == STRING) {
+    has_string_field_  = true;
+  }
+  if (field->modifier() == MessageField::REPEATED) {
+    has_repeated_field_ = true;
+  }
   return true;
 }
 

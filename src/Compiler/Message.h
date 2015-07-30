@@ -28,10 +28,19 @@ class Message : public PbType {
   MessageField* FindMessage(std::string name) const;
   EnumType* FindEnumType(std::string name) const;
 
+  bool has_message_field() const { return has_message_field_; }
+  bool has_repeated_field() const { return has_repeated_field_; }
+  bool has_string_field() const { return has_string_field_; }
+
  protected:
   std::map<std::string, std::shared_ptr<MessageField>> fields_map_;
   std::vector<std::shared_ptr<MessageField>> fileds_list_;
   std::map<std::string, std::shared_ptr<EnumType>> enums_map_;
+
+ private:
+  bool has_message_field_ = false;
+  bool has_string_field_ = false;
+  bool has_repeated_field_ = false;
 };
 
 }  // namespace Compiler

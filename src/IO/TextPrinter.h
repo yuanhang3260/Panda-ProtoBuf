@@ -26,6 +26,8 @@ class TextPrinter {
              const std::map<std::string, std::string>& map);
   void Flush();
 
+  void Close();
+
  protected:
   std::unique_ptr<TextPrinterImpl> text_printer_impl_;
 };
