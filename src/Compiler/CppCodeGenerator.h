@@ -20,6 +20,13 @@ class CppCodeGenerator : public ProtoParser {
   void GenerateHeader();
   void GenerateCC();
 
+  void DefineDestructor(Message* message);
+  void DefineCopyConstructor(Message* message);
+  void DefineMoveConstructor(Message* message);
+  void DefineCopyAssigner(Message* message);
+  void DefineMoveAssigner(Message* message);
+  void DefineSwapper(Message* message);
+
   void CheckoutNameSpace(std::vector<std::string>& context_stk,
                          const std::vector<std::string>& target_stk);
   std::string GetNameSpacePrefix(const std::vector<std::string>& context_stk,

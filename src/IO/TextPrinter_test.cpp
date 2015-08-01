@@ -119,7 +119,8 @@ void test_PrintMapMatch() {
       {"Key2", "Match2"},
       {"Key3", "Match3"},
     };
-    std::string content = "xxxx{Key1}yyy{Key2}zz\nzzz{Key3}wwww{Invalid_Key}";
+    std::string content =
+        "xxxx${Key1}yyy${Key2}zz\nzzz${Key3}wwww${Invalid_Key}";
     std::string result("xxxxMatch1yyyMatch2zz\nzzzMatch3wwww");
     test_PrintMapMatch_Impl(content, matches, result);
   }
@@ -127,36 +128,36 @@ void test_PrintMapMatch() {
   // Round 1
   {
     std::map<std::string, std::string> matches = {
-      {"Key1}", "Match1"},
+      {"Key1", "Match1"},
       {"Key2", "Match2"},
       {"Key3", "Match3"},
     };
-    std::string content = "xxxx{Key1}}}yyy{}zzzzz{Key3}wwww";
-    std::string result("xxxxMatch1yyyzzzzzMatch3wwww");
+    std::string content = "xxxx${Key1}yyy${}zzzzz${Key3wwww";
+    std::string result("xxxxMatch1yyyzzzzz");
     test_PrintMapMatch_Impl(content, matches, result);
   }
 
   // Round 2
   {
     std::map<std::string, std::string> matches = {
-      {"Key1}", "Match1"},
+      {"{Key1", "Match1"},
       {"Key2", "Match2"},
       {"Key3", "Match3"},
     };
-    std::string content = "xxxx{Key1}}yyy{Key2}zzzzz{Key3}wwww";
-    std::string result("");
+    std::string content = "xxxx${{Key1}}yyy${Key2}zzzzz${Key3}wwww}";
+    std::string result("xxxxMatch1}yyyMatch2zzzzzMatch3wwww}");
     test_PrintMapMatch_Impl(content, matches, result);
   }
 
   // Round 3
   {
     std::map<std::string, std::string> matches = {
-      {"Key1}", "Match1"},
-      {"Key2", "Match2"},
+      {"Key1", "Match1"},
+      {"{Key2", "Match2"},
       {"Key3", "Match3"},
     };
-    std::string content = "xxxx{{{Key1}}}yyy{Key2}}}";
-    std::string result("xxxx{Match1yyy");
+    std::string content = "xxxx{${Key1}}}yyy${{Key2}";
+    std::string result("xxxx{Match1}}yyyMatch2");
     test_PrintMapMatch_Impl(content, matches, result);
   }
 

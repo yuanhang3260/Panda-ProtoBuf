@@ -88,33 +88,25 @@ int TextPrinterImpl::Print_Impl(
 int TextPrinterImpl::Print_Impl(
     const std::string& content,
     const std::map<std::string, std::string>& matches) {
-  if (!ValidateContentFormat(content)) {
-    fprintf(stderr, "ERROR in %s(): Incorrect bracket format of \"%s\"\n",
-            __FUNCTION__, content.c_str());
-    return -1;
-  }
+  // if (!ValidateContentFormat(content)) {
+  //   fprintf(stderr, "ERROR in %s(): Incorrect bracket format of \"%s\"\n",
+  //           __FUNCTION__, content.c_str());
+  //   return -1;
+  // }
 
   int printed_size = 0;
   int matching = 0;
   Utility::StringBuilder strbuf;
   for (unsigned int i = 0; i < content.length(); i++) {
-    // "{{" and "}}" are escaped as '{' and '}' in any case.
-    if (content[i] == '{' && i < content.length() - 1 && content[i+1] == '{') {
-      strbuf.Append('{');
-      i++;
-      continue;
-    }
-    if (content[i] == '}' && i < content.length() - 1 && content[i+1] == '}') {
-      strbuf.Append('}');
-      i++;
-      continue;
-    }
     // Matching or not
     if (!matching) {
-      if (content[i] == '{') {
+      if (i < content.length() - 1 &&
+          content[i] == '$' &&
+          content[i + 1] == '{') {
         printed_size += DoPrint(strbuf.CharArray(), strbuf.size());
         strbuf.Clear();
         matching = 1;
+        i++;
       }
       else {
         strbuf.Append(content[i]);

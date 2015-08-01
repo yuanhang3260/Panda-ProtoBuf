@@ -70,27 +70,28 @@ void CppCodeGenerator::GenerateHeader() {
     std::map<std::string, std::string> msg_match{
        {"msg_name", message->name()},
     };
-    printer.Print("  // constructors and destructor\n");
+    printer.Print("  // constructors and destructor //\n");
     printer.Print("  " + message->name() + "() = default;\n");
     printer.Print("  ~" + message->name() + "();\n");
     printer.Print(
-        "  {msg_name}(const {msg_name}& other) = default;"
+        "  ${msg_name}(const ${msg_name}& other);"
         "  // copy constructor\n",
         msg_match);
     printer.Print(
-        "  {msg_name}({msg_name}&& other) = default;  // move constructor\n",
+        "  ${msg_name}(${msg_name}&& other);  // move constructor\n",
         msg_match);
     printer.Print(
-        "  {msg_name}& operator=(const {msg_name}& other);"
+        "  ${msg_name}& operator=(const ${msg_name}& other);"
         "  // copy assignment\n",
         msg_match);
     printer.Print(
-        "  {msg_name}& operator=({msg_name}&& other);  // move assignment\n",
+        "  ${msg_name}& operator=(${msg_name}&& other);  // move assignment\n",
         msg_match);
-    printer.Print("  void Swap({msg_name}* other);\n", msg_match);
+    printer.Print("  void Swap(${msg_name}* other);\n", msg_match);
     printer.Print("\n");
 
     // Print public methods.
+    printer.Print("  // --- Field accessors --- //\n\n");
     for (auto& field: message->fields_list()) {
       std::string field_name = field->name();
       std::string type_name = field->type_name();
@@ -104,18 +105,19 @@ void CppCodeGenerator::GenerateHeader() {
                                        field->type_class()->pkg_stack())
                     + type_name;
       }
-      printer.Print("  // Access \"" + field->name() + "\"\n");
+      printer.Print("  // \"" + field->name() + "\" = " +
+                     std::to_string(field->tag()) + "\n");
       
       // methods for required and optional fields
       if (field->modifier() != MessageField::REPEATED) {
         // get method and set method
-        std::string get_method_line = "  {type} {field_name}() const;\n";
+        std::string get_method_line = "  ${type} ${field_name}() const;\n";
         std::string set_method_line =
-              "  void set_{field_name}(const {type} {field_name});\n";
+              "  void set_${field_name}(const ${type} ${field_name});\n";
         if (field->type() == STRING) {
-          get_method_line = "  const {type}& {field_name}() const;\n";
+          get_method_line = "  const ${type}& ${field_name}() const;\n";
           set_method_line =
-              "  void set_{field_name}(const {type}& {field_name});\n";
+              "  void set_${field_name}(const ${type}& ${field_name});\n";
         }
         std::map<std::string, std::string> matches{
            {"field_name", field_name},
@@ -131,30 +133,30 @@ void CppCodeGenerator::GenerateHeader() {
         if (field->type() == STRING) {
           // define: const set_foo(char* value)
           printer.Print(
-              "  void set_{field_name}(const char* {field_name});\n",
+              "  void set_${field_name}(const char* ${field_name});\n",
               matches);
           // define: const set_foo(char* value, int size)
           printer.Print(
-              "  void set_{field_name}(const char* {field_name}, int size);\n",
+              "  void set_${field_name}(const char* ${field_name}, int size);\n",
               matches);
           // define: string* mutable_foo()
           printer.Print(
-              "  std::string* mutable_{field_name}();\n", matches);
+              "  std::string* mutable_${field_name}();\n", matches);
           // define: void clear_foo()
           printer.Print(
-              "  void clear_{field_name}();\n", matches);
+              "  void clear_${field_name}();\n", matches);
         }
         // message type has other methods.
         if (field->type() == MESSAGETYPE &&
             field->modifier() != MessageField::REPEATED) {
           // define: Bar* mutable_foo()
-          printer.Print("  {type}* mutable_{field_name}();\n", matches);
+          printer.Print("  {type}* mutable_${field_name}();\n", matches);
           // define: void set_allocated_foo(Bar* foo)
           printer.Print(
-              "  void set_allocated_{field_name}({type}* {field_name});\n",
+              "  void set_allocated_${field_name}(${type}* ${field_name});\n",
               matches);
           // define: Bar* release_foo()
-          printer.Print("  {type}* release_{field_name}();\n", matches);
+          printer.Print("  ${type}* release_${field_name}();\n", matches);
         }
       }
       // methods of repeated field.
@@ -165,37 +167,37 @@ void CppCodeGenerator::GenerateHeader() {
            {"type", type_name},
         };
         // define: int foo_size() const
-        printer.Print("  int {field_name}_size() const;\n", matches);
+        printer.Print("  int ${field_name}_size() const;\n", matches);
         if (field->type() != MESSAGETYPE) {
           // define: Bar foo(int index) const
-          printer.Print("  {type} {field_name}(int index) const;\n", matches);
+          printer.Print("  ${type} ${field_name}(int index) const;\n", matches);
           // define: void set_foo(int index, Bar& foo)
           printer.Print(
-              "  void set_{field_name}(int index, {type} {field_name});\n",
+              "  void set_${field_name}(int index, ${type} ${field_name});\n",
               matches);
           // define: void add_foo(Bar& foo)
           printer.Print(
-              "  void add_{field_name}({type} {field_name});\n", matches);
+              "  void add_${field_name}(${type} ${field_name});\n", matches);
         }
         else {
           // define: const Bar& foo(int index) const
-          printer.Print("  const {type}& {field_name}(int index) const;\n",
+          printer.Print("  const ${type}& ${field_name}(int index) const;\n",
                         matches);
           // define: void set_foo(int index, Bar& foo)
           printer.Print(
-            "  void set_{field_name}(int index, const {type}& {field_name});\n",
+            "  void set_${field_name}(int index, const ${type}& ${field_name});\n",
             matches);
           // define: void add_foo(Bar& foo)
           printer.Print(
-              "  void add_{field_name}(const {type}& {field_name});\n",
+              "  void add_${field_name}(const ${type}& ${field_name});\n",
               matches);
         } 
         // define: const std::vector<Bar> foo() const
         printer.Print(
-            "  const std::vector<{type}>& {field_name}() const;\n", matches);
+            "  const std::vector<${type}>& ${field_name}() const;\n", matches);
         // define: std::vector<Bar>* mutable_foo()
         printer.Print(
-            "  std::vector<{type}>* mutable_{field_name}();\n", matches);
+            "  std::vector<${type}>* mutable_${field_name}();\n", matches);
       }
 
       printer.Print("\n");
@@ -249,261 +251,153 @@ void CppCodeGenerator::GenerateCC() {
   std::string outfile;
   outfile = proto_file_.substr(0, proto_file_.length() - 6) + "_pb";
 
-  // Open .h file
+  // Open .cpp file
   if (!printer.Open(outfile + ".cpp")) {
     fprintf(stderr, "ERROR: Open output file %s.p failed\n", outfile.c_str());
   }
 
+  // Include proto_name.pb.h file
   std::vector<std::string> result = StringUtils::Split(outfile, '/');
   std::string filename = result[result.size() - 1];
-
   printer.Print("#include \"" + filename + ".h\"\n\n");
 
   // Print class methods.
   for (auto& message: messages_list_) {
+    // Check out name space.
     CheckoutNameSpace(pkg_stack_, message->pkg_stack());
-
     // Print constructors and destructor.
-    std::map<std::string, std::string> msg_match{
-       {"msg_name", message->name()},
-    };
-
-    printer.Print("// destructor\n");
-    printer.Print("{msg_name}::~{msg_name}() {{\n", msg_match);
-    if (message->has_message_field()) {
-      for (auto& field : message->fields_list()) {
-        if (field->type() == MESSAGETYPE &&
-            field->modifier() != MessageField::REPEATED) {
-          printer.Print("  delete " + field->name() + "_;\n");
-        }
-      }
-    }
-    printer.Print("}\n\n");
-
-    printer.Print("// copy assignment\n");
-    printer.Print(
-        "{msg_name}& operator=(const {msg_name}& other) {{\n",
-        msg_match);
-    for (auto& field : message->fields_list()) {
-      std::string field_name = field->name();
-      std::string postfix =
-          field->modifier() == MessageField::REPEATED? "_list" : "";
-      std::map<std::string, std::string> matches {
-        {"field_name", field_name},
-        {"variable_name", field_name + postfix},
-        {"type_name", field->type_name()}
-      };
-      if (field->modifier() != MessageField::REPEATED &&
-          field->type() == MESSAGETYPE) {
-        printer.Print("  if (!{variable_name}) {{\n", matches);
-        printer.Print("    {variable_name}_ = new {type_name}();\n", matches);
-        printer.Print("  }\n");
-        printer.Print("  *{variable_name}_ = other.{field_name}();\n", matches);
-
-      }
-      else {
-        printer.Print("  {variable_name}_ = other.{field_name}();\n", matches);
-      }
-    }
-    printer.Print("}\n\n");
-    
-    printer.Print("// move assignment\n");
-    printer.Print(
-        "{msg_name}& operator=({msg_name}&& other) {{\n", msg_match);
-    for (auto& field : message->fields_list()) {
-      std::string field_name = field->name();
-      std::string postfix =
-          field->modifier() == MessageField::REPEATED? "_list" : "";
-      std::map<std::string, std::string> matches {
-        {"field_name", field_name},
-        {"variable_name", field_name + postfix},
-        {"type_name", field->type_name()}
-      };
-      if (field->modifier() == MessageField::REPEATED) {
-        printer.Print("  {variable_name} = other.release_{field_name}();\n",
-                      matches);
-      }
-      else if (field->type() == MESSAGETYPE) {
-        printer.Print("  if ({variable_name}_ ) {{\n", matches);
-        printer.Print("    delete {variable_name}_;\n", matches);
-        printer.Print("  }\n");
-        printer.Print("  {variable_name}_ = other.release_{field_name}();\n",
-                      matches);
-
-      }
-      else {
-        printer.Print(
-            "  {variable_name}_ = other.{field_name}();\n", matches);
-        printer.Print("  other.clear_{field_name}();\n", matches);
-      }
-    }
-    printer.Print("}\n\n");
-
-    printer.Print("void {msg_name}::Swap({msg_name}* other);\n", msg_match);
-    for (auto& field : message->fields_list()) {
-      std::string field_name = field->name();
-      std::string postfix =
-          field->modifier() == MessageField::REPEATED? "_list" : "";
-      std::map<std::string, std::string> matches {
-        {"field_name", field_name},
-        {"variable_name", field_name + postfix},
-        {"type_name", field->type_name()}
-      };
-      printer.Print(
-          "  {type_name} {field_name}_tmp__ = other->{field_name}();\n"
-          "  other->set_{field_name}({variable_name});\n"
-          "  {variable_name}_ = {field_name}_tmp__;\n",
-          matches);
-    }
-    printer.Print("}\n\n");
-
-    // // Print public methods.
-    // for (auto& field: message->fields_list()) {
-    //   std::string type_name = field->type_name();
-    //   if (field->type() != ENUMTYPE &&
-    //       field->type() != MESSAGETYPE) {
-    //     type_name = pbCppTypeMap.at(field->type());
-    //   }
-    //   else {
-    //     // enum and message types: first get the correct namespace prefix
-    //     type_name = GetNameSpacePrefix(message->pkg_stack(),
-    //                                    field->type_class()->pkg_stack())
-    //                 + type_name;
-    //   }
-    //   printer.Print("  // Access \"" + field->name() + "\"\n");
-      
-    //   // methods for required and optional fields
-    //   if (field->modifier() != MessageField::REPEATED) {
-    //     // get method and set method
-    //     std::string get_method_line = "  {type} {field_name}() const;\n";
-    //     std::string set_method_line =
-    //           "  void set_{field_name}(const {type} {field_name});\n";
-    //     if (field->type() == STRING) {
-    //       get_method_line = "  const {type}& {field_name}() const;\n";
-    //       set_method_line =
-    //           "  void set_{field_name}(const {type}& {field_name});\n";
-    //     }
-    //     std::map<std::string, std::string> matches{
-    //        {"field_name", field->name()},
-    //        {"type", type_name},
-    //     };
-
-    //     // define: int get_foo() const / const Bar& get_foo()
-    //     printer.Print(get_method_line, matches);
-    //     // define: void set_foo(int foo) / void set_foo(const Bar& foo)
-    //     printer.Print(set_method_line, matches);
-        
-    //     // string type has other methods.
-    //     if (field->type() == STRING) {
-    //       // define: const set_foo(char* value)
-    //       printer.Print(
-    //           "  void set_{field_name}(const char* {field_name});\n",
-    //           matches);
-    //       // define: const set_foo(char* value, int size)
-    //       printer.Print(
-    //           "  void set_{field_name}(const char* {field_name}, int size);\n",
-    //           matches);
-    //       // define: string* mutable_foo()
-    //       printer.Print(
-    //           "  std::string* mutable_{field_name}();\n", matches);
-    //       // define: void clear_foo()
-    //       printer.Print(
-    //           "  void clear_{field_name}();\n", matches);
-    //     }
-    //     // message type has other methods.
-    //     if (field->type() == MESSAGETYPE &&
-    //         field->modifier() != MessageField::REPEATED) {
-    //       // define: Bar* mutable_foo()
-    //       printer.Print("  {type}* mutable_{field_name}();\n", matches);
-    //       // define: void set_allocated_foo(Bar* foo)
-    //       printer.Print(
-    //           "  void set_allocated_{field_name}({type}* {field_name});\n",
-    //           matches);
-    //       // define: Bar* release_foo()
-    //       printer.Print("  {type}* release_{field_name}();\n", matches);
-    //     }
-    //   }
-    //   // methods of repeated field.
-    //   else {
-    //     // get method and set method
-    //     std::map<std::string, std::string> matches{
-    //        {"field_name", field->name()},
-    //        {"type", type_name},
-    //     };
-    //     // define: int foo_size() const
-    //     printer.Print("  int {field_name}size() const;\n", matches);
-    //     if (field->type() != MESSAGETYPE) {
-    //       // define: Bar foo(int index) const
-    //       printer.Print("  {type} {field_name}(int index) const;\n", matches);
-    //       // define: void set_foo(int index, Bar& foo)
-    //       printer.Print(
-    //           "  void set_{field_name}(int index, {type} {field_name});\n",
-    //           matches);
-    //       // define: void add_foo(Bar& foo)
-    //       printer.Print(
-    //           "  void add_{field_name}({type} {field_name});\n", matches);
-    //     }
-    //     else {
-    //       // define: const Bar& foo(int index) const
-    //       printer.Print("  const {type}& {field_name}(int index) const;\n",
-    //                     matches);
-    //       // define: void set_foo(int index, Bar& foo)
-    //       printer.Print(
-    //         "  void set_{field_name}(int index, const {type}& {field_name});\n",
-    //         matches);
-    //       // define: void add_foo(Bar& foo)
-    //       printer.Print(
-    //           "  void add_{field_name}(const {type}& {field_name});\n",
-    //           matches);
-    //     } 
-    //     // define: const std::vector<Bar> foo() const
-    //     printer.Print(
-    //         "  const std::vector<{type}>& {field_name}() const;\n", matches);
-    //     // define: std::vector<Bar>* mutable_foo()
-    //     printer.Print(
-    //         "  std::vector<{type}>* mutable_{field_name}();\n", matches);
-    //   }
-
-    //   printer.Print("\n");
-    // }
-
-    // // Private fields.
-    // printer.Print(" private:\n");
-    // for (auto& field: message->fields_list()) {
-    //   std::string type_name = field->type_name();
-    //   if (field->type() != ENUMTYPE &&
-    //       field->type() != MESSAGETYPE) {
-    //     type_name = pbCppTypeMap.at(field->type());
-    //   }
-    //   else {
-    //     // Add namespace prefix for enum and message types.
-    //     type_name = GetNameSpacePrefix(message->pkg_stack(),
-    //                                    field->type_class()->pkg_stack())
-    //                 + type_name;
-    //   }
-    //   // repeated fields are "vector<Bar>* foo" type
-    //   if (field->modifier() == MessageField::REPEATED) {
-    //     type_name = "std::vector<" + type_name + ">";
-    //   }
-
-    //   std::string declearation_line = "  $ $_";
-    //   if (field->type() == MESSAGETYPE &&
-    //       field->modifier() != MessageField::REPEATED) {
-    //     declearation_line = "  $* $_";
-    //   }
-    //   printer.Print(declearation_line,
-    //                 std::vector<std::string>{type_name, field->name()});
-    //   if (!field->default_value().empty()) {
-    //     printer.Print(" = " + field->default_value());
-    //   }
-    //   printer.Print(";\n");
-    // }
-    printer.Print("\n");
+    DefineDestructor(message.get());
+    DefineCopyAssigner(message.get());
+    DefineMoveAssigner(message.get());
+    DefineSwapper(message.get());
   }
 
   CheckoutNameSpace(pkg_stack_, std::vector<std::string>());
-  printer.Print("\n#endif  /* " + StringUtils::Upper(filename) + "_H_ */\n");
   printer.Flush();
+}
+
+void CppCodeGenerator::DefineDestructor(Message* message) {
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+
+  printer.Print("// destructor\n");
+  printer.Print("${msg_name}::~${msg_name}() {\n", msg_match);
+  if (message->has_message_field()) {
+    for (auto& field : message->fields_list()) {
+      if (field->type() == MESSAGETYPE &&
+          field->modifier() != MessageField::REPEATED) {
+        printer.Print("  delete " + field->name() + "_;\n");
+      }
+    }
+  }
+  printer.Print("}\n\n");
+}
+
+void CppCodeGenerator::DefineCopyAssigner(Message* message) {
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+
+  printer.Print("// copy assignment\n");
+  printer.Print(
+      "${msg_name}& operator=(const ${msg_name}& other) {{\n",
+      msg_match);
+  for (auto& field : message->fields_list()) {
+    std::string field_name = field->name();
+    std::map<std::string, std::string> matches {
+      {"field_name", field_name},
+      {"type_name", field->type_name()}
+    };
+    if (field->IsNonRepeatedMessageType()) {
+      printer.Print(
+        "  if (!${field_name}_) {\n"
+        "    ${field_name}_ = new ${type_name}();\n"
+        "  }\n"
+        "  *${field_name}_ = other.${field_name}();\n", matches);
+    }
+    else {
+      printer.Print("  ${field_name}_ = other.${field_name}();\n", matches);
+    }
+  }
+  printer.Print("}\n\n");
+}
+
+void CppCodeGenerator::DefineMoveAssigner(Message* message) {
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+
+  printer.Print("// move assignment\n");
+  printer.Print(
+      "${msg_name}& operator=(${msg_name}&& other) {{\n", msg_match);
+  for (auto& field : message->fields_list()) {
+    std::string field_name = field->name();
+    std::map<std::string, std::string> matches {
+      {"field_name", field_name},
+      {"type_name", field->type_name()}
+    };
+    if (field->modifier() == MessageField::REPEATED ||
+        field->type() == STRING) {
+      printer.Print(
+        "  ${field_name}_ = std::move<*other.mutable_${field_name}()>;\n",
+        matches);
+    }
+    else if (field->type() == MESSAGETYPE) {
+      printer.Print(
+        "  if (${field_name}_ ) {\n"
+        "    delete ${field_name}_;\n"
+        "  }\n"
+        "  ${field_name}_ = other.release_${field_name}();\n",
+        matches);
+    }
+    else {
+      printer.Print(
+          "  ${field_name}_ = other.${field_name}();\n", matches);
+      printer.Print("  other.clear_${field_name}();\n", matches);
+    }
+  }
+  printer.Print("}\n\n");
+}
+
+void CppCodeGenerator::DefineSwapper(Message* message) {
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+
+  printer.Print("// swapper\n");
+  printer.Print("void ${msg_name}::Swap(${msg_name}* other);\n", msg_match);
+  for (auto& field : message->fields_list()) {
+    std::string field_name = field->name();
+    std::map<std::string, std::string> matches {
+      {"field_name", field_name},
+      {"type_name", field->type_name()}
+    };
+
+    if (field->modifier() == MessageField::REPEATED ||
+        field->type() == STRING) {  // repeated type / string type
+      printer.Print(
+          "  ${type_name} ${field_name}_tmp__ = std::move<*other->mutable_${field_name}()>;\n"
+          "  *other->mutable_${field_name} = std::move<${field_name}_>;\n"
+          "  ${field_name}_ = std::move<${field_name}_tmp__>;\n",
+          matches);
+    }
+    else if (field->type() == MESSAGETYPE) {  // message type
+      printer.Print(
+          "  ${type_name}* ${field_name}_tmp__ = other->release_${field_name}();\n"
+          "  other->set_allocated_${field_name}(this->release_${field_name}());\n"
+          "  set_allocated_${field_name}(${field_name}_tmp__);\n",
+          matches);
+    }
+    else {  // regular primitive type / enum type
+      printer.Print(
+          "  ${type_name} ${field_name}_tmp__ = other->${field_name}();\n"
+          "  other->set_${field_name}(${field_name}_);\n"
+          "  set_${field_name}(${field_name}_tmp__);\n",
+          matches);
+    }
+  }
+  printer.Print("}\n\n");
 }
 
 void CppCodeGenerator::CheckoutNameSpace(

@@ -1,0 +1,28 @@
+// test1 proto
+
+package AA;
+
+message DogInfo {
+  required string name= 2;
+  required int32 age =1;
+  enum Sex {
+    Male,
+    Female,
+  }
+  required Sex sex = 6;
+  optional bool like = 4[default = true ];
+}
+
+message FamilyInfo {
+	optional string address = 1;
+	optional int32 numberdogs = 2;
+}
+
+package AA.BB.CC;
+
+message DogFamilyInfo {
+  optional FamilyInfo family = 1;
+  repeated DogInfo dogs = 2;
+  repeated string locations = 3;
+}
+

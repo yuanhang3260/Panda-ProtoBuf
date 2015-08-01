@@ -57,5 +57,10 @@ bool MessageField::IsPrimitiveType() const {
   return type_ != STRING && type_ != MESSAGETYPE;
 }
 
+bool MessageField::IsNonRepeatedMessageType() const {
+  return modifier_ != MessageField::REPEATED &&
+         type_ == MESSAGETYPE;
+}
+
 }  // namespace Compiler
 }  // namespace PandaProto
