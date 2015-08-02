@@ -70,7 +70,9 @@ class ProtoParser {
   bool ParseEnumName(std::string line);
   bool ParseEnumValue(std::string line);
   bool ParseAssignExpression(std::string line,
-                             std::string* left, std::string* right) const;
+                             std::string* left,
+                             std::string* right,
+                             FIELD_TYPE type) const;
 
   static bool IsMessageFiledLine(std::string line);
   static bool IsValidVariableName(std::string str);

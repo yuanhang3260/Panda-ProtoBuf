@@ -9,7 +9,7 @@ message DogInfo {
     Male,
     Female,
   }
-  required Sex sex = 6;
+  required Sex sex = 6 [default=Male];
   optional bool like = 4[default = true ];
 }
 

@@ -272,7 +272,7 @@ bool ProtoParser::ParseMessageField(std::string line) {
   }
 
   std::string name, tag;
-  if (!ParseAssignExpression(nametag, &name, &tag)) {
+  if (!ParseAssignExpression(nametag, &name, &tag, INT32)) {
     return false;
   }
   int tag_num = std::stoi(tag);
@@ -280,8 +280,19 @@ bool ProtoParser::ParseMessageField(std::string line) {
   // Parse default block.
   std::string default_name, default_value = "";
   if (defaultblock.length() > 0) {
-    if (!ParseAssignExpression(defaultblock, &default_name, &default_value)) {
+    // Value is validated inside ParseAssignExpression(), except for enum type.
+    if (!ParseAssignExpression(defaultblock, &default_name, &default_value,
+                               type)) {
       return false;
+    }
+    // Validate default value of enum type.
+    if (type == ENUMTYPE) {
+      EnumType* enumclass = static_cast<EnumType*>(type_class);
+      if (!enumclass->ContainsEnum(default_value)) {
+        LogError("Enum value \"%s\" is not a valid value in enum type %s",
+                 default_value.c_str(), type_class->name().c_str());
+        return false;
+      }
     }
     if (default_name != "default") {
       LogError("Can't recognize \"%s\", should be \"default\"",
@@ -383,8 +394,9 @@ bool ProtoParser::IsMessageFiledLine(std::string line) {
 }
 
 bool ProtoParser::ParseAssignExpression(std::string line,
-                                             std::string* left,
-                                             std::string* right) const {
+                                        std::string* left,
+                                        std::string* right,
+                                        FIELD_TYPE type) const {
   line = StringUtils::Strip(line);
   std::size_t pos = line.find("=");
   if (pos == std::string::npos) {
@@ -397,10 +409,85 @@ bool ProtoParser::ParseAssignExpression(std::string line,
     LogError("invalid variable name \"%s\"", (*left).c_str());
     return false;
   }
-  if ((*right).length() == 0 || !IsValidVariableName(*right)) {
-    LogError("invalid variable name \"%s\"", (*right).c_str());
+  if ((*right).length() == 0) {
+    LogError("value of %s must not be empty", (*left).c_str());
     return false;
   }
+  switch (type) {
+    case INT32:
+      try {
+        int value = std::stoi(*right);
+        (void)value;
+      }
+      catch (std::exception& err) {
+        LogError("Can't parse \"%s\" as int32 value", (*right).c_str());
+        return false;
+      }
+      break;
+    case UINT32:
+      try {
+        unsigned long value = std::stoul(*right);
+        (void)value;
+      }
+      catch (std::exception& err) {
+        LogError("Can't parse \"%s\" as uint32 value", (*right).c_str());
+        return false;
+      }
+      break;
+    case INT64:
+      try {
+        long long value = std::stoll(*right);
+        (void)value;
+      }
+      catch (std::exception& err) {
+        LogError("Can't parse \"%s\" as int64 value", (*right).c_str());
+        return false;
+      }
+      break;
+    case UINT64:
+      try {
+        unsigned long long value = std::stoull(*right);
+        (void)value;
+      }
+      catch (std::exception& err) {
+        LogError("Can't parse %s as int64 value", (*right).c_str());
+        return false;
+      }
+      break;
+    case DOUBLE:
+      try {
+        double value = std::stod(*right);
+        (void)value;
+      }
+      catch (std::exception& err) {
+        LogError("Can't parse \"%s\" as double value", (*right).c_str());
+        return false;
+      }
+      break;
+    case BOOL:
+      if (*right != "true" && *right != "false" &&
+          *right != "True" && *right != "False") {
+        LogError("Invalid boolean value \"%s\"", (*right).c_str());
+        return false;
+      }
+      break;
+    case STRING:
+      {
+        std::string value = *right;
+        if (!StringUtils::StartWith(value, "\"") ||
+            !StringUtils::EndWith(value, "\"")) {
+          LogError(
+              "Invalid string value: must be double quotated, actual - \"%s\"",
+              (*right).c_str());
+          return false;
+        }
+        *right = StringUtils::Strip(*right, "\"");
+      }
+      break;
+    default:
+      break;
+  }
+
   return true;
 }
 
@@ -460,7 +547,7 @@ void ProtoParser::LogError(const char* error_msg, ...) const {
   va_start(args, error_msg);
   vfprintf(stderr, error_msg, args);
   va_end(args);
-  fprintf(stderr, "\n");
+  fprintf(stderr, ".\n");
 }
 
 void ProtoParser::PrintParseState() const {

@@ -17,10 +17,15 @@ EnumType::EnumType(std::string name, std::string package, std::string message) :
 
 void EnumType::AddEnumValue(std::string newenum) {
   enums_.push_back(newenum);
+  enums_set_.insert(newenum);
 }
 
 int EnumType::NumberEnums() const {
   return enums_.size();
+}
+
+bool EnumType::ContainsEnum(std::string enum_value) const {
+  return enums_set_.find(enum_value) != enums_set_.end();
 }
 
 void EnumType::Print() const {
