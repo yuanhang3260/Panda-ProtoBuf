@@ -21,6 +21,23 @@ MessageField::MessageField(FIELD_MODIFIER modifier,
   else {
     type_name_ = type_class_->name();
   }
+  if (default_value_.empty()) {
+    if (IsPrimitiveType()) {
+      if (type_ == BOOL) {
+        default_value_ = "false";
+      }
+      else {
+        default_value_ = "0";
+      }
+    }
+    else if (type_ == STRING) {
+      default_value_ = "";
+    }
+    else {  // Message Type
+      // Note: this default value should never be used.
+      default_value_ = "nullptr";
+    }
+  }
 }
 
 MessageField::~MessageField() {}
@@ -73,9 +90,23 @@ bool MessageField::IsSingularMessageType() const {
          type_ == MESSAGETYPE;
 }
 
-bool MessageField::IsRepeatedType() const {
-  return modifier_ == MessageField::REPEATED;
+bool MessageField::IsRepeatedNumericType() const {
+  return modifier_ == MessageField::REPEATED &&
+         type_ != MESSAGETYPE &&
+         type_ != STRING;
 }
+
+bool MessageField::IsRepeatedStringType() const {
+  return modifier_ == MessageField::REPEATED &&
+         type_ == STRING;
+}
+
+bool MessageField::IsRepeatedMessageType() const {
+  return modifier_ == MessageField::REPEATED &&
+         type_ == MESSAGETYPE;
+}
+
+
 
 
 }  // namespace Compiler

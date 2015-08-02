@@ -34,13 +34,13 @@ class MessageField {
 
   void set_type_name(std::string type_name) { type_name_ = type_name; }
 
-  
-
   bool IsPrimitiveType() const;
   bool IsSingularNumericType() const;
   bool IsSingularStringType() const;
   bool IsSingularMessageType() const;
-  bool IsRepeatedType() const;
+  bool IsRepeatedNumericType() const;
+  bool IsRepeatedStringType() const;
+  bool IsRepeatedMessageType() const;
 
  private:
   FIELD_MODIFIER modifier_;

@@ -22,19 +22,46 @@ class CppCodeGenerator : public ProtoParser {
 
   void DefineDestructor(Message* message);
 
+  // Define copiers.
   void PrintCopyClassCode(Message* message);
   void DefineCopyConstructor(Message* message);
   void DefineMoveConstructor(Message* message);
 
+  // Define movers.
   void PrintMoveClassCode(Message* message);
   void DefineCopyAssigner(Message* message);
   void DefineMoveAssigner(Message* message);
 
-  void DefineAccessors(Message* message);
+  // Swapper
+  void DefineSwapper(Message* message);
+
+  // Declare field accessors.
+  void DeclareAccessors(Message* message, MessageField* field);
+  void DeclareSingularNumericTypeAccessors(Message* message,
+                                           MessageField* field);
+  void DeclareSingularStringTypeAccessors(Message* message,
+                                          MessageField* field);
+  void DeclareSingularMessageTypeAccessors(Message* message,
+                                           MessageField* field);
+  void DeclareRepeatedNumericTypeAccessors(Message* message,
+                                           MessageField* field);
+  void DeclareRepeatedNonNumericTypeAccessors(Message* message,
+                                              MessageField* field);
+
+  // Define field accessors.
+  void DefineAccessors(Message* message, MessageField* field);
   void DefineSingularNumericTypeAccessors(Message* message,
                                           MessageField* field);
+  void DefineSingularStringTypeAccessors(Message* message,
+                                         MessageField* field);
+  void DefineSingularMessageTypeAccessors(Message* message,
+                                          MessageField* field);
+  void DefineRepeatedNumericTypeAccessors(Message* message,
+                                          MessageField* field);
+  void DefineRepeatedNonNumericTypeAccessors(Message* message,
+                                             MessageField* field);
 
-  void DefineSwapper(Message* message);
+
 
   std::map<std::string, std::string>
   GetFieldMatchMap(Message* message, MessageField* field);

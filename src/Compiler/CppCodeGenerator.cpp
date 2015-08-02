@@ -11,7 +11,7 @@ std::map<FIELD_TYPE, std::string> pbCppTypeMap{
   {INT64, "long long"},
   {UINT32, "unsigned int"},
   {UINT64, "unsigned long long"},
-  {DOUBLE, "dobule"},
+  {DOUBLE, "double"},
   {STRING, "std::string"},
   {BOOL, "bool"},
 };
@@ -93,114 +93,7 @@ void CppCodeGenerator::GenerateHeader() {
     // Print public methods.
     printer.Print("  // --- Field accessors --- //\n\n");
     for (auto& field: message->fields_list()) {
-      std::string field_name = field->name();
-      std::string type_name = field->type_name();
-      if (field->type() != ENUMTYPE &&
-          field->type() != MESSAGETYPE) {
-        type_name = pbCppTypeMap.at(field->type());
-      }
-      else {
-        // enum and message types: first get the correct namespace prefix
-        type_name = GetNameSpacePrefix(message->pkg_stack(),
-                                       field->type_class()->pkg_stack())
-                    + type_name;
-      }
-      printer.Print("  // \"" + field->name() + "\" = " +
-                     std::to_string(field->tag()) + "\n");
-      
-      // methods for required and optional fields
-      if (field->modifier() != MessageField::REPEATED) {
-        // get method and set method
-        std::string get_method_line = "  ${type} ${field_name}() const;\n";
-        std::string set_method_line =
-              "  void set_${field_name}(const ${type} ${field_name});\n";
-        if (field->type() == STRING) {
-          get_method_line = "  const ${type}& ${field_name}() const;\n";
-          set_method_line =
-              "  void set_${field_name}(const ${type}& ${field_name});\n";
-        }
-        std::map<std::string, std::string> matches{
-           {"field_name", field_name},
-           {"type", type_name},
-        };
-
-        // define: int get_foo() const / const Bar& get_foo()
-        printer.Print(get_method_line, matches);
-        // define: void set_foo(int foo) / void set_foo(const Bar& foo)
-        printer.Print(set_method_line, matches);
-        
-        // string type has other methods.
-        if (field->type() == STRING) {
-          // define: const set_foo(char* value)
-          printer.Print(
-              "  void set_${field_name}(const char* ${field_name});\n",
-              matches);
-          // define: const set_foo(char* value, int size)
-          printer.Print(
-              "  void set_${field_name}(const char* ${field_name}, int size);\n",
-              matches);
-          // define: string* mutable_foo()
-          printer.Print(
-              "  std::string* mutable_${field_name}();\n", matches);
-          // define: void clear_foo()
-          printer.Print(
-              "  void clear_${field_name}();\n", matches);
-        }
-        // message type has other methods.
-        if (field->type() == MESSAGETYPE &&
-            field->modifier() != MessageField::REPEATED) {
-          // define: Bar* mutable_foo()
-          printer.Print("  {type}* mutable_${field_name}();\n", matches);
-          // define: void set_allocated_foo(Bar* foo)
-          printer.Print(
-              "  void set_allocated_${field_name}(${type}* ${field_name});\n",
-              matches);
-          // define: Bar* release_foo()
-          printer.Print("  ${type}* release_${field_name}();\n", matches);
-        }
-      }
-      // methods of repeated field.
-      else {
-        // get method and set method
-        std::map<std::string, std::string> matches{
-           {"field_name", field_name},
-           {"type", type_name},
-        };
-        // define: int foo_size() const
-        printer.Print("  int ${field_name}_size() const;\n", matches);
-        if (field->type() != MESSAGETYPE) {
-          // define: Bar foo(int index) const
-          printer.Print("  ${type} ${field_name}(int index) const;\n", matches);
-          // define: void set_foo(int index, Bar& foo)
-          printer.Print(
-              "  void set_${field_name}(int index, ${type} ${field_name});\n",
-              matches);
-          // define: void add_foo(Bar& foo)
-          printer.Print(
-              "  void add_${field_name}(${type} ${field_name});\n", matches);
-        }
-        else {
-          // define: const Bar& foo(int index) const
-          printer.Print("  const ${type}& ${field_name}(int index) const;\n",
-                        matches);
-          // define: void set_foo(int index, Bar& foo)
-          printer.Print(
-            "  void set_${field_name}(int index, const ${type}& ${field_name});\n",
-            matches);
-          // define: void add_foo(Bar& foo)
-          printer.Print(
-              "  void add_${field_name}(const ${type}& ${field_name});\n",
-              matches);
-        } 
-        // define: const std::vector<Bar> foo() const
-        printer.Print(
-            "  const std::vector<${type}>& ${field_name}() const;\n", matches);
-        // define: std::vector<Bar>* mutable_foo()
-        printer.Print(
-            "  std::vector<${type}>* mutable_${field_name}();\n", matches);
-      }
-
-      printer.Print("\n");
+      DeclareAccessors(message.get(), field.get());
     }
 
     // Private fields.
@@ -269,6 +162,10 @@ void CppCodeGenerator::GenerateCC() {
     DefineMoveAssigner(message.get());
     DefineSwapper(message.get());
     DefineDestructor(message.get());
+    // Print accessors.
+    for (auto& field : message->fields_list()) {
+      DefineAccessors(message.get(), field.get());
+    }
   }
 
   CheckoutNameSpace(pkg_stack_, std::vector<std::string>());
@@ -352,7 +249,7 @@ void CppCodeGenerator::PrintMoveClassCode(Message* message) {
     if (field->modifier() == MessageField::REPEATED ||
         field->type() == STRING) {
       printer.Print(
-        "  ${field_name}_ = std::move<*other.mutable_${field_name}()>;\n",
+        "  ${field_name}_ = std::move<other.mutable_${field_name}()>;\n",
         matches);
     }
     else if (field->type() == MESSAGETYPE) {
@@ -409,8 +306,8 @@ void CppCodeGenerator::DefineSwapper(Message* message) {
     if (field->modifier() == MessageField::REPEATED ||
         field->type() == STRING) {  // repeated type / string type
       printer.Print(
-          "  ${type_name} ${field_name}_tmp__ = std::move<*other->mutable_${field_name}()>;\n"
-          "  *other->mutable_${field_name} = std::move<${field_name}_>;\n"
+          "  ${type_name} ${field_name}_tmp__ = std::move<other->mutable_${field_name}()>;\n"
+          "  other->mutable_${field_name} = std::move<${field_name}_>;\n"
           "  ${field_name}_ = std::move<${field_name}_tmp__>;\n",
           matches);
     }
@@ -432,39 +329,513 @@ void CppCodeGenerator::DefineSwapper(Message* message) {
   printer.Print("}\n\n");
 }
 
-void CppCodeGenerator::DefineAccessors(Message* message) {
-  for (auto& field : message->fields_list()) {
-    if (field->IsSingularNumericType()) {
-      DefineSingularNumericTypeAccessors(message, field.get());
-    }
+void CppCodeGenerator::DeclareAccessors(Message* message, MessageField* field) {
+  if (field->IsSingularNumericType()) {
+    DeclareSingularNumericTypeAccessors(message, field);
+  }
+  else if (field->IsSingularStringType()) {
+    DeclareSingularStringTypeAccessors(message, field);
+  }
+  else if (field->IsSingularMessageType()) {
+    DeclareSingularMessageTypeAccessors(message, field);
+  }
+  else if (field->IsRepeatedNumericType()) {
+    DeclareRepeatedNumericTypeAccessors(message, field);
+  }
+  else if (field->IsRepeatedStringType() || field->IsRepeatedMessageType()) {
+    DeclareRepeatedNonNumericTypeAccessors(message, field);
+  }
+  else {
+    // hehe
+  }
+}
+
+void CppCodeGenerator::DeclareSingularNumericTypeAccessors(
+    Message* message,
+    MessageField* field)
+{
+  std::map<std::string, std::string> matches = GetFieldMatchMap(message, field);
+
+  printer.Print("  // \"${field_name}\" = ${tag}\n", matches);
+
+  // Declare - int32 foo() const;
+  printer.Print("  ${type_name} ${field_name}() const;\n",
+                matches);
+  
+  // Declare - void set_foo(int32 value);
+  printer.Print("  void set_${field_name}(${type_name} ${field_name});\n",
+                matches);
+  
+  // Declare - void clear_foo(int32 value);
+  printer.Print("  void clear_${field_name}();\n",
+                matches);
+
+  printer.Print("\n");
+}
+
+void CppCodeGenerator::DeclareSingularStringTypeAccessors(
+    Message* message,
+    MessageField* field)
+{
+  std::map<std::string, std::string> matches = GetFieldMatchMap(message, field);
+
+  printer.Print("  // \"${field_name}\" = ${tag}\n", matches);
+  
+  // Declare - std::string foo() const;
+  printer.Print("  const std::string& ${field_name}() const;\n",
+                matches);
+  
+  // Declare - void set_foo(std::string value);
+  printer.Print("  void set_${field_name}(const std::string& ${field_name});\n",
+                matches);
+
+  // Declare - void set_foo(const char* value);
+  printer.Print("  void set_${field_name}(const char* ${field_name});\n",
+                matches);
+
+  // Declare - void set_foo(const char* value, int size);
+  printer.Print("  void set_${field_name}(const char* ${field_name}, int size);\n",
+                matches);
+
+  // Declare - std::string& mutable_foo();
+  printer.Print("  std::string mutable_${field_name}();\n",
+                matches);
+
+  // Declare - void clear_foo();
+  printer.Print("  void clear_${field_name}();\n", matches);
+
+  printer.Print("\n");
+}
+
+void CppCodeGenerator::DeclareSingularMessageTypeAccessors(
+    Message* message,
+    MessageField* field)
+{
+  std::map<std::string, std::string> matches = GetFieldMatchMap(message, field);
+
+  printer.Print("  // \"${field_name}\" = ${tag}\n", matches);
+
+  // Declare - const Bar& foo() const;
+  printer.Print("  const ${type_name}& ${field_name}() const;\n",
+                matches);
+
+  // Declare - Bar* mutable_foo();
+  printer.Print("  ${type_name}* mutable_${field_name}();\n",
+                matches);
+
+  // Declare - void set_alocated_foo(Bar* value);
+  printer.Print("  void set_allocated_${field_name}(${type_name}* ${field_name});\n",
+                matches);
+
+  // Declare - Bar* release_foo();
+  printer.Print("  ${type_name}* release_${field_name}();\n",
+                matches);
+
+  // Declare - void clear_foo();
+  printer.Print("  void clear_${field_name}();\n",
+                matches);
+
+  printer.Print("\n");
+}
+
+void CppCodeGenerator::DeclareRepeatedNumericTypeAccessors(
+    Message* message,
+    MessageField* field)
+{
+  std::map<std::string, std::string> matches = GetFieldMatchMap(message, field);
+
+  printer.Print("  // \"${field_name}\" = ${tag}\n", matches);
+
+  // Declare - int foo_size() const;
+  printer.Print("  int ${field_name}_size() const;\n",
+                matches);
+
+  // Declare - Bar foo(int index) const;
+  printer.Print("  ${type_name} ${field_name}(int index);\n",
+                matches);
+
+  // Declare - void set_foo(int index, Bar& value);
+  printer.Print("  void set_${field_name}(int index, ${type_name} value);\n",
+                matches);
+
+  // Declare - void add_foo(Bar& value);
+  printer.Print("  void add_${field_name}(${type_name} value);\n",
+                matches);
+
+  // Declare - void clear_foo();
+  printer.Print("  void clear_${field_name}();\n",
+                matches);
+
+  // Declare - const std::vector<Bar>& foo() const;
+  printer.Print("  const std::vector<${type_name}> ${field_name}() const;\n",
+                matches);
+
+  // Declare - std::vector<Bar>& mutable_foo();
+  printer.Print("  std::vector<${type_name}> mutable_${field_name}();\n",
+                matches);
+
+  printer.Print("\n");
+}
+
+void CppCodeGenerator::DeclareRepeatedNonNumericTypeAccessors(
+    Message* message,
+    MessageField* field)
+{
+  std::map<std::string, std::string> matches = GetFieldMatchMap(message, field);
+
+  printer.Print("  // \"${field_name}\" = ${tag}\n", matches);
+
+  // Declare - int foo_size() const;
+  printer.Print("  int ${field_name}_size() const;\n", matches);
+
+  // Declare - const ${type_name}& foo(int index) const;
+  printer.Print("  const ${type_name}& ${field_name}(int index);\n", matches);
+
+  // Declare - void set_foo(int index, const Bar& value);
+  printer.Print("  void set_${field_name}(int index, const ${type_name}& value);\n",
+                matches);
+
+  // String type can also have value passed by const char*
+  if (field->IsRepeatedStringType()) {
+    // Declare - void set_foo(int index, const char* value);
+    printer.Print("  void set_${field_name}(int index, const char* value);\n",
+                  matches);
+
+    // Declare - void set_foo(int index, const char* value, int size);
+    printer.Print("  void set_${field_name}(int index, const char* value, int size);\n",
+                  matches);
+  }
+
+  // Declare - void add_foo(Bar& value);
+  printer.Print("  void add_${field_name}(const ${type_name}& value);\n",
+                matches);
+
+  // String type can also have value passed by const char*
+  if (field->IsRepeatedStringType()) {
+    // Declare - void add_foo(const char* value);
+    printer.Print("  void add_${field_name}(const char* value);\n",
+                  matches);
+
+    // Declare - void add_foo(const char* value, int size);
+    printer.Print("  void add_${field_name}(const char* value, int size);\n",
+                  matches);
+  }
+
+  // Declare - Bar& mutable_foo(int index);
+  printer.Print("  ${type_name}& mutable_${field_name}(int index);\n", matches);  
+
+  // Declare - void clear_foo();
+  printer.Print("  void clear_${field_name}();\n", matches);
+
+  // Declare - const std::vector<Bar>& foo() const;
+  printer.Print("  const std::vector<${type_name}> ${field_name}() const;\n",
+                matches);
+
+  // Declare - std::vector<Bar>& mutable_foo();
+  printer.Print("  std::vector<${type_name}> mutable_${field_name}();\n",
+                matches);
+
+  printer.Print("\n");
+}
+
+void CppCodeGenerator::DefineAccessors(Message* message, MessageField* field) {
+  if (field->IsSingularNumericType()) {
+    DefineSingularNumericTypeAccessors(message, field);
+  }
+  else if (field->IsSingularStringType()) {
+    DefineSingularStringTypeAccessors(message, field);
+  }
+  else if (field->IsSingularMessageType()) {
+    DefineSingularMessageTypeAccessors(message, field);
+  }
+  else if (field->IsRepeatedNumericType()) {
+    DefineRepeatedNumericTypeAccessors(message, field);
+  }
+  else if (field->IsRepeatedStringType() || field->IsRepeatedMessageType()) {
+    DefineRepeatedNonNumericTypeAccessors(message, field);
+  }
+  else {
+    // hehe
   }
 }
 
 void CppCodeGenerator::DefineSingularNumericTypeAccessors(
     Message* message,
-    MessageField* field) {
+    MessageField* field)
+{
   std::map<std::string, std::string> matches = GetFieldMatchMap(message, field);
-  
+
+  printer.Print("// \"${field_name}\" = ${tag}\n", matches);
+
   // TODO: implement has_foo()
   // printer.Print("bool ${msg_name}::has_${field_name}() {\n");
   
   // Implement - int32 foo() const;
   printer.Print("${type_name} ${msg_name}::${field_name}() const {\n"
                 "  return ${field_name}_;\n"
-                "}",
+                "}\n\n",
                 matches);
   
   // Implement - void set_foo(int32 value);
   printer.Print("void ${msg_name}::set_${field_name}(${type_name} ${field_name}) {\n"
                 "  ${field_name}_ = ${field_name};\n"
-                "}",
+                // TODO: set_foo() requires setting has-bits.
+                "}\n\n",
                 matches);
   
-  // TODO: clear_foo() requires setting has-bits.
   // Implement - void clear_foo(int32 value);
   printer.Print("void ${msg_name}::clear_${field_name}() {\n"
                 "  ${field_name}_ = ${default_value};\n"
-                "}",
+                // TODO: clear_foo() requires setting has-bits.
+                "}\n\n",
+                matches);
+}
+
+void CppCodeGenerator::DefineSingularStringTypeAccessors(
+    Message* message,
+    MessageField* field)
+{
+  std::map<std::string, std::string> matches = GetFieldMatchMap(message, field);
+
+  printer.Print("// \"${field_name}\" = ${tag}\n", matches);
+
+  // TODO: implement has_foo()
+  // printer.Print("bool ${msg_name}::has_${field_name}() {\n");
+  
+  // Implement - std::string foo() const;
+  printer.Print("const std::string& ${msg_name}::${field_name}() const {\n"
+                "  return ${field_name}_;\n"
+                "}\n\n",
+                matches);
+  
+  // Implement - void set_foo(std::string value);
+  printer.Print("void ${msg_name}::set_${field_name}(const std::string& ${field_name}) {\n"
+                "  ${field_name}_ = ${field_name};\n"
+                // TODO: set_foo() requires setting has-bits.
+                "}\n\n",
+                matches);
+
+  // Implement - void set_foo(const char* value);
+  printer.Print("void ${msg_name}::set_${field_name}(const char* ${field_name}) {\n"
+                "  ${field_name}_ = std::string(${field_name});\n"
+                // TODO: set_foo() requires setting has-bits.
+                "}\n\n",
+                matches);
+
+  // Implement - void set_foo(const char* value, int size);
+  printer.Print("void ${msg_name}::set_${field_name}(const char* ${field_name}, int size) {\n"
+                "  ${field_name}_ = std::string(${field_name}, size);\n"
+                // TODO: set_foo() requires setting has-bits.
+                "}\n\n",
+                matches);
+
+  // Implement - std::string& mutable_foo();
+  printer.Print("std::string ${msg_name}::mutable_${field_name}() {\n"
+                "  return ${field_name}_;\n"
+                "}\n\n",
+                matches);
+
+  // Implement - void clear_foo();
+  printer.Print("void ${msg_name}::clear_${field_name}() {\n"
+                "  ${field_name}_ = \"\";\n"
+                // TODO: need reset has-bits.
+                "}\n\n",
+                matches);
+}
+
+void CppCodeGenerator::DefineSingularMessageTypeAccessors(
+    Message* message,
+    MessageField* field)
+{
+  std::map<std::string, std::string> matches = GetFieldMatchMap(message, field);
+
+  printer.Print("// \"${field_name}\" = ${tag}\n", matches);
+
+  // TODO: implement has_foo()
+  // printer.Print("bool ${msg_name}::has_${field_name}() {\n");
+  
+  // Implement - const Bar& foo() const;
+  printer.Print("const ${type_name}& ${msg_name}::${field_name}() const {\n"
+                "  return *${field_name}_;\n"
+                "}\n\n",
+                matches);
+
+  // Implement - Bar* mutable_foo();
+  printer.Print("${type_name}* ${msg_name}::mutable_${field_name}() {\n"
+                "  return ${field_name}_;\n"
+                "}\n\n",
+                matches);
+
+  // Implement - void set_alocated_foo(Bar* value);
+  printer.Print("void ${msg_name}::set_allocated_${field_name}(${type_name}* ${field_name}) {\n"
+                "  ${field_name}_ = ${field_name};\n"
+                // TODO: set_alocated_foo() requires setting has-bits.
+                "}\n\n",
+                matches);
+
+  // Implement - Bar* release_foo();
+  printer.Print("${type_name}* ${msg_name}::release_${field_name}() {\n"
+                "  ${type_name}* ${field_name}_tmp__ = ${field_name}_;\n"
+                "  ${field_name}_ = nullptr;\n"
+                // TODO: release_foo() requires setting has-bits.
+                "  return ${field_name}_tmp__;\n"
+                "}\n\n",
+                matches);
+
+  // Implement - void clear_foo();
+  printer.Print("void ${msg_name}::clear_${field_name}() {\n"
+                "  if (${field_name}_) {\n"
+                "    delete ${field_name}_;\n"
+                "  }\n"
+                "  ${field_name}_ = nullptr;\n"
+                // TODO: clear_foo() requires setting has-bits.
+                "}\n\n",
+                matches);
+}
+
+void CppCodeGenerator::DefineRepeatedNumericTypeAccessors(
+    Message* message,
+    MessageField* field)
+{
+  std::map<std::string, std::string> matches = GetFieldMatchMap(message, field);
+
+  printer.Print("// \"${field_name}\" = ${tag}\n", matches);
+
+  // Implement - int foo_size() const;
+  printer.Print("int ${msg_name}::${field_name}_size() const {\n"
+                "  return ${field_name}_.size();\n"
+                "}\n\n",
+                matches);
+
+  // Implement - Bar foo(int index) const;
+  printer.Print("${type_name} ${msg_name}::${field_name}(int index) {\n"
+                "  return ${field_name}_[index];\n"
+                "}\n\n",
+                matches);
+
+  // Implement - void set_foo(int index, Bar& value);
+  printer.Print("void ${msg_name}::set_${field_name}(int index, ${type_name} value) {\n"
+                "  if (${field_name}_.size() > index) {\n"
+                "    ${field_name}_[index] = value;\n"
+                "  }\n"
+                "}\n\n",
+                matches);
+
+  // Implement - void add_foo(Bar& value);
+  printer.Print("void ${msg_name}::add_${field_name}(${type_name} value) {\n"
+                "    ${field_name}_.push_back(value);\n"
+                "}\n\n",
+                matches);
+
+  // Implement - void clear_foo();
+  printer.Print("void ${msg_name}::clear_${field_name}() {\n"
+                "  ${field_name}_ .clear();\n"
+                "}\n\n",
+                matches);
+
+  // Implement - const std::vector<Bar>& foo() const;
+  printer.Print("const std::vector<${type_name}> ${msg_name}::${field_name}() const {\n"
+                "  return ${field_name};\n"
+                "}\n\n",
+                matches);
+
+  // Implement - std::vector<Bar>& mutable_foo();
+  printer.Print("std::vector<${type_name}> ${msg_name}::mutable_${field_name}() {\n"
+                "  return ${field_name};\n"
+                "}\n\n",
+                matches);
+}
+
+void CppCodeGenerator::DefineRepeatedNonNumericTypeAccessors(
+    Message* message,
+    MessageField* field)
+{
+  std::map<std::string, std::string> matches = GetFieldMatchMap(message, field);
+
+  printer.Print("// \"${field_name}\" = ${tag}\n", matches);
+
+  // Implement - int foo_size() const;
+  printer.Print("int ${msg_name}::${field_name}_size() const {\n"
+                "  return ${field_name}_.size();\n"
+                "}\n\n",
+                matches);
+
+  // Implement - const ${type_name}& foo(int index) const;
+  printer.Print("const ${type_name}& ${msg_name}::${field_name}(int index) {\n"
+                "  return ${field_name}_[index];\n"
+                "}\n\n",
+                matches);
+
+  // Implement - void set_foo(int index, const Bar& value);
+  printer.Print("void ${msg_name}::set_${field_name}(int index, const ${type_name}& value) {\n"
+                "  if (index < ${field_name}_.size()) {\n"
+                "    ${field_name}_[index] = value;\n"
+                "  }\n"
+                "}\n\n",
+                matches);
+
+  // String type can also have value passed by const char*
+  if (field->IsRepeatedStringType()) {
+    // Implement - void set_foo(int index, const char* value);
+    printer.Print("void ${msg_name}::set_${field_name}(int index, const char* value) {\n"
+                  "  if (index < ${field_name}_.size()) {\n"
+                  "    ${field_name}_[index] = std::string(value);\n"
+                  "  }\n"
+                  "}\n\n",
+                  matches);
+
+    // Implement - void set_foo(int index, const char* value, int size);
+    printer.Print("void ${msg_name}::set_${field_name}(int index, const char* value, int size) {\n"
+                  "  if (index < ${field_name}_.size()) {\n"
+                  "    ${field_name}_[index] = std::string(value, int size);\n"
+                  "  }\n"
+                  "}\n\n",
+                  matches);
+  }
+
+  // Implement - void add_foo(Bar& value);
+  printer.Print("void ${msg_name}::add_${field_name}(const ${type_name}& value) {\n"
+                "    ${field_name}_.push_back(value);\n"
+                "}\n\n",
+                matches);
+
+  // String type can also have value passed by const char*
+  if (field->IsRepeatedStringType()) {
+    // Implement - void add_foo(const char* value);
+    printer.Print("void ${msg_name}::add_${field_name}(const char* value) {\n"
+                  "    ${field_name}_.push_back(std::string(value));\n"
+                  "}\n\n",
+                  matches);
+
+    // Implement - void add_foo(const char* value, int size);
+    printer.Print("void ${msg_name}::add_${field_name}(const char* value, int size) {\n"
+                  "    ${field_name}_.push_back(std::string(value, size));\n"
+                  "}\n\n",
+                  matches);
+  }
+
+  // Implement - Bar& mutable_foo(int index);
+  printer.Print("${type_name}& ${msg_name}::mutable_${field_name}(int index) {\n"
+                "  return ${field_name}_[index];\n"
+                "}\n\n",
+                matches);  
+
+  // Implement - void clear_foo();
+  printer.Print("void ${msg_name}::clear_${field_name}() {\n"
+                "  ${field_name}_.clear();\n"
+                "}\n\n",
+                matches);
+
+  // Implement - const std::vector<Bar>& foo() const;
+  printer.Print("const std::vector<${type_name}> ${msg_name}::${field_name}() const {\n"
+                "  return ${field_name};\n"
+                "}\n\n",
+                matches);
+
+  // Implement - std::vector<Bar>& mutable_foo();
+  printer.Print("std::vector<${type_name}> ${msg_name}::mutable_${field_name}() {\n"
+                "  return ${field_name};\n"
+                "}\n\n",
                 matches);
 }
 
@@ -488,6 +859,7 @@ CppCodeGenerator::GetFieldMatchMap(Message* message, MessageField* field) {
     {"field_name", field_name},
     {"type_name", type_name},
     {"default_value", default_value},
+    {"tag", std::to_string(field->tag())},
   };
   return matches;
 }
