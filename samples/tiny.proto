@@ -1,12 +1,5 @@
 // test1 proto
 
-package AA.BB;
-
-enum FriendType{
-  Human,
-  Animal,
-}
-
 package AA;
 
 message DogInfo {
@@ -17,7 +10,7 @@ message DogInfo {
     Female,
   }
   required Sex sex = 6 [default=Male];
-  optional FriendType  friend_type = 4[default= Human];
+  optional bool like = 4[default = true ];
 }
 
 message FamilyInfo {
@@ -33,3 +26,4 @@ message DogFamilyInfo {
   repeated DogInfo dogs = 3;
   repeated string locations = 4;
 }
+
