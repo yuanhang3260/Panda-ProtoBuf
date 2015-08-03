@@ -21,21 +21,34 @@ MessageField::MessageField(FIELD_MODIFIER modifier,
   else {
     type_name_ = type_class_->name();
   }
-  if (default_value_.empty()) {
-    if (IsPrimitiveType()) {
-      if (type_ == BOOL) {
-        default_value_ = "false";
+
+  // Set default value.
+  if (modifier_ != REPEATED) {
+    if (default_value_.empty()) {
+      has_user_default_value_ = false;
+       // They are system default value for different types.
+      if (IsPrimitiveType()) {
+        if (type_ == BOOL) {
+          default_value_ = "false";
+        }
+        else if (type_ == ENUMTYPE) {
+          default_value_ = (static_cast<EnumType*>(type_class))->enums()[0];
+        }
+        else {
+          default_value_ = "0";
+        }
       }
-      else {
-        default_value_ = "0";
+      else if (type_ == STRING) {
+        default_value_ = "\"\"";
+      }
+      else {  // Message Type
+        default_value_ = "nullptr";
+        // we force message type has default value = nullptr.
+        has_user_default_value_ = true;
       }
     }
-    else if (type_ == STRING) {
-      default_value_ = "";
-    }
-    else {  // Message Type
-      // Note: this default value should never be used.
-      default_value_ = "nullptr";
+    else {
+      has_user_default_value_ = true;
     }
   }
 }
@@ -57,7 +70,7 @@ MessageField::GetMessageFieldModifier(std::string line) {
 }
 
 std::string
-MessageField::GetModifierAsString(MessageField::FIELD_MODIFIER modifier) {
+MessageField::GetModifierAsString(FIELD_MODIFIER modifier) {
   if (modifier == MessageField::OPTIONAL) {
     return "optional";
   }

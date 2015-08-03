@@ -17,23 +17,23 @@ class CppCodeGenerator : public ProtoParser {
   void GenerateCode() override;
  
  private:
+  // ------------------------ Generate header file. ------------------------- //
   void GenerateHeader();
-  void GenerateCC();
 
-  void DefineDestructor(Message* message);
+  // Declare global enum.
+  void DeclareGlobalEnum(EnumType* enum_p);
 
-  // Define copiers.
-  void PrintCopyClassCode(Message* message);
-  void DefineCopyConstructor(Message* message);
-  void DefineMoveConstructor(Message* message);
+  // Declare a message class.
+  void DeclareMessageClass(Message* message); 
 
-  // Define movers.
-  void PrintMoveClassCode(Message* message);
-  void DefineCopyAssigner(Message* message);
-  void DefineMoveAssigner(Message* message);
+  // Declare nested enums.
+  void DeclareNestedEnums(Message* message);
 
-  // Swapper
-  void DefineSwapper(Message* message);
+  // Declare constructors, assigners, destructor and swapper.
+  void DeclarePrimitiveMethods(Message* message);
+
+  // Declare private fields.
+  void DeclarePrivateFields(Message* message);
 
   // Declare field accessors.
   void DeclareAccessors(Message* message, MessageField* field);
@@ -47,6 +47,28 @@ class CppCodeGenerator : public ProtoParser {
                                            MessageField* field);
   void DeclareRepeatedNonNumericTypeAccessors(Message* message,
                                               MessageField* field);
+  
+  // ------------------------ Generate cpp file. ---------------------------- //
+  void GenerateCC();
+
+  // Define all methods of a message.
+  void DefineClassMethods(Message* message);
+
+  // Define copiers.
+  void PrintCopyClassCode(Message* message);
+  void DefineCopyConstructor(Message* message);
+  void DefineMoveConstructor(Message* message);
+
+  // Define movers.
+  void PrintMoveClassCode(Message* message);
+  void DefineCopyAssigner(Message* message);
+  void DefineMoveAssigner(Message* message);
+
+  // Define Swapper.
+  void DefineSwapper(Message* message);
+
+  // Define destructor.
+  void DefineDestructor(Message* message);
 
   // Define field accessors.
   void DefineAccessors(Message* message, MessageField* field);
@@ -61,8 +83,7 @@ class CppCodeGenerator : public ProtoParser {
   void DefineRepeatedNonNumericTypeAccessors(Message* message,
                                              MessageField* field);
 
-
-
+  // -------------------------- Helpers methods ----------------------------- //
   std::map<std::string, std::string>
   GetFieldMatchMap(Message* message, MessageField* field);
   
@@ -72,6 +93,8 @@ class CppCodeGenerator : public ProtoParser {
   std::string GetNameSpacePrefix(const std::vector<std::string>& context_stk,
                                  const std::vector<std::string>& target_stk);
 
+
+  // Text printer.
   IO::TextPrinter printer;
 };
 

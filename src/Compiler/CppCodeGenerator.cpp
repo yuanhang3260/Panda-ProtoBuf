@@ -38,103 +38,112 @@ void CppCodeGenerator::GenerateHeader() {
   printer.Print("#include <string>\n");
   printer.Print("#include <vector>\n\n");
 
-  // Print global enums.
+  // Declare global enums.
   for (auto& e: enums_map_) {
-    EnumType* enum_p = e.second.get();
-    CheckoutNameSpace(pkg_stack_, enum_p->pkg_stack());
-    printer.Print("enum " + enum_p->name() + " {\n");
-    for (auto& enumvalue: enum_p->enums()) {
-      printer.Print("  " + enumvalue + ",\n");
-    }
-    printer.Print("};\n\n");
+    DeclareGlobalEnum(e.second.get());
   }
 
-  // Print classes.
+  // Declare classes.
   for (auto& message: messages_list_) {
-    CheckoutNameSpace(pkg_stack_, message->pkg_stack());
-    printer.Print("class " + message->name() + " {\n");
-
-    // Public fields.
-    printer.Print(" public:\n");
-    // Print enums declearation.
-    for (auto& e: message->enums_map()) {
-      EnumType* enum_p = e.second.get();
-      printer.Print("  enum " + enum_p->name() + " {\n");
-      for (auto& enumvalue: enum_p->enums()) {
-        printer.Print("    " + enumvalue + ",\n");
-      }
-      printer.Print("  };\n\n");
-    }
-
-    // Print constructors and destructor.
-    std::map<std::string, std::string> msg_match{
-       {"msg_name", message->name()},
-    };
-    printer.Print("  // constructors and destructor //\n");
-    printer.Print("  " + message->name() + "() = default;\n");
-    printer.Print("  ~" + message->name() + "();\n");
-    printer.Print(
-        "  ${msg_name}(const ${msg_name}& other);"
-        "  // copy constructor\n",
-        msg_match);
-    printer.Print(
-        "  ${msg_name}(${msg_name}&& other);  // move constructor\n",
-        msg_match);
-    printer.Print(
-        "  ${msg_name}& operator=(const ${msg_name}& other);"
-        "  // copy assignment\n",
-        msg_match);
-    printer.Print(
-        "  ${msg_name}& operator=(${msg_name}&& other);  // move assignment\n",
-        msg_match);
-    printer.Print("  void Swap(${msg_name}* other);\n", msg_match);
-    printer.Print("\n");
-
-    // Print public methods.
-    printer.Print("  // --- Field accessors --- //\n\n");
-    for (auto& field: message->fields_list()) {
-      DeclareAccessors(message.get(), field.get());
-    }
-
-    // Private fields.
-    printer.Print(" private:\n");
-    for (auto& field: message->fields_list()) {
-      std::string field_name = field->name();
-      std::string type_name = field->type_name();
-      if (field->type() != ENUMTYPE &&
-          field->type() != MESSAGETYPE) {
-        type_name = pbCppTypeMap.at(field->type());
-      }
-      else {
-        // Add namespace prefix for enum and message types.
-        type_name = GetNameSpacePrefix(message->pkg_stack(),
-                                       field->type_class()->pkg_stack())
-                    + type_name;
-      }
-      // repeated fields are "vector<Bar>* foo" type
-      if (field->modifier() == MessageField::REPEATED) {
-        type_name = "std::vector<" + type_name + ">";
-      }
-
-      std::string declearation_line = "  $ $_";
-      if (field->type() == MESSAGETYPE &&
-          field->modifier() != MessageField::REPEATED) {
-        declearation_line = "  $* $_";
-      }
-      printer.Print(declearation_line,
-                    std::vector<std::string>{type_name, field_name});
-      if (!field->default_value().empty()) {
-        printer.Print(" = " + field->default_value());
-      }
-      printer.Print(";\n");
-    }
-    printer.Print("};\n\n");
+    DeclareMessageClass(message.get());
   }
 
   CheckoutNameSpace(pkg_stack_, std::vector<std::string>());
   printer.Print("\n#endif  /* " + StringUtils::Upper(filename) + "_H_ */\n");
   printer.Flush();
+}
 
+void CppCodeGenerator::DeclareGlobalEnum(EnumType* enum_p) {
+  CheckoutNameSpace(pkg_stack_, enum_p->pkg_stack());
+  printer.Print("enum " + enum_p->name() + " {\n");
+  for (auto& enumvalue: enum_p->enums()) {
+    printer.Print("  " + enumvalue + ",\n");
+  }
+  printer.Print("};\n\n");
+}
+
+void CppCodeGenerator::DeclareMessageClass(Message* message) {
+  CheckoutNameSpace(pkg_stack_, message->pkg_stack());
+  printer.Print("class " + message->name() + " {\n");
+
+  // Public:
+  printer.Print(" public:\n");
+
+  // Declare nested enums.
+  DeclareNestedEnums(message);
+
+  // Declare con/destructor, assigner and swapper.
+  DeclarePrimitiveMethods(message);
+
+  // Declare public accessors.
+  printer.Print("  // --- Field accessors --- //\n\n");
+  for (auto& field: message->fields_list()) {
+    DeclareAccessors(message, field.get());
+  }
+
+  // Private:
+  printer.Print(" private:\n");
+
+  // Declare private fields.
+  DeclarePrivateFields(message);
+  printer.Print("};\n\n");
+}
+
+void CppCodeGenerator::DeclareNestedEnums(Message* message) {
+  for (auto& e: message->enums_map()) {
+    EnumType* enum_p = e.second.get();
+    printer.Print("  enum " + enum_p->name() + " {\n");
+    for (auto& enumvalue: enum_p->enums()) {
+      printer.Print("    " + enumvalue + ",\n");
+    }
+    printer.Print("  };\n\n");
+  }
+}
+
+void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+  printer.Print("  // constructors and destructor //\n");
+  printer.Print("  " + message->name() + "() = default;\n");
+  printer.Print("  ~" + message->name() + "();\n");
+  printer.Print(
+      "  ${msg_name}(const ${msg_name}& other);  // copy constructor\n",
+      msg_match);
+  printer.Print(
+      "  ${msg_name}(${msg_name}&& other);  // move constructor\n",
+      msg_match);
+  printer.Print(
+      "  ${msg_name}& operator=(const ${msg_name}& other);"
+      "  // copy assignment\n",
+      msg_match);
+  printer.Print(
+      "  ${msg_name}& operator=(${msg_name}&& other);  // move assignment\n",
+      msg_match);
+  printer.Print("  void Swap(${msg_name}* other);\n", msg_match);
+  printer.Print("\n");
+}
+
+void CppCodeGenerator::DeclarePrivateFields(Message* message) {
+  for (auto& field: message->fields_list()) {
+    std::map<std::string, std::string> matches =
+        GetFieldMatchMap(message, field.get());
+    // repeated fields are "vector<Bar>* foo" type
+    if (field->modifier() == MessageField::REPEATED) {
+      matches["type_name"] = "std::vector<" + matches["type_name"] + ">";
+    }
+
+    std::string declearation_line = "  ${type_name} ${field_name}_";
+    if (field->IsSingularMessageType()) {
+      declearation_line = "  ${type_name}* ${field_name}_";
+    }
+    printer.Print(declearation_line, matches);
+    // add default value if exists.
+    if (field->has_user_default_value()) {
+      printer.Print(" = ${default_value}", matches);
+    }
+    printer.Print(";\n");
+  }
 }
 
 void CppCodeGenerator::GenerateCC() {
@@ -153,23 +162,27 @@ void CppCodeGenerator::GenerateCC() {
 
   // Print class methods.
   for (auto& message: messages_list_) {
-    // Check out name space.
-    CheckoutNameSpace(pkg_stack_, message->pkg_stack());
-    // Print constructors and destructor.
-    DefineCopyConstructor(message.get());
-    DefineMoveConstructor(message.get());
-    DefineCopyAssigner(message.get());
-    DefineMoveAssigner(message.get());
-    DefineSwapper(message.get());
-    DefineDestructor(message.get());
-    // Print accessors.
-    for (auto& field : message->fields_list()) {
-      DefineAccessors(message.get(), field.get());
-    }
+    DefineClassMethods(message.get());
   }
 
   CheckoutNameSpace(pkg_stack_, std::vector<std::string>());
   printer.Flush();
+}
+
+void CppCodeGenerator::DefineClassMethods(Message* message) {
+  // Check out name space.
+  CheckoutNameSpace(pkg_stack_, message->pkg_stack());
+  // Print constructors and destructor.
+  DefineCopyConstructor(message);
+  DefineMoveConstructor(message);
+  DefineCopyAssigner(message);
+  DefineMoveAssigner(message);
+  DefineSwapper(message);
+  DefineDestructor(message);
+  // Print accessors.
+  for (auto& field : message->fields_list()) {
+    DefineAccessors(message, field.get());
+  }
 }
 
 void CppCodeGenerator::DefineDestructor(Message* message) {
@@ -231,7 +244,7 @@ void CppCodeGenerator::DefineCopyAssigner(Message* message) {
      {"msg_name", message->name()},
   };
   printer.Print(
-      "${msg_name}& operator=(const ${msg_name}& other) {\n",
+      "${msg_name}& ${msg_name}::operator=(const ${msg_name}& other) {\n",
       msg_match);
   
   PrintCopyClassCode(message);
@@ -249,7 +262,7 @@ void CppCodeGenerator::PrintMoveClassCode(Message* message) {
     if (field->modifier() == MessageField::REPEATED ||
         field->type() == STRING) {
       printer.Print(
-        "  ${field_name}_ = std::move<other.mutable_${field_name}()>;\n",
+        "  ${field_name}_ = std::move(other.mutable_${field_name}());\n",
         matches);
     }
     else if (field->type() == MESSAGETYPE) {
@@ -285,7 +298,8 @@ void CppCodeGenerator::DefineMoveAssigner(Message* message) {
   std::map<std::string, std::string> msg_match{
      {"msg_name", message->name()},
   };
-  printer.Print("${msg_name}& operator=(${msg_name}&& other) {\n", msg_match);
+  printer.Print("${msg_name}& ${msg_name}::operator=(${msg_name}&& other) {\n",
+                msg_match);
 
   PrintMoveClassCode(message);
 }
@@ -302,13 +316,17 @@ void CppCodeGenerator::DefineSwapper(Message* message) {
 
     std::map<std::string, std::string> matches =
         GetFieldMatchMap(message, field.get());
+    // repeated field should have std::vector<Bar> type
+    if (field->modifier() == MessageField::REPEATED) {
+      matches["type_name"] = "std::vector<" + matches["type_name"] + ">";
+    }
 
     if (field->modifier() == MessageField::REPEATED ||
         field->type() == STRING) {  // repeated type / string type
       printer.Print(
-          "  ${type_name} ${field_name}_tmp__ = std::move<other->mutable_${field_name}()>;\n"
-          "  other->mutable_${field_name} = std::move<${field_name}_>;\n"
-          "  ${field_name}_ = std::move<${field_name}_tmp__>;\n",
+          "  ${type_name} ${field_name}_tmp__ = std::move(other->mutable_${field_name}());\n"
+          "  other->mutable_${field_name}() = std::move(${field_name}_);\n"
+          "  ${field_name}_ = std::move(${field_name}_tmp__);\n",
           matches);
     }
     else if (field->type() == MESSAGETYPE) {  // message type
@@ -735,13 +753,13 @@ void CppCodeGenerator::DefineRepeatedNumericTypeAccessors(
 
   // Implement - const std::vector<Bar>& foo() const;
   printer.Print("const std::vector<${type_name}> ${msg_name}::${field_name}() const {\n"
-                "  return ${field_name};\n"
+                "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
 
   // Implement - std::vector<Bar>& mutable_foo();
   printer.Print("std::vector<${type_name}> ${msg_name}::mutable_${field_name}() {\n"
-                "  return ${field_name};\n"
+                "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
 }
@@ -787,7 +805,7 @@ void CppCodeGenerator::DefineRepeatedNonNumericTypeAccessors(
     // Implement - void set_foo(int index, const char* value, int size);
     printer.Print("void ${msg_name}::set_${field_name}(int index, const char* value, int size) {\n"
                   "  if (index < ${field_name}_.size()) {\n"
-                  "    ${field_name}_[index] = std::string(value, int size);\n"
+                  "    ${field_name}_[index] = std::string(value, size);\n"
                   "  }\n"
                   "}\n\n",
                   matches);
@@ -828,13 +846,13 @@ void CppCodeGenerator::DefineRepeatedNonNumericTypeAccessors(
 
   // Implement - const std::vector<Bar>& foo() const;
   printer.Print("const std::vector<${type_name}> ${msg_name}::${field_name}() const {\n"
-                "  return ${field_name};\n"
+                "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
 
   // Implement - std::vector<Bar>& mutable_foo();
   printer.Print("std::vector<${type_name}> ${msg_name}::mutable_${field_name}() {\n"
-                "  return ${field_name};\n"
+                "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
 }
@@ -850,9 +868,13 @@ CppCodeGenerator::GetFieldMatchMap(Message* message, MessageField* field) {
   }
   else {
     // Add namespace prefix for enum and message types.
-    type_name = GetNameSpacePrefix(message->pkg_stack(),
-                                   field->type_class()->pkg_stack())
-                + field->type_name();
+    std::string prefix = GetNameSpacePrefix(message->pkg_stack(),
+                                            field->type_class()->pkg_stack());
+    type_name = prefix + field->type_name();
+    if (field->type() != MESSAGETYPE) {
+      // Message type default value should always be "nullptr".
+      default_value = prefix + default_value;
+    }
   }
   std::map<std::string, std::string> matches {
     {"msg_name", message->name()},
@@ -926,7 +948,6 @@ std::string CppCodeGenerator::GetNameSpacePrefix(
     }
   }
   else {
-    prefix = "::";
     for (i = context_stk.size(); i < (int)target_stk.size(); i++) {
       prefix += (target_stk[i] + "::");
     }

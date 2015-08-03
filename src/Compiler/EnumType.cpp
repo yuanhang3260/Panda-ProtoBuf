@@ -12,7 +12,7 @@ EnumType::EnumType(std::string name, std::string package) :
 }
 
 EnumType::EnumType(std::string name, std::string package, std::string message) :
-    PbType(name, package, message) {
+    PbType(name, package + ("." + message), message) {
 }
 
 void EnumType::AddEnumValue(std::string newenum) {

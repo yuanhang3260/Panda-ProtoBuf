@@ -106,3 +106,8 @@ tinyclean:
 	rm -rf test/*.out
 	rm -rf *.output
 
+sampleclean:
+	rm -rf samples/*.h
+	rm -rf samples/*.cpp
+	rm -rf samples/*.o
+
