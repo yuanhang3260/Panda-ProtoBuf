@@ -93,6 +93,12 @@ bool ProtoParser::ReadProtoFile() {
         state_ = PARSINGNESTEDENUM;
       }
       else if (line == "}") {
+        if (current_message_->fields_list().empty() &&
+            current_message_->enums_map().empty()) {
+          LogError("Parsed %s contains nothing",
+                   current_message_->name().c_str());
+          return false;
+        }
         state_ = GLOBAL;
       }
       else if (IsMessageFiledLine(line)) {
@@ -109,6 +115,11 @@ bool ProtoParser::ReadProtoFile() {
     // Parse a enum state.
     else if (state_ == PARSINGENUM) {
       if (line == "}") {
+        if (current_enum_->enums().empty()) {
+          LogError("Enum %s contains nothing",
+                   current_enum_->name().c_str());
+          return false;
+        }
         state_ = GLOBAL;
       }
       else if (!ParseEnumValue(line)) {
@@ -119,6 +130,11 @@ bool ProtoParser::ReadProtoFile() {
     // Parse a nested enum state.
     else if (state_ == PARSINGNESTEDENUM) {
       if (line == "}") {
+        if (current_enum_->enums().empty()) {
+          LogError("Nested enum %s contains nothing",
+                   current_enum_->name().c_str());
+          return false;
+        }
         state_ = PARSINGMSG;
       }
       else if (!ParseEnumValue(line)) {
@@ -361,13 +377,13 @@ bool ProtoParser::ParseEnumName(std::string line) {
   if (state_ == GLOBAL) {
     new_enum.reset(new EnumType(enum_name, current_package_));
     enums_map_[enum_name] = new_enum;
-    currentEnum_ = new_enum.get();
+    current_enum_ = new_enum.get();
   }
   else if (state_ == PARSINGMSG) {
     new_enum.reset(new EnumType(enum_name, current_package_,
                                 current_message_->name()));
     current_message_->AddEnum(new_enum);
-    currentEnum_ = new_enum.get();
+    current_enum_ = new_enum.get();
   }
 
   return true;
@@ -383,7 +399,7 @@ bool ProtoParser::ParseEnumValue(std::string line) {
     LogError("invalid enum field name \"%s\"", name.c_str());
     return false;
   }
-  currentEnum_->AddEnumValue(name);
+  current_enum_->AddEnumValue(name);
   return true;
 }
 

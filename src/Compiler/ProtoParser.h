@@ -61,7 +61,7 @@ class ProtoParser {
   std::string current_package_;
   std::vector<std::string> pkg_stack_;
   Message* current_message_;
-  EnumType* currentEnum_;
+  EnumType* current_enum_;
  
  private:
   bool ParsePackageName(std::string line);
