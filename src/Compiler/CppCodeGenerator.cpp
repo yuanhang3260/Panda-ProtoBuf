@@ -943,6 +943,7 @@ std::string CppCodeGenerator::GetNameSpacePrefix(
 
   std::string prefix = "";
   if (index < (int)context_stk.size()) {
+    prefix = "::";
     for (i = 0; i < (int)target_stk.size(); i++) {
       prefix += (target_stk[i] + "::");
     }
