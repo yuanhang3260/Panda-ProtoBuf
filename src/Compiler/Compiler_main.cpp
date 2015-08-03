@@ -26,7 +26,6 @@ int main(int argc, char** argv) {
       break;
     case ProtoParser::JAVA:
       break;
-      compiler = new CppCodeGenerator(proto);
     default: break;
   }
   if (!compiler) {
