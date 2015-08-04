@@ -1,13 +1,13 @@
 // test1 proto
 
-package AA.BB;
+package AA;
 
 enum FriendType{
   Human,
   Animal,
 }
 
-package AA;
+package AA.BB;
 
 message DogInfo {
   required string name= 2;
@@ -20,6 +20,7 @@ message DogInfo {
   optional FriendType  friend_type = 4[default= Human];
 }
 
+package AA;
 message FamilyInfo {
 	optional string address = 1;
 	optional int32 numberdogs = 2;

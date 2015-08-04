@@ -3,14 +3,14 @@
 package AA;
 
 message DogInfo {
-  required string name= 2;
+  required string name= 3;
   required int32 age =1;
   enum Sex {
     Male,
     Female,
   }
-  required Sex sex = 6 [default=Male];
-  optional bool like = 4[default = true ];
+  required Sex sex = 13 [default=Male];
+  optional bool like = 18[default = true ];
 }
 
 message FamilyInfo {

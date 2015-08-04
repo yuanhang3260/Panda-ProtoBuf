@@ -54,6 +54,9 @@ class CppCodeGenerator : public ProtoParser {
   // Define all methods of a message.
   void DefineClassMethods(Message* message);
 
+  // Define default constructor
+  void DefineConstructor(Message* message);
+
   // Define copiers.
   void PrintCopyClassCode(Message* message);
   void DefineCopyConstructor(Message* message);

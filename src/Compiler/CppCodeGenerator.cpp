@@ -105,7 +105,7 @@ void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
      {"msg_name", message->name()},
   };
   printer.Print("  // constructors and destructor //\n");
-  printer.Print("  " + message->name() + "() = default;\n");
+  printer.Print("  " + message->name() + "();\n");
   printer.Print("  ~" + message->name() + "();\n");
   printer.Print(
       "  ${msg_name}(const ${msg_name}& other);  // copy constructor\n",
@@ -125,6 +125,13 @@ void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
 }
 
 void CppCodeGenerator::DeclarePrivateFields(Message* message) {
+  // has-bits
+  int has_bits_len = (message->highest_tag() - 1) / 8 + 1;
+  printer.Print("  // has bits\n"
+                "  char has_bits_[$];\n",
+                std::vector<std::string>{std::to_string(has_bits_len)});
+
+  printer.Print("  // message fields\n");
   for (auto& field: message->fields_list()) {
     std::map<std::string, std::string> matches =
         GetFieldMatchMap(message, field.get());
@@ -173,6 +180,7 @@ void CppCodeGenerator::DefineClassMethods(Message* message) {
   // Check out name space.
   CheckoutNameSpace(pkg_stack_, message->pkg_stack());
   // Print constructors and destructor.
+  DefineConstructor(message);
   DefineCopyConstructor(message);
   DefineMoveConstructor(message);
   DefineCopyAssigner(message);
@@ -224,6 +232,20 @@ void CppCodeGenerator::PrintCopyClassCode(Message* message) {
     }
   }
   printer.Print("}\n\n");
+}
+
+void CppCodeGenerator::DefineConstructor(Message* message) {
+  printer.Print("// constructor\n");
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+  printer.Print(
+      "${msg_name}::${msg_name}() {\n"
+      "  for (int i = 0; i < sizeof(has_bits_); i++) {\n"
+      "    has_bits_[i] = 0;\n"
+      "  }\n"
+      "}\n\n",
+      msg_match);
 }
 
 void CppCodeGenerator::DefineCopyConstructor(Message* message) {
@@ -376,9 +398,11 @@ void CppCodeGenerator::DeclareSingularNumericTypeAccessors(
 
   printer.Print("  // \"${field_name}\" = ${tag}\n", matches);
 
+  // Declare - bool has_foo() const;
+  printer.Print("  bool has_${field_name}() const;\n", matches);
+
   // Declare - int32 foo() const;
-  printer.Print("  ${type_name} ${field_name}() const;\n",
-                matches);
+  printer.Print("  ${type_name} ${field_name}() const;\n", matches);
   
   // Declare - void set_foo(int32 value);
   printer.Print("  void set_${field_name}(${type_name} ${field_name});\n",
@@ -399,6 +423,9 @@ void CppCodeGenerator::DeclareSingularStringTypeAccessors(
 
   printer.Print("  // \"${field_name}\" = ${tag}\n", matches);
   
+  // Declare - bool has_foo() const;
+  printer.Print("  bool has_${field_name}() const;\n", matches);
+
   // Declare - std::string foo() const;
   printer.Print("  const std::string& ${field_name}() const;\n",
                 matches);
@@ -432,6 +459,9 @@ void CppCodeGenerator::DeclareSingularMessageTypeAccessors(
   std::map<std::string, std::string> matches = GetFieldMatchMap(message, field);
 
   printer.Print("  // \"${field_name}\" = ${tag}\n", matches);
+
+  // Declare - bool has_foo() const;
+  printer.Print("  bool has_${field_name}() const;\n", matches);
 
   // Declare - const Bar& foo() const;
   printer.Print("  const ${type_name}& ${field_name}() const;\n",
@@ -585,9 +615,12 @@ void CppCodeGenerator::DefineSingularNumericTypeAccessors(
 
   printer.Print("// \"${field_name}\" = ${tag}\n", matches);
 
-  // TODO: implement has_foo()
-  // printer.Print("bool ${msg_name}::has_${field_name}() {\n");
-  
+  // Implement has_foo()
+  printer.Print("bool ${msg_name}::has_${field_name}() const {\n"
+                "  return has_bits_[${tag_byte_index}] & (1<<${tag_bit_offset});\n"
+                "}\n\n",
+                matches);
+
   // Implement - int32 foo() const;
   printer.Print("${type_name} ${msg_name}::${field_name}() const {\n"
                 "  return ${field_name}_;\n"
@@ -597,14 +630,14 @@ void CppCodeGenerator::DefineSingularNumericTypeAccessors(
   // Implement - void set_foo(int32 value);
   printer.Print("void ${msg_name}::set_${field_name}(${type_name} ${field_name}) {\n"
                 "  ${field_name}_ = ${field_name};\n"
-                // TODO: set_foo() requires setting has-bits.
+                "  has_bits_[${tag_byte_index}] |= (1<<${tag_bit_offset});\n"
                 "}\n\n",
                 matches);
   
   // Implement - void clear_foo(int32 value);
   printer.Print("void ${msg_name}::clear_${field_name}() {\n"
                 "  ${field_name}_ = ${default_value};\n"
-                // TODO: clear_foo() requires setting has-bits.
+                "  has_bits_[${tag_byte_index}] &= (~(1<<${tag_bit_offset}));\n"
                 "}\n\n",
                 matches);
 }
@@ -617,8 +650,11 @@ void CppCodeGenerator::DefineSingularStringTypeAccessors(
 
   printer.Print("// \"${field_name}\" = ${tag}\n", matches);
 
-  // TODO: implement has_foo()
-  // printer.Print("bool ${msg_name}::has_${field_name}() {\n");
+  // Implement has_foo()
+  printer.Print("bool ${msg_name}::has_${field_name}() const {\n"
+                "  return has_bits_[${tag_byte_index}] & (1<<${tag_bit_offset});\n"
+                "}\n\n",
+                matches);
   
   // Implement - std::string foo() const;
   printer.Print("const std::string& ${msg_name}::${field_name}() const {\n"
@@ -629,21 +665,21 @@ void CppCodeGenerator::DefineSingularStringTypeAccessors(
   // Implement - void set_foo(std::string value);
   printer.Print("void ${msg_name}::set_${field_name}(const std::string& ${field_name}) {\n"
                 "  ${field_name}_ = ${field_name};\n"
-                // TODO: set_foo() requires setting has-bits.
+                "  has_bits_[${tag_byte_index}] |= (1<<${tag_bit_offset});\n"
                 "}\n\n",
                 matches);
 
   // Implement - void set_foo(const char* value);
   printer.Print("void ${msg_name}::set_${field_name}(const char* ${field_name}) {\n"
                 "  ${field_name}_ = std::string(${field_name});\n"
-                // TODO: set_foo() requires setting has-bits.
+                "  has_bits_[${tag_byte_index}] |= (1<<${tag_bit_offset});\n"
                 "}\n\n",
                 matches);
 
   // Implement - void set_foo(const char* value, int size);
   printer.Print("void ${msg_name}::set_${field_name}(const char* ${field_name}, int size) {\n"
                 "  ${field_name}_ = std::string(${field_name}, size);\n"
-                // TODO: set_foo() requires setting has-bits.
+                "  has_bits_[${tag_byte_index}] |= (1<<${tag_bit_offset});\n"
                 "}\n\n",
                 matches);
 
@@ -656,7 +692,7 @@ void CppCodeGenerator::DefineSingularStringTypeAccessors(
   // Implement - void clear_foo();
   printer.Print("void ${msg_name}::clear_${field_name}() {\n"
                 "  ${field_name}_ = \"\";\n"
-                // TODO: need reset has-bits.
+                "  has_bits_[${tag_byte_index}] &= (~(1<<${tag_bit_offset}));\n"
                 "}\n\n",
                 matches);
 }
@@ -669,8 +705,11 @@ void CppCodeGenerator::DefineSingularMessageTypeAccessors(
 
   printer.Print("// \"${field_name}\" = ${tag}\n", matches);
 
-  // TODO: implement has_foo()
-  // printer.Print("bool ${msg_name}::has_${field_name}() {\n");
+  // Implement has_foo()
+  printer.Print("bool ${msg_name}::has_${field_name}() const {\n"
+                "  return has_bits_[${tag_byte_index}] & (1<<${tag_bit_offset});\n"
+                "}\n\n",
+                matches);
   
   // Implement - const Bar& foo() const;
   printer.Print("const ${type_name}& ${msg_name}::${field_name}() const {\n"
@@ -687,7 +726,7 @@ void CppCodeGenerator::DefineSingularMessageTypeAccessors(
   // Implement - void set_alocated_foo(Bar* value);
   printer.Print("void ${msg_name}::set_allocated_${field_name}(${type_name}* ${field_name}) {\n"
                 "  ${field_name}_ = ${field_name};\n"
-                // TODO: set_alocated_foo() requires setting has-bits.
+                "  has_bits_[${tag_byte_index}] |= (1<<${tag_bit_offset});\n"
                 "}\n\n",
                 matches);
 
@@ -695,7 +734,7 @@ void CppCodeGenerator::DefineSingularMessageTypeAccessors(
   printer.Print("${type_name}* ${msg_name}::release_${field_name}() {\n"
                 "  ${type_name}* ${field_name}_tmp__ = ${field_name}_;\n"
                 "  ${field_name}_ = nullptr;\n"
-                // TODO: release_foo() requires setting has-bits.
+                "  has_bits_[${tag_byte_index}] &= (~(1<<${tag_bit_offset}));\n"
                 "  return ${field_name}_tmp__;\n"
                 "}\n\n",
                 matches);
@@ -706,7 +745,7 @@ void CppCodeGenerator::DefineSingularMessageTypeAccessors(
                 "    delete ${field_name}_;\n"
                 "  }\n"
                 "  ${field_name}_ = nullptr;\n"
-                // TODO: clear_foo() requires setting has-bits.
+                "  has_bits_[${tag_byte_index}] &= (~(1<<${tag_bit_offset}));\n"
                 "}\n\n",
                 matches);
 }
@@ -882,6 +921,8 @@ CppCodeGenerator::GetFieldMatchMap(Message* message, MessageField* field) {
     {"type_name", type_name},
     {"default_value", default_value},
     {"tag", std::to_string(field->tag())},
+    {"tag_byte_index", std::to_string(field->tag()/8)},
+    {"tag_bit_offset", std::to_string(field->tag()%8)},
   };
   return matches;
 }

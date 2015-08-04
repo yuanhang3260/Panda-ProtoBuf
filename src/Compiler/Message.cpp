@@ -3,6 +3,7 @@
 #include <vector>
 
 #include "../Utility/Strings.h"
+#include "../Utility/Utils.h"
 #include "Message.h"
 
 namespace PandaProto {
@@ -15,12 +16,24 @@ Message::Message(std::string name, std::string package) :
 Message::~Message() {}
 
 bool Message::AddField(std::shared_ptr<MessageField> field) {
+  // Check duplicate tag.
+  if (tag_set_.find(field->tag()) != tag_set_.end()) {
+    fprintf(stderr,
+            "ERROR: tag %d already exisits in Message \"%s\"\n",
+            field->tag(), field->name().c_str());
+    return false;
+  }
+  tag_set_.insert(field->tag());
+  highest_tag_ = Utils::Max(highest_tag_, field->tag());
+
+  // Check duplicate name.
   if (fields_map_.find(field->name()) != fields_map_.end()) {
     fprintf(stderr,
             "ERROR: field name \"%s\" already exisits in Message \"%s\"\n", 
             field->name().c_str(), name_.c_str());
     return false;
   }
+
   fields_map_[field->name()] = field;
   fileds_list_.push_back(field);
   if (field->type() == MESSAGETYPE) {
@@ -94,6 +107,9 @@ Message::enums_map() const {
   return enums_map_;
 }
 
+const std::set<int>& Message::tag_set() const {
+  return tag_set_;
+}
 
 }  // namespace Compiler
 }  // namespace PandaProto
