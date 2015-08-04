@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "Strings.h"
 #include "../Utility/Utils.h"
 
@@ -145,7 +147,8 @@ bool StringUtils::IsSingleWord(std::string str) {
   return SplitGreedy(str, ' ').size() == 0;
 }
 
-std::string StrCat(std::vector<std::string> v, unsigned int start = 0) {
+std::string
+StringUtils::StrCat(std::vector<std::string> v, unsigned int start = 0) {
   std::string result = "";
   for (unsigned int i = start; i < v.size(); i++) {
     result += v[i];
@@ -153,3 +156,9 @@ std::string StrCat(std::vector<std::string> v, unsigned int start = 0) {
   return result;
 }
 
+std::string StringUtils::IntToHexString(int i) {
+  std::stringstream stream;
+  stream << "0x" 
+         << std::hex << i;
+  return stream.str();
+}

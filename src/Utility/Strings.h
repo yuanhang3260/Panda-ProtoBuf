@@ -66,7 +66,9 @@ class StringUtils {
 
   static bool IsSingleWord(std::string str);
 
-  static std::string StrCat(std::vector<std::string>, unsigned int start = 0);
+  static std::string StrCat(std::vector<std::string>, unsigned int start);
+
+  static std::string IntToHexString(int i);
 };
 
 #endif /* __STRINGS_H_ */

@@ -616,28 +616,28 @@ void CppCodeGenerator::DefineSingularNumericTypeAccessors(
   printer.Print("// \"${field_name}\" = ${tag}\n", matches);
 
   // Implement has_foo()
-  printer.Print("bool ${msg_name}::has_${field_name}() const {\n"
-                "  return has_bits_[${tag_byte_index}] & (1<<${tag_bit_offset});\n"
+  printer.Print("inline bool ${msg_name}::has_${field_name}() const {\n"
+                "  return (has_bits_[${tag_byte_index}] & ${tag_bit}) != 0;\n"
                 "}\n\n",
                 matches);
 
   // Implement - int32 foo() const;
-  printer.Print("${type_name} ${msg_name}::${field_name}() const {\n"
+  printer.Print("inline ${type_name} ${msg_name}::${field_name}() const {\n"
                 "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
   
   // Implement - void set_foo(int32 value);
-  printer.Print("void ${msg_name}::set_${field_name}(${type_name} ${field_name}) {\n"
+  printer.Print("inline void ${msg_name}::set_${field_name}(${type_name} ${field_name}) {\n"
                 "  ${field_name}_ = ${field_name};\n"
-                "  has_bits_[${tag_byte_index}] |= (1<<${tag_bit_offset});\n"
+                "  has_bits_[${tag_byte_index}] |= ${tag_bit};\n"
                 "}\n\n",
                 matches);
   
   // Implement - void clear_foo(int32 value);
-  printer.Print("void ${msg_name}::clear_${field_name}() {\n"
+  printer.Print("inline void ${msg_name}::clear_${field_name}() {\n"
                 "  ${field_name}_ = ${default_value};\n"
-                "  has_bits_[${tag_byte_index}] &= (~(1<<${tag_bit_offset}));\n"
+                "  has_bits_[${tag_byte_index}] &= (~${tag_bit});\n"
                 "}\n\n",
                 matches);
 }
@@ -651,48 +651,48 @@ void CppCodeGenerator::DefineSingularStringTypeAccessors(
   printer.Print("// \"${field_name}\" = ${tag}\n", matches);
 
   // Implement has_foo()
-  printer.Print("bool ${msg_name}::has_${field_name}() const {\n"
-                "  return has_bits_[${tag_byte_index}] & (1<<${tag_bit_offset});\n"
+  printer.Print("inline bool ${msg_name}::has_${field_name}() const {\n"
+                "  return (has_bits_[${tag_byte_index}] & ${tag_bit}) != 0;\n"
                 "}\n\n",
                 matches);
   
   // Implement - std::string foo() const;
-  printer.Print("const std::string& ${msg_name}::${field_name}() const {\n"
+  printer.Print("inline const std::string& ${msg_name}::${field_name}() const {\n"
                 "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
   
   // Implement - void set_foo(std::string value);
-  printer.Print("void ${msg_name}::set_${field_name}(const std::string& ${field_name}) {\n"
+  printer.Print("inline void ${msg_name}::set_${field_name}(const std::string& ${field_name}) {\n"
                 "  ${field_name}_ = ${field_name};\n"
-                "  has_bits_[${tag_byte_index}] |= (1<<${tag_bit_offset});\n"
+                "  has_bits_[${tag_byte_index}] |= ${tag_bit};\n"
                 "}\n\n",
                 matches);
 
   // Implement - void set_foo(const char* value);
-  printer.Print("void ${msg_name}::set_${field_name}(const char* ${field_name}) {\n"
+  printer.Print("inline void ${msg_name}::set_${field_name}(const char* ${field_name}) {\n"
                 "  ${field_name}_ = std::string(${field_name});\n"
-                "  has_bits_[${tag_byte_index}] |= (1<<${tag_bit_offset});\n"
+                "  has_bits_[${tag_byte_index}] |= ${tag_bit};\n"
                 "}\n\n",
                 matches);
 
   // Implement - void set_foo(const char* value, int size);
-  printer.Print("void ${msg_name}::set_${field_name}(const char* ${field_name}, int size) {\n"
+  printer.Print("inline void ${msg_name}::set_${field_name}(const char* ${field_name}, int size) {\n"
                 "  ${field_name}_ = std::string(${field_name}, size);\n"
-                "  has_bits_[${tag_byte_index}] |= (1<<${tag_bit_offset});\n"
+                "  has_bits_[${tag_byte_index}] |= ${tag_bit};\n"
                 "}\n\n",
                 matches);
 
   // Implement - std::string& mutable_foo();
-  printer.Print("std::string ${msg_name}::mutable_${field_name}() {\n"
+  printer.Print("inline std::string ${msg_name}::mutable_${field_name}() {\n"
                 "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
 
   // Implement - void clear_foo();
-  printer.Print("void ${msg_name}::clear_${field_name}() {\n"
+  printer.Print("inline void ${msg_name}::clear_${field_name}() {\n"
                 "  ${field_name}_ = \"\";\n"
-                "  has_bits_[${tag_byte_index}] &= (~(1<<${tag_bit_offset}));\n"
+                "  has_bits_[${tag_byte_index}] &= (~${tag_bit});\n"
                 "}\n\n",
                 matches);
 }
@@ -706,46 +706,54 @@ void CppCodeGenerator::DefineSingularMessageTypeAccessors(
   printer.Print("// \"${field_name}\" = ${tag}\n", matches);
 
   // Implement has_foo()
-  printer.Print("bool ${msg_name}::has_${field_name}() const {\n"
-                "  return has_bits_[${tag_byte_index}] & (1<<${tag_bit_offset});\n"
+  printer.Print("inline bool ${msg_name}::has_${field_name}() const {\n"
+                "  return (has_bits_[${tag_byte_index}] & ${tag_bit}) != 0;\n"
                 "}\n\n",
                 matches);
   
   // Implement - const Bar& foo() const;
-  printer.Print("const ${type_name}& ${msg_name}::${field_name}() const {\n"
+  printer.Print("inline const ${type_name}& ${msg_name}::${field_name}() const {\n"
                 "  return *${field_name}_;\n"
                 "}\n\n",
                 matches);
 
   // Implement - Bar* mutable_foo();
-  printer.Print("${type_name}* ${msg_name}::mutable_${field_name}() {\n"
+  printer.Print("inline ${type_name}* ${msg_name}::mutable_${field_name}() {\n"
                 "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
 
   // Implement - void set_alocated_foo(Bar* value);
-  printer.Print("void ${msg_name}::set_allocated_${field_name}(${type_name}* ${field_name}) {\n"
+  printer.Print("inline void ${msg_name}::set_allocated_${field_name}(${type_name}* ${field_name}) {\n"
+                "  if (${field_name}_) {\n"
+                "    delete ${field_name}_;\n"
+                "  }\n"
                 "  ${field_name}_ = ${field_name};\n"
-                "  has_bits_[${tag_byte_index}] |= (1<<${tag_bit_offset});\n"
+                "  if (${field_name}_) {\n"
+                "    has_bits_[${tag_byte_index}] |= ${tag_bit};\n"
+                "  }\n"
+                "  else {\n"
+                "    has_bits_[${tag_byte_index}] &= (~${tag_bit});\n"
+                "  }\n"
                 "}\n\n",
                 matches);
 
   // Implement - Bar* release_foo();
-  printer.Print("${type_name}* ${msg_name}::release_${field_name}() {\n"
+  printer.Print("inline ${type_name}* ${msg_name}::release_${field_name}() {\n"
                 "  ${type_name}* ${field_name}_tmp__ = ${field_name}_;\n"
                 "  ${field_name}_ = nullptr;\n"
-                "  has_bits_[${tag_byte_index}] &= (~(1<<${tag_bit_offset}));\n"
+                "  has_bits_[${tag_byte_index}] &= (~${tag_bit});\n"
                 "  return ${field_name}_tmp__;\n"
                 "}\n\n",
                 matches);
 
   // Implement - void clear_foo();
-  printer.Print("void ${msg_name}::clear_${field_name}() {\n"
+  printer.Print("inline void ${msg_name}::clear_${field_name}() {\n"
                 "  if (${field_name}_) {\n"
                 "    delete ${field_name}_;\n"
                 "  }\n"
                 "  ${field_name}_ = nullptr;\n"
-                "  has_bits_[${tag_byte_index}] &= (~(1<<${tag_bit_offset}));\n"
+                "  has_bits_[${tag_byte_index}] &= (~${tag_bit});\n"
                 "}\n\n",
                 matches);
 }
@@ -759,19 +767,19 @@ void CppCodeGenerator::DefineRepeatedNumericTypeAccessors(
   printer.Print("// \"${field_name}\" = ${tag}\n", matches);
 
   // Implement - int foo_size() const;
-  printer.Print("int ${msg_name}::${field_name}_size() const {\n"
+  printer.Print("inline int ${msg_name}::${field_name}_size() const {\n"
                 "  return ${field_name}_.size();\n"
                 "}\n\n",
                 matches);
 
   // Implement - Bar foo(int index) const;
-  printer.Print("${type_name} ${msg_name}::${field_name}(int index) {\n"
+  printer.Print("inline ${type_name} ${msg_name}::${field_name}(int index) {\n"
                 "  return ${field_name}_[index];\n"
                 "}\n\n",
                 matches);
 
   // Implement - void set_foo(int index, Bar& value);
-  printer.Print("void ${msg_name}::set_${field_name}(int index, ${type_name} value) {\n"
+  printer.Print("inline void ${msg_name}::set_${field_name}(int index, ${type_name} value) {\n"
                 "  if (${field_name}_.size() > index) {\n"
                 "    ${field_name}_[index] = value;\n"
                 "  }\n"
@@ -779,25 +787,25 @@ void CppCodeGenerator::DefineRepeatedNumericTypeAccessors(
                 matches);
 
   // Implement - void add_foo(Bar& value);
-  printer.Print("void ${msg_name}::add_${field_name}(${type_name} value) {\n"
+  printer.Print("inline void ${msg_name}::add_${field_name}(${type_name} value) {\n"
                 "    ${field_name}_.push_back(value);\n"
                 "}\n\n",
                 matches);
 
   // Implement - void clear_foo();
-  printer.Print("void ${msg_name}::clear_${field_name}() {\n"
+  printer.Print("inline void ${msg_name}::clear_${field_name}() {\n"
                 "  ${field_name}_ .clear();\n"
                 "}\n\n",
                 matches);
 
   // Implement - const std::vector<Bar>& foo() const;
-  printer.Print("const std::vector<${type_name}> ${msg_name}::${field_name}() const {\n"
+  printer.Print("inline const std::vector<${type_name}> ${msg_name}::${field_name}() const {\n"
                 "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
 
   // Implement - std::vector<Bar>& mutable_foo();
-  printer.Print("std::vector<${type_name}> ${msg_name}::mutable_${field_name}() {\n"
+  printer.Print("inline std::vector<${type_name}> ${msg_name}::mutable_${field_name}() {\n"
                 "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
@@ -812,19 +820,19 @@ void CppCodeGenerator::DefineRepeatedNonNumericTypeAccessors(
   printer.Print("// \"${field_name}\" = ${tag}\n", matches);
 
   // Implement - int foo_size() const;
-  printer.Print("int ${msg_name}::${field_name}_size() const {\n"
+  printer.Print("inline int ${msg_name}::${field_name}_size() const {\n"
                 "  return ${field_name}_.size();\n"
                 "}\n\n",
                 matches);
 
   // Implement - const ${type_name}& foo(int index) const;
-  printer.Print("const ${type_name}& ${msg_name}::${field_name}(int index) {\n"
+  printer.Print("inline const ${type_name}& ${msg_name}::${field_name}(int index) {\n"
                 "  return ${field_name}_[index];\n"
                 "}\n\n",
                 matches);
 
   // Implement - void set_foo(int index, const Bar& value);
-  printer.Print("void ${msg_name}::set_${field_name}(int index, const ${type_name}& value) {\n"
+  printer.Print("inline void ${msg_name}::set_${field_name}(int index, const ${type_name}& value) {\n"
                 "  if (index < ${field_name}_.size()) {\n"
                 "    ${field_name}_[index] = value;\n"
                 "  }\n"
@@ -834,7 +842,7 @@ void CppCodeGenerator::DefineRepeatedNonNumericTypeAccessors(
   // String type can also have value passed by const char*
   if (field->IsRepeatedStringType()) {
     // Implement - void set_foo(int index, const char* value);
-    printer.Print("void ${msg_name}::set_${field_name}(int index, const char* value) {\n"
+    printer.Print("inline void ${msg_name}::set_${field_name}(int index, const char* value) {\n"
                   "  if (index < ${field_name}_.size()) {\n"
                   "    ${field_name}_[index] = std::string(value);\n"
                   "  }\n"
@@ -842,7 +850,7 @@ void CppCodeGenerator::DefineRepeatedNonNumericTypeAccessors(
                   matches);
 
     // Implement - void set_foo(int index, const char* value, int size);
-    printer.Print("void ${msg_name}::set_${field_name}(int index, const char* value, int size) {\n"
+    printer.Print("inline void ${msg_name}::set_${field_name}(int index, const char* value, int size) {\n"
                   "  if (index < ${field_name}_.size()) {\n"
                   "    ${field_name}_[index] = std::string(value, size);\n"
                   "  }\n"
@@ -851,7 +859,7 @@ void CppCodeGenerator::DefineRepeatedNonNumericTypeAccessors(
   }
 
   // Implement - void add_foo(Bar& value);
-  printer.Print("void ${msg_name}::add_${field_name}(const ${type_name}& value) {\n"
+  printer.Print("inline void ${msg_name}::add_${field_name}(const ${type_name}& value) {\n"
                 "    ${field_name}_.push_back(value);\n"
                 "}\n\n",
                 matches);
@@ -859,38 +867,38 @@ void CppCodeGenerator::DefineRepeatedNonNumericTypeAccessors(
   // String type can also have value passed by const char*
   if (field->IsRepeatedStringType()) {
     // Implement - void add_foo(const char* value);
-    printer.Print("void ${msg_name}::add_${field_name}(const char* value) {\n"
+    printer.Print("inline void ${msg_name}::add_${field_name}(const char* value) {\n"
                   "    ${field_name}_.push_back(std::string(value));\n"
                   "}\n\n",
                   matches);
 
     // Implement - void add_foo(const char* value, int size);
-    printer.Print("void ${msg_name}::add_${field_name}(const char* value, int size) {\n"
+    printer.Print("inline void ${msg_name}::add_${field_name}(const char* value, int size) {\n"
                   "    ${field_name}_.push_back(std::string(value, size));\n"
                   "}\n\n",
                   matches);
   }
 
   // Implement - Bar& mutable_foo(int index);
-  printer.Print("${type_name}& ${msg_name}::mutable_${field_name}(int index) {\n"
+  printer.Print("inline ${type_name}& ${msg_name}::mutable_${field_name}(int index) {\n"
                 "  return ${field_name}_[index];\n"
                 "}\n\n",
                 matches);  
 
   // Implement - void clear_foo();
-  printer.Print("void ${msg_name}::clear_${field_name}() {\n"
+  printer.Print("inline void ${msg_name}::clear_${field_name}() {\n"
                 "  ${field_name}_.clear();\n"
                 "}\n\n",
                 matches);
 
   // Implement - const std::vector<Bar>& foo() const;
-  printer.Print("const std::vector<${type_name}> ${msg_name}::${field_name}() const {\n"
+  printer.Print("inline const std::vector<${type_name}> ${msg_name}::${field_name}() const {\n"
                 "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
 
   // Implement - std::vector<Bar>& mutable_foo();
-  printer.Print("std::vector<${type_name}> ${msg_name}::mutable_${field_name}() {\n"
+  printer.Print("inline std::vector<${type_name}> ${msg_name}::mutable_${field_name}() {\n"
                 "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
@@ -922,7 +930,7 @@ CppCodeGenerator::GetFieldMatchMap(Message* message, MessageField* field) {
     {"default_value", default_value},
     {"tag", std::to_string(field->tag())},
     {"tag_byte_index", std::to_string(field->tag()/8)},
-    {"tag_bit_offset", std::to_string(field->tag()%8)},
+    {"tag_bit", StringUtils::IntToHexString(1<<(field->tag()%8))},
   };
   return matches;
 }
