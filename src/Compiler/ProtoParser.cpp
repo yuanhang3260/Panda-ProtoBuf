@@ -493,7 +493,7 @@ bool ProtoParser::ParseAssignExpression(std::string line,
         if (!StringUtils::StartWith(value, "\"") ||
             !StringUtils::EndWith(value, "\"")) {
           LogError(
-              "Invalid string value: must be double quotated, actual - \"%s\"",
+              "Invalid string value %s : must be double quotated",
               (*right).c_str());
           return false;
         }
