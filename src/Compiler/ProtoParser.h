@@ -9,8 +9,8 @@
 #include "Type.h"
 #include "Message.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 class CppGeneratorImpl;
 
@@ -80,7 +80,7 @@ class ProtoParser {
   bool init_success_ = false;
 };
 
-}  // Compiler
-}  // PandaProto
+}  // namespace ProtoParser
+}  // namespace Proto
 
 #endif /* PROTO_PARSER_ */

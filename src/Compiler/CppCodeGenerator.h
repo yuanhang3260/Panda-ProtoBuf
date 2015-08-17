@@ -4,8 +4,8 @@
 #include "ProtoParser.h"
 #include "../IO/TextPrinter.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 class CppCodeGenerator : public ProtoParser {
  public:
@@ -50,6 +50,10 @@ class CppCodeGenerator : public ProtoParser {
   
   // ------------------------ Generate cpp file. ---------------------------- //
   void GenerateCC();
+
+  // Define reflection.
+  void DefineStaticMetadata();
+  void DefineStaticInit();
 
   // Define all methods of a message.
   void DefineClassMethods(Message* message);

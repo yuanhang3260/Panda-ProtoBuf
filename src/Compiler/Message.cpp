@@ -6,8 +6,8 @@
 #include "../Utility/Utils.h"
 #include "Message.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 Message::Message(std::string name, std::string package) :
     PbType(name, package) {
@@ -111,5 +111,5 @@ const std::set<int>& Message::tag_set() const {
   return tag_set_;
 }
 
-}  // namespace Compiler
-}  // namespace PandaProto
+}  // namespace ProtoParser
+}  // namespace Proto

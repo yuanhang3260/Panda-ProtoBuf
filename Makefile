@@ -32,7 +32,8 @@ COMPILER_OBJ = \
       $(OBJ_DIR)/Compiler/Type.o \
       
 PROTO_OBJ = \
-			$(OBJ_DIR)/Proto/RepeatedFields.o
+			$(OBJ_DIR)/Proto/RepeatedFields.o \
+			$(OBJ_DIR)/Proto/MessageReflection.o \
 
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
           $(OBJ_DIR)/Utility/StringBuilder_test.o \
@@ -97,6 +98,7 @@ clean:
 	rm -rf $(OBJ_DIR)/Network/*.o
 	rm -rf $(OBJ_DIR)/Compiler/*.o
 	rm -rf $(OBJ_DIR)/Log/*.o
+	rm -rf $(OBJ_DIR)/Proto/*.o
 	rm -rf test/*.out
 	rm -rf samples/*.h
 	rm -rf samples/*.cpp

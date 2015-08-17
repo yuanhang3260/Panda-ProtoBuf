@@ -7,8 +7,8 @@
 
 #include "Type.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 
 class EnumType : public PbType {
@@ -30,7 +30,7 @@ class EnumType : public PbType {
 };
 
 
-}  // PandaProto
-}  // Compiler
+}  // namespace ProtoParser
+}  // namespace Proto
 
 #endif  /* _ENUM_TYPE */

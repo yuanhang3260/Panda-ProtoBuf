@@ -1,7 +1,7 @@
 #include "MessageField.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 MessageField::MessageField(FIELD_MODIFIER modifier,
                            FIELD_TYPE type,
@@ -120,7 +120,5 @@ bool MessageField::IsRepeatedMessageType() const {
 }
 
 
-
-
-}  // namespace Compiler
-}  // namespace PandaProto
+}  // namespace ProtoParser
+}  // namespace Proto

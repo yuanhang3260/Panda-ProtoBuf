@@ -10,8 +10,8 @@
 #include "MessageField.h"
 #include "EnumType.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 class Message : public PbType {
  public:
@@ -48,7 +48,7 @@ class Message : public PbType {
   int highest_tag_ = -1;
 };
 
-}  // namespace Compiler
-}  // namespace PandaProto
+}  // namespace ProtoParser
+}  // namespace Proto
 
 #endif /* MESSAGE_ */

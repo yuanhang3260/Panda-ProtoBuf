@@ -9,8 +9,8 @@
 #include "../Utility/Strings.h"
 #include "../Utility/Utils.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 ProtoParser::ProtoParser(LANGUAGE lang, std::string file) :
     lang_(lang),
@@ -585,5 +585,5 @@ void ProtoParser::PrintParseState() const {
   }
 }
 
-}  // Compiler
-}  // PandaProto
+}  // namespace ProtoParser
+}  // namespace Proto

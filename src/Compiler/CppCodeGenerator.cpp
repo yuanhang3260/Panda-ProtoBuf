@@ -3,8 +3,8 @@
 #include "../Utility/Utils.h"
 #include "CppCodeGenerator.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 std::map<FIELD_TYPE, std::string> pbCppTypeMap{
   {INT32, "int"},
@@ -163,6 +163,12 @@ void CppCodeGenerator::DeclarePrivateFields(Message* message) {
     }
     printer.Print(";\n");
   }
+
+  printer.Print("  // default instance\n"
+                "  ${msg_name}* default_instance_ = nullptr;\n",
+                std::map<std::string, std::string>{
+                  {"msg_name", message->name()}
+                });
 }
 
 void CppCodeGenerator::GenerateCC() {
@@ -177,7 +183,13 @@ void CppCodeGenerator::GenerateCC() {
   // Include proto_name.pb.h file
   std::vector<std::string> result = StringUtils::Split(outfile, '/');
   std::string filename = result[result.size() - 1];
+  printer.Print("#include \"Compiler/Message.h\"\n");
+  printer.Print("#include \"Proto/MessageReflection.h\"\n\n");
   printer.Print("#include \"" + filename + ".h\"\n\n");
+
+  // Define message reflection and descriptors.
+  DefineStaticMetadata();
+  DefineStaticInit();
 
   // Print class methods.
   for (auto& message: messages_list_) {
@@ -186,6 +198,32 @@ void CppCodeGenerator::GenerateCC() {
 
   CheckoutNameSpace(pkg_stack_, std::vector<std::string>());
   printer.Flush();
+}
+
+void CppCodeGenerator::DefineStaticMetadata() {
+  printer.Print("namespace {\n\n");
+  for (auto& message: messages_list_) {
+    std::map<std::string, std::string> matches {
+      {"msg_name", message->name()},
+    };
+    printer.Print("const ::proto::ProtoParser::Message* ${msg_name}_descriptor_ = NULL;\n"
+                  "const ::proto::MessageReflection* ${msg_name}_reflection_ = NULL;\n",
+                  matches);
+  }
+  printer.Print("\n}  // namepsace\n\n");
+}
+
+void CppCodeGenerator::DefineStaticInit() {
+  printer.Print("namespace {\n\n");
+  std::string suffix = proto_file_.substr(0, proto_file_.length() - 6);
+  std::string func_name =
+    suffix.substr(StringUtils::findFirstMatch(suffix, "/"));
+  StringUtils::replaceWith(func_name, '/', '_');
+  func_name = "static_initialization" + func_name;
+  printer.Print("void " + func_name + "() {\n");
+  // TODO: implement static init.
+  printer.Print("}\n");
+  printer.Print("\n}  // namepsace\n\n");
 }
 
 void CppCodeGenerator::DefineClassMethods(Message* message) {

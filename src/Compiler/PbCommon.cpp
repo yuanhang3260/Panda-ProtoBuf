@@ -1,8 +1,8 @@
 #include "PbCommon.h"
 #include "../Utility/Strings.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 FIELD_TYPE
 PbCommon::GetMessageFieldType(std::string type) {
@@ -56,5 +56,5 @@ PbCommon::GetTypeAsString(FIELD_TYPE type) {
   return "undermined";
 }
 
-}  // namespace PandaProto
-}  // namespace Compiler
+}  // namespace ProtoParser
+}  // namespace Proto

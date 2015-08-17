@@ -3,8 +3,8 @@
 
 #include <string>
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 enum FIELD_TYPE {
   UNDETERMINED,
@@ -25,7 +25,7 @@ class PbCommon {
   static std::string GetTypeAsString(FIELD_TYPE type);
 };
 
-}  // namespace PandaProto
-}  // namespace Compiler
+}  // namespace ProtoParser
+}  // namespace Proto
 
 #endif  /* PB_COMMON_ */

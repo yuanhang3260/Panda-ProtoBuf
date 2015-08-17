@@ -69,6 +69,11 @@ class StringUtils {
   static std::string StrCat(std::vector<std::string>, unsigned int start);
 
   static std::string IntToHexString(int i);
+
+  static int findFirstMatch(std::string str, std::string match);
+  static int findLastMatch(std::string str, std::string match);
+  
+  static void replaceWith(std::string& str, const char old, const char match);
 };
 
 #endif /* __STRINGS_H_ */

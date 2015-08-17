@@ -1,8 +1,8 @@
 #include "Type.h"
 #include "../Utility/Strings.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 PbType::PbType(std::string name, std::string package) :
     name_(name),
@@ -23,8 +23,8 @@ PbType::PbType(std::string name, std::string package, std::string message) :
   }
 }
 
-}  // PandaProto
-}  // Compiler
+}  // namespace ProtoParser
+}  // namespace Proto
 
 
 

@@ -3,8 +3,8 @@
 #include "../Utility/Strings.h"
 #include "EnumType.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 
 EnumType::EnumType(std::string name, std::string package) :
@@ -38,6 +38,5 @@ void EnumType::Print() const {
   std::cout << indent << "}" << std::endl;
 }
 
-
-}  // PandaProto
-}  // Compiler
+}  // namespace ProtoParser
+}  // namespace Proto

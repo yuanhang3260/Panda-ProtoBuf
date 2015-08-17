@@ -5,8 +5,8 @@
 #include <vector>
 #include "PbCommon.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 class PbType {
   public:
@@ -29,7 +29,7 @@ class PbType {
   std::vector<std::string> pkg_stack_;
 };
 
-}  // namespace PandaProto
-}  // namespace Compiler
+}  // namespace ProtoParser
+}  // namespace Proto
 
 #endif /* TYPE_COMMON_ */

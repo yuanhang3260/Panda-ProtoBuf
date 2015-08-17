@@ -7,6 +7,8 @@ message FamilyInfo {
 	optional int32 numberdogs = 2;
 }
 
+package AA.BB;
+
 message DogInfo {
   optional int32 age =1;
   optional string name= 3;

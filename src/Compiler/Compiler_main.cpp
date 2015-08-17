@@ -6,7 +6,7 @@
 #include "ProtoParser.h"
 #include "CppCodeGenerator.h"
 
-using namespace PandaProto::Compiler;
+using namespace proto::ProtoParser;
 
 int main(int argc, char** argv) {
   if (argc != 3) {

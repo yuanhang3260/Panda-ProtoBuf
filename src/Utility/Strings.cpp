@@ -162,3 +162,36 @@ std::string StringUtils::IntToHexString(int i) {
          << std::hex << i;
   return stream.str();
 }
+
+int StringUtils::findFirstMatch(std::string str, std::string match) {
+  if (match.length() > str.length()) {
+    return -1;
+  }
+  for (unsigned int i = 0; i <= str.length() - match.length(); i++) {
+    if (str.substr(i, match.length()) == match) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+int StringUtils::findLastMatch(std::string str, std::string match) {
+  if (match.length() > str.length()) {
+    return -1;
+  }
+  for (unsigned int i = str.length() - match.length(); i >= 0; i--) {
+    if (str.substr(i, match.length()) == match) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+void StringUtils::replaceWith(
+    std::string& str, const char old, const char match) {
+  for (unsigned int i = 0; i < str.length(); i++) {
+    if (str[i] == old) {
+      str[i] = match;
+    }
+  }
+}

@@ -6,8 +6,8 @@
 #include "Type.h"
 #include "EnumType.h"
 
-namespace PandaProto {
-namespace Compiler {
+namespace proto {
+namespace ProtoParser {
 
 class MessageField {
  public:
@@ -55,7 +55,7 @@ class MessageField {
   bool has_user_default_value_ = false;
 };
 
-}  // namespace Compiler
-}  // namespace PandaProto
+}  // namespace ProtoParser
+}  // namespace Proto
 
 #endif /* MESSAGE_FIELD_ */
