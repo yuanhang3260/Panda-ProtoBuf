@@ -30,7 +30,9 @@ COMPILER_OBJ = \
       $(OBJ_DIR)/Compiler/MessageField.o \
       $(OBJ_DIR)/Compiler/EnumType.o \
       $(OBJ_DIR)/Compiler/Type.o \
-
+      
+PROTO_OBJ = \
+			$(OBJ_DIR)/Proto/RepeatedFields.o
 
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
           $(OBJ_DIR)/Utility/StringBuilder_test.o \
@@ -46,7 +48,7 @@ default: library compiler
 
 test: $(TESTEXE) library
 
-library: $(OBJ) $(COMPILER_OBJ)
+library: $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ)
 	ar cr libsnp.a $(OBJ) $(COMPILER_OBJ)
 
 compiler: $(SRC_DIR)/Compiler/Compiler_main.cpp library
@@ -69,6 +71,9 @@ $(OBJ_DIR)/Network/%.o: $(SRC_DIR)/Network/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Compiler/%.o: $(SRC_DIR)/Compiler/%.cpp $(SRC_DIR)/Compiler/%.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cpp $(SRC_DIR)/Proto/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
 test/%.out: $(OBJ_DIR)/Utility/%.o library

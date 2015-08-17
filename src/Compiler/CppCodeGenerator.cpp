@@ -37,6 +37,8 @@ void CppCodeGenerator::GenerateHeader() {
   printer.Print("#define " + StringUtils::Upper(filename) + "_H_\n\n");
   printer.Print("#include <string>\n");
   printer.Print("#include <vector>\n\n");
+  printer.Print("#include \"Proto/Message.h\"\n");
+  printer.Print("#include \"Proto/RepeatedFields.h\"\n\n");
 
   // Declare global enums.
   for (auto& e: enums_map_) {
@@ -64,7 +66,7 @@ void CppCodeGenerator::DeclareGlobalEnum(EnumType* enum_p) {
 
 void CppCodeGenerator::DeclareMessageClass(Message* message) {
   CheckoutNameSpace(pkg_stack_, message->pkg_stack());
-  printer.Print("class " + message->name() + " {\n");
+  printer.Print("class " + message->name() + ": public ::proto::Message {\n");
 
   // Public:
   printer.Print(" public:\n");
@@ -120,6 +122,9 @@ void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
   printer.Print(
       "  ${msg_name}& operator=(${msg_name}&& other);  // move assignment\n",
       msg_match);
+  printer.Print(
+      "  inline ::proto::Message* New() override;  // New()\n",
+      msg_match);
   printer.Print("  void Swap(${msg_name}* other);\n", msg_match);
   printer.Print("\n");
 }
@@ -137,7 +142,14 @@ void CppCodeGenerator::DeclarePrivateFields(Message* message) {
         GetFieldMatchMap(message, field.get());
     // repeated fields are "vector<Bar>* foo" type
     if (field->modifier() == MessageField::REPEATED) {
-      matches["type_name"] = "std::vector<" + matches["type_name"] + ">";
+      if (field->IsPrimitiveType()) {
+        matches["type_name"] =
+            "::proto::RepeatedField<" + matches["type_name"] + ">";
+      }
+      else {
+        matches["type_name"] =
+            "::proto::RepeatedPtrField<" + matches["type_name"] + ">";
+      }
     }
 
     std::string declearation_line = "  ${type_name} ${field_name}_";
@@ -185,6 +197,7 @@ void CppCodeGenerator::DefineClassMethods(Message* message) {
   DefineMoveConstructor(message);
   DefineCopyAssigner(message);
   DefineMoveAssigner(message);
+  DefineNew(message);
   DefineSwapper(message);
   DefineDestructor(message);
   // Print accessors.
@@ -227,11 +240,17 @@ void CppCodeGenerator::PrintCopyClassCode(Message* message) {
         "  }\n"
         "  *${field_name}_ = other.${field_name}();\n", matches);
     }
+    else if (field->IsRepeatedStringType() || field->IsRepeatedMessageType()) {
+      printer.Print(
+        "  for (const ${type_name}* p: other.${field_name}().GetElements()) {\n"
+        "    ${field_name}_.AddAllocated(new ${type_name}(*p));\n"
+        "  }\n",
+        matches);
+    }
     else {
       printer.Print("  ${field_name}_ = other.${field_name}();\n", matches);
     }
   }
-  printer.Print("}\n\n");
 }
 
 void CppCodeGenerator::DefineConstructor(Message* message) {
@@ -241,7 +260,7 @@ void CppCodeGenerator::DefineConstructor(Message* message) {
   };
   printer.Print(
       "${msg_name}::${msg_name}() {\n"
-      "  for (int i = 0; i < sizeof(has_bits_); i++) {\n"
+      "  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {\n"
       "    has_bits_[i] = 0;\n"
       "  }\n"
       "}\n\n",
@@ -258,6 +277,7 @@ void CppCodeGenerator::DefineCopyConstructor(Message* message) {
       msg_match);
   
   PrintCopyClassCode(message);
+  printer.Print("}\n\n");
 }
 
 void CppCodeGenerator::DefineCopyAssigner(Message* message) {
@@ -270,6 +290,8 @@ void CppCodeGenerator::DefineCopyAssigner(Message* message) {
       msg_match);
   
   PrintCopyClassCode(message);
+  printer.Print("  return *this;\n"
+                "}\n\n");
 }
 
 void CppCodeGenerator::PrintMoveClassCode(Message* message) {
@@ -300,7 +322,6 @@ void CppCodeGenerator::PrintMoveClassCode(Message* message) {
       printer.Print("  other.clear_${field_name}();\n", matches);
     }
   }
-  printer.Print("}\n\n");
 }
 
 void CppCodeGenerator::DefineMoveConstructor(Message* message) {
@@ -312,6 +333,7 @@ void CppCodeGenerator::DefineMoveConstructor(Message* message) {
   printer.Print("${msg_name}::${msg_name}(${msg_name}&& other) {\n", msg_match);
 
   PrintMoveClassCode(message);
+  printer.Print("}\n\n");
 }
 
 void CppCodeGenerator::DefineMoveAssigner(Message* message) {
@@ -324,6 +346,20 @@ void CppCodeGenerator::DefineMoveAssigner(Message* message) {
                 msg_match);
 
   PrintMoveClassCode(message);
+  printer.Print("  return *this;\n"
+                "}\n\n");
+}
+
+void CppCodeGenerator::DefineNew(Message* message) {
+  printer.Print("// New()\n");
+
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+  printer.Print("::proto::Message* ${msg_name}::New() {\n"
+                "  return static_cast<::proto::Message*>(new ${msg_name}());\n"
+                "}\n\n",
+                msg_match);
 }
 
 void CppCodeGenerator::DefineSwapper(Message* message) {
@@ -340,7 +376,14 @@ void CppCodeGenerator::DefineSwapper(Message* message) {
         GetFieldMatchMap(message, field.get());
     // repeated field should have std::vector<Bar> type
     if (field->modifier() == MessageField::REPEATED) {
-      matches["type_name"] = "std::vector<" + matches["type_name"] + ">";
+      if (field->IsPrimitiveType()) {
+        matches["type_name"] =
+            "::proto::RepeatedField<" + matches["type_name"] + ">";
+      }
+      else {
+        matches["type_name"] =
+            "::proto::RepeatedPtrField<" + matches["type_name"] + ">";
+      }
     }
 
     if (field->modifier() == MessageField::REPEATED ||
@@ -514,12 +557,12 @@ void CppCodeGenerator::DeclareRepeatedNumericTypeAccessors(
   printer.Print("  void clear_${field_name}();\n",
                 matches);
 
-  // Declare - const std::vector<Bar>& foo() const;
-  printer.Print("  const std::vector<${type_name}> ${field_name}() const;\n",
+  // Declare - const ::proto::RepeatedField<Bar>& foo() const;
+  printer.Print("  const ::proto::RepeatedField<${type_name}>& ${field_name}() const;\n",
                 matches);
 
-  // Declare - std::vector<Bar>& mutable_foo();
-  printer.Print("  std::vector<${type_name}> mutable_${field_name}();\n",
+  // Declare - ::proto::RepeatedField<Bar>& mutable_foo();
+  printer.Print("  ::proto::RepeatedField<${type_name}>& mutable_${field_name}();\n",
                 matches);
 
   printer.Print("\n");
@@ -539,12 +582,12 @@ void CppCodeGenerator::DeclareRepeatedNonNumericTypeAccessors(
   // Declare - const ${type_name}& foo(int index) const;
   printer.Print("  const ${type_name}& ${field_name}(int index);\n", matches);
 
-  // Declare - void set_foo(int index, const Bar& value);
-  printer.Print("  void set_${field_name}(int index, const ${type_name}& value);\n",
-                matches);
-
   // String type can also have value passed by const char*
   if (field->IsRepeatedStringType()) {
+    // Declare - void set_foo(int index, const string& value);
+    printer.Print("  void set_${field_name}(int index, const std::string& value);\n",
+                  matches);
+
     // Declare - void set_foo(int index, const char* value);
     printer.Print("  void set_${field_name}(int index, const char* value);\n",
                   matches);
@@ -554,12 +597,16 @@ void CppCodeGenerator::DeclareRepeatedNonNumericTypeAccessors(
                   matches);
   }
 
-  // Declare - void add_foo(Bar& value);
-  printer.Print("  void add_${field_name}(const ${type_name}& value);\n",
+  // Declare - Bar* add_foo();
+  printer.Print("  ${type_name}* add_${field_name}();\n",
                 matches);
 
   // String type can also have value passed by const char*
   if (field->IsRepeatedStringType()) {
+    // Declare - void add_foo(const string& value);
+    printer.Print("  void add_${field_name}(const std::string& value);\n",
+                  matches);
+
     // Declare - void add_foo(const char* value);
     printer.Print("  void add_${field_name}(const char* value);\n",
                   matches);
@@ -569,18 +616,18 @@ void CppCodeGenerator::DeclareRepeatedNonNumericTypeAccessors(
                   matches);
   }
 
-  // Declare - Bar& mutable_foo(int index);
-  printer.Print("  ${type_name}& mutable_${field_name}(int index);\n", matches);  
+  // Declare - Bar* mutable_foo(int index);
+  printer.Print("  ${type_name}* mutable_${field_name}(int index);\n", matches);  
 
   // Declare - void clear_foo();
   printer.Print("  void clear_${field_name}();\n", matches);
 
   // Declare - const std::vector<Bar>& foo() const;
-  printer.Print("  const std::vector<${type_name}> ${field_name}() const;\n",
+  printer.Print("  const ::proto::RepeatedPtrField<${type_name}>& ${field_name}() const;\n",
                 matches);
 
   // Declare - std::vector<Bar>& mutable_foo();
-  printer.Print("  std::vector<${type_name}> mutable_${field_name}();\n",
+  printer.Print("  ::proto::RepeatedPtrField<${type_name}>& mutable_${field_name}();\n",
                 matches);
 
   printer.Print("\n");
@@ -774,38 +821,38 @@ void CppCodeGenerator::DefineRepeatedNumericTypeAccessors(
 
   // Implement - Bar foo(int index) const;
   printer.Print("inline ${type_name} ${msg_name}::${field_name}(int index) {\n"
-                "  return ${field_name}_[index];\n"
+                "  return ${field_name}_.Get(index);\n"
                 "}\n\n",
                 matches);
 
   // Implement - void set_foo(int index, Bar& value);
   printer.Print("inline void ${msg_name}::set_${field_name}(int index, ${type_name} value) {\n"
-                "  if (${field_name}_.size() > index) {\n"
-                "    ${field_name}_[index] = value;\n"
+                "  if ((int)${field_name}_.size() > index) {\n"
+                "    ${field_name}_.Set(index, value);\n"
                 "  }\n"
                 "}\n\n",
                 matches);
 
   // Implement - void add_foo(Bar& value);
   printer.Print("inline void ${msg_name}::add_${field_name}(${type_name} value) {\n"
-                "    ${field_name}_.push_back(value);\n"
+                "   ${field_name}_.Add(value);\n"
                 "}\n\n",
                 matches);
 
   // Implement - void clear_foo();
   printer.Print("inline void ${msg_name}::clear_${field_name}() {\n"
-                "  ${field_name}_ .clear();\n"
+                "  ${field_name}_ .Clear();\n"
                 "}\n\n",
                 matches);
 
-  // Implement - const std::vector<Bar>& foo() const;
-  printer.Print("inline const std::vector<${type_name}> ${msg_name}::${field_name}() const {\n"
+  // Implement - const ::proto::RepeatedField<Bar>& foo() const;
+  printer.Print("inline const ::proto::RepeatedField<${type_name}>& ${msg_name}::${field_name}() const {\n"
                 "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
 
-  // Implement - std::vector<Bar>& mutable_foo();
-  printer.Print("inline std::vector<${type_name}> ${msg_name}::mutable_${field_name}() {\n"
+  // Implement - ::proto::RepeatedField<Bar>& mutable_foo();
+  printer.Print("inline ::proto::RepeatedField<${type_name}>& ${msg_name}::mutable_${field_name}() {\n"
                 "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
@@ -827,78 +874,84 @@ void CppCodeGenerator::DefineRepeatedNonNumericTypeAccessors(
 
   // Implement - const ${type_name}& foo(int index) const;
   printer.Print("inline const ${type_name}& ${msg_name}::${field_name}(int index) {\n"
-                "  return ${field_name}_[index];\n"
-                "}\n\n",
-                matches);
-
-  // Implement - void set_foo(int index, const Bar& value);
-  printer.Print("inline void ${msg_name}::set_${field_name}(int index, const ${type_name}& value) {\n"
-                "  if (index < ${field_name}_.size()) {\n"
-                "    ${field_name}_[index] = value;\n"
-                "  }\n"
+                "  return ${field_name}_.Get(index);\n"
                 "}\n\n",
                 matches);
 
   // String type can also have value passed by const char*
   if (field->IsRepeatedStringType()) {
     // Implement - void set_foo(int index, const char* value);
+    printer.Print("inline void ${msg_name}::set_${field_name}(int index, const std::string& value) {\n"
+                  "  if (index < (int)${field_name}_.size()) {\n"
+                  "    ${field_name}_.Set(index, value);\n"
+                  "  }\n"
+                  "}\n\n",
+                  matches);
+
+    // Implement - void set_foo(int index, const char* value);
     printer.Print("inline void ${msg_name}::set_${field_name}(int index, const char* value) {\n"
-                  "  if (index < ${field_name}_.size()) {\n"
-                  "    ${field_name}_[index] = std::string(value);\n"
+                  "  if (index < (int)${field_name}_.size()) {\n"
+                  "    ${field_name}_.Set(index, std::string(value));\n"
                   "  }\n"
                   "}\n\n",
                   matches);
 
     // Implement - void set_foo(int index, const char* value, int size);
     printer.Print("inline void ${msg_name}::set_${field_name}(int index, const char* value, int size) {\n"
-                  "  if (index < ${field_name}_.size()) {\n"
-                  "    ${field_name}_[index] = std::string(value, size);\n"
+                  "  if (index < (int)${field_name}_.size()) {\n"
+                  "    ${field_name}_.Set(index, std::string(value, size));\n"
                   "  }\n"
                   "}\n\n",
                   matches);
   }
 
-  // Implement - void add_foo(Bar& value);
-  printer.Print("inline void ${msg_name}::add_${field_name}(const ${type_name}& value) {\n"
-                "    ${field_name}_.push_back(value);\n"
+  // Implement - Bar* add_foo();
+  printer.Print("inline ${type_name}* ${msg_name}::add_${field_name}() {\n"
+                "  return ${field_name}_.Add();\n"
                 "}\n\n",
                 matches);
 
   // String type can also have value passed by const char*
   if (field->IsRepeatedStringType()) {
+    // Implement - void add_foo(const std::string value);
+    printer.Print("inline void ${msg_name}::add_${field_name}(const std::string& value) {\n"
+                  "  ${field_name}_.AddAllocated(new std::string(value));\n"
+                  "}\n\n",
+                  matches);
+
     // Implement - void add_foo(const char* value);
     printer.Print("inline void ${msg_name}::add_${field_name}(const char* value) {\n"
-                  "    ${field_name}_.push_back(std::string(value));\n"
+                  "  ${field_name}_.AddAllocated(new std::string(value));\n"
                   "}\n\n",
                   matches);
 
     // Implement - void add_foo(const char* value, int size);
     printer.Print("inline void ${msg_name}::add_${field_name}(const char* value, int size) {\n"
-                  "    ${field_name}_.push_back(std::string(value, size));\n"
+                  "  ${field_name}_.AddAllocated(new std::string(value, size));\n"
                   "}\n\n",
                   matches);
   }
 
-  // Implement - Bar& mutable_foo(int index);
-  printer.Print("inline ${type_name}& ${msg_name}::mutable_${field_name}(int index) {\n"
-                "  return ${field_name}_[index];\n"
+  // Implement - Bar* mutable_foo(int index);
+  printer.Print("inline ${type_name}* ${msg_name}::mutable_${field_name}(int index) {\n"
+                "  return ${field_name}_.GetMutable(index);\n"
                 "}\n\n",
                 matches);  
 
   // Implement - void clear_foo();
   printer.Print("inline void ${msg_name}::clear_${field_name}() {\n"
-                "  ${field_name}_.clear();\n"
+                "  ${field_name}_.Clear();\n"
                 "}\n\n",
                 matches);
 
-  // Implement - const std::vector<Bar>& foo() const;
-  printer.Print("inline const std::vector<${type_name}> ${msg_name}::${field_name}() const {\n"
+  // Implement - const ::proto::RepeatedPtrField<Bar>& foo() const;
+  printer.Print("inline const ::proto::RepeatedPtrField<${type_name}>& ${msg_name}::${field_name}() const {\n"
                 "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);
 
-  // Implement - std::vector<Bar>& mutable_foo();
-  printer.Print("inline std::vector<${type_name}> ${msg_name}::mutable_${field_name}() {\n"
+  // Implement - ::proto::RepeatedPtrField<Bar>& mutable_foo();
+  printer.Print("inline ::proto::RepeatedPtrField<${type_name}>& ${msg_name}::mutable_${field_name}() {\n"
                 "  return ${field_name}_;\n"
                 "}\n\n",
                 matches);

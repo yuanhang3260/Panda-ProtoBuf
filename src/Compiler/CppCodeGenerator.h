@@ -67,6 +67,9 @@ class CppCodeGenerator : public ProtoParser {
   void DefineCopyAssigner(Message* message);
   void DefineMoveAssigner(Message* message);
 
+  // Define New()
+  void DefineNew(Message* message);
+
   // Define Swapper.
   void DefineSwapper(Message* message);
 

@@ -2,28 +2,17 @@
 
 package AA;
 
-message DogInfo {
-  required string name= 3;
-  required int32 age =1;
-  enum Sex {
-    Male,
-    Female,
-  }
-  required Sex sex = 13 [default=Male];
-  optional bool like = 18[default = true ];
-}
-
 message FamilyInfo {
 	optional string address = 1;
 	optional int32 numberdogs = 2;
 }
 
-package AA.BB.CC;
-
-message DogFamilyInfo {
-  optional FamilyInfo family = 1;
-  repeated double utility_fee = 2;
-  repeated DogInfo dogs = 3;
-  repeated string locations = 4;
+message DogInfo {
+  optional int32 age =1;
+  optional string name= 3;
+  repeated string alias = 18;
+  repeated double weights = 5;
+  optional FamilyInfo family = 13;
+  repeated FamilyInfo neighbors = 25;
 }
 
