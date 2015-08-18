@@ -41,7 +41,7 @@ class ProtoParser {
 
   static LANGUAGE GetLanguageFromString(std::string lang);
 
-  std::vector<std::shared_ptr<Message>>& messages_list();
+  std::vector<std::shared_ptr<Message>>& mutable_messages_list();
 
  protected:
   bool ReadProtoFile();

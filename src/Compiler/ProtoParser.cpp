@@ -148,6 +148,10 @@ bool ProtoParser::ReadProtoFile() {
       return false;
     }
   }
+
+  for (auto& message: messages_list_) {
+    message->SortFieldsByTag();
+  }
   return true;
 }
 
@@ -585,7 +589,7 @@ void ProtoParser::PrintParseState() const {
   }
 }
 
-std::vector<std::shared_ptr<Message>>& ProtoParser::messages_list() {
+std::vector<std::shared_ptr<Message>>& ProtoParser::mutable_messages_list() {
   return messages_list_;
 }
 

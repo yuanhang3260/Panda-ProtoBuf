@@ -35,6 +35,10 @@ class Message : public PbType {
   bool has_repeated_field() const { return has_repeated_field_; }
   bool has_string_field() const { return has_string_field_; }
 
+  std::vector<std::shared_ptr<MessageField>> mutable_fields_list();
+
+  void SortFieldsByTag();
+
  protected:
   std::map<std::string, std::shared_ptr<MessageField>> fields_map_;
   std::vector<std::shared_ptr<MessageField>> fileds_list_;

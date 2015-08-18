@@ -176,7 +176,7 @@ void CppCodeGenerator::DeclarePrivateFields(Message* message) {
   printer.Print("  friend void ::static_init" + proto_path_name_ + "();\n\n");
 
   printer.Print("  // default instance\n"
-                "  ${msg_name}* default_instance_ = nullptr;\n",
+                "  static ${msg_name}* default_instance_;\n",
                 std::map<std::string, std::string>{
                   {"msg_name", message->name()}
                 });
@@ -194,6 +194,7 @@ void CppCodeGenerator::GenerateCC() {
   // Include proto_name.pb.h file
   std::vector<std::string> result = StringUtils::Split(outfile, '/');
   std::string filename = result[result.size() - 1];
+  printer.Print("#include <memory>\n\n");
   printer.Print("#include \"Compiler/Message.h\"\n");
   printer.Print("#include \"Compiler/ProtoParser.h\"\n");
   printer.Print("#include \"Proto/MessageReflection.h\"\n\n");
@@ -218,8 +219,8 @@ void CppCodeGenerator::DefineStaticMetadata() {
     std::map<std::string, std::string> matches {
       {"msg_name", message->name()},
     };
-    printer.Print("const ::proto::ProtoParser::Message* ${msg_name}_descriptor_ = NULL;\n"
-                  "const ::proto::MessageReflection* ${msg_name}_reflection_ = NULL;\n",
+    printer.Print("std::shared_ptr<::proto::ProtoParser::Message> ${msg_name}_descriptor_;\n"
+                  "std::shared_ptr<::proto::MessageReflection> ${msg_name}_reflection_;\n",
                   matches);
   }
   printer.Print("\n}  // namepsace\n\n");
@@ -233,16 +234,21 @@ void CppCodeGenerator::DefineStaticInit() {
     {"proto_file_", proto_file_},
   };
   // TODO: implement static init.
-  printer.Print("  ::proto::ProtoParser::ProtoParser* parser = \n"
-                "      new ::proto::ProtoParser::ProtoParser(::proto::ProtoParser::ProtoParser::CPP, \"${proto_file_}\");\n"
-                "  CHECK(parser->ParseProto(),\n"
+  printer.Print("  ::proto::ProtoParser::ProtoParser parser(\n"
+                "      ::proto::ProtoParser::ProtoParser::CPP,\n"
+                "      \"${proto_file_}\");\n"
+                "  CHECK(parser.ParseProto(),\n"
                 "        \"static class initialization for ${proto_file_} failed\");\n"
                 "\n",
                 matches);
+  printer.Print("  int i = 0;\n");
+  int message_index = 0;
   for (const auto& message: messages_list_) {
     matches["msg_name"] = message->name();
+    matches["msg_index"] = std::to_string(message_index++);
     matches["number_fields"] = std::to_string(message->fields_list().size());
-    printer.Print("  static const int ${msg_name}_offsets_[${number_fields}] = {\n",
+    printer.Print("  // static init for class ${msg_name}\n"
+                  "  static const int ${msg_name}_offsets_[${number_fields}] = {\n",
                   matches);
     std::string prefix = GetNameSpacePrefix(std::vector<std::string>(),
                                             message->pkg_stack());
@@ -253,10 +259,35 @@ void CppCodeGenerator::DefineStaticInit() {
                     matches);
     }
     printer.Print("  };\n");
+    printer.Print("  i = 0;\n"
+                  "  for (auto& field: parser.mutable_messages_list()[${msg_index}]->mutable_fields_list()) {\n"
+                  "    field->set_field_offset(${msg_name}_offsets_[i++]);\n"
+                  "  }\n"
+                  "  ${msg_name}_descriptor_ = parser.mutable_messages_list()[${msg_index}];\n"
+                  "  ${whole_msg_name}::default_instance_ = new ${whole_msg_name}();\n"
+                  "  ${msg_name}_reflection_.reset(\n"
+                  "      new ::proto::MessageReflection(\n"
+                  "          ${msg_name}_descriptor_,\n"
+                  "          ${whole_msg_name}::default_instance_)\n"
+                  "  );"
+                  "\n",
+                  matches);
   }
-  
-  printer.Print("\n  delete parser;\n");
+
   printer.Print("}\n\n");
+
+  // Define a struct to force static init function to be called at
+  // initializtion time.
+  matches["static_init_forcer"] = "static_init_forcer" + proto_path_name_;
+  matches["static_init_func"] = "static_init" + proto_path_name_;
+  matches["static_init_forcer_obj"] = "static_init_forcer" + proto_path_name_ + "_obj";
+  printer.Print("// Force ${static_init_func}() to be called at initialization time.\n"
+                "struct ${static_init_forcer} {\n"
+                "  ${static_init_forcer}() {\n"
+                "    ${static_init_func}();\n"
+                "  }\n"
+                "} ${static_init_forcer_obj}_;\n\n",
+                matches);
 }
 
 void CppCodeGenerator::DefineClassMethods(Message* message) {
@@ -334,6 +365,7 @@ void CppCodeGenerator::DefineConstructor(Message* message) {
       "  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {\n"
       "    has_bits_[i] = 0;\n"
       "  }\n"
+      "  default_instance_ = nullptr;\n"
       "}\n\n",
       msg_match);
 }
@@ -428,7 +460,7 @@ void CppCodeGenerator::DefineNew(Message* message) {
      {"msg_name", message->name()},
   };
   printer.Print("::proto::Message* ${msg_name}::New() {\n"
-                "  return static_cast<::proto::Message*>(new ${msg_name}());\n"
+                "  return reinterpret_cast<::proto::Message*>(new ${msg_name}());\n"
                 "}\n\n",
                 msg_match);
 }

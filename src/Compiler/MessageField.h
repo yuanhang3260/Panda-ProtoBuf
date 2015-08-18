@@ -32,8 +32,10 @@ class MessageField {
   int tag() const { return tag_; }
   std::string default_value() const { return default_value_; }
   std::string type_name() const { return type_name_; }
+  int field_offset() const { return field_offset_; }
   bool has_user_default_value() const { return has_user_default_value_; }
 
+  void set_field_offset(const int offset) { field_offset_ = offset; }
   void set_type_name(std::string type_name) { type_name_ = type_name; }
 
   bool IsPrimitiveType() const;
@@ -53,6 +55,7 @@ class MessageField {
   std::string default_value_;
   std::string type_name_;
   bool has_user_default_value_ = false;
+  int field_offset_ = -1;
 };
 
 }  // namespace ProtoParser

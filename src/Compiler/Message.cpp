@@ -59,14 +59,8 @@ bool Message::AddEnum(std::shared_ptr<EnumType> newenum) {
   return true;
 }
 
-bool FieldComparatorByTag(const std::shared_ptr<MessageField>& field1,
-                          const std::shared_ptr<MessageField>& field2) {
-  return field1->tag() < field2->tag();
-}
-
 void Message::Print() {
   std::cout << "Message " << name_ << " in Package " << package_ << std::endl;
-  std::sort(fileds_list_.begin(), fileds_list_.end(), FieldComparatorByTag);
   // Print enums defined in this message.
   for (auto& e: enums_map_) {
     e.second->Print();
@@ -81,6 +75,15 @@ void Message::Print() {
     }
     std::cout << std::endl;
   }
+}
+
+bool FieldComparatorByTag(const std::shared_ptr<MessageField>& field1,
+                          const std::shared_ptr<MessageField>& field2) {
+  return field1->tag() < field2->tag();
+}
+
+void Message::SortFieldsByTag() {
+  std::sort(fileds_list_.begin(), fileds_list_.end(), FieldComparatorByTag);
 }
 
 MessageField* Message::FindMessage(std::string name) const {
@@ -99,6 +102,11 @@ EnumType* Message::FindEnumType(std::string name) const {
 
 const std::vector<std::shared_ptr<MessageField>>&
 Message::fields_list() const {
+  return fileds_list_;
+}
+
+std::vector<std::shared_ptr<MessageField>>
+Message::mutable_fields_list() {
   return fileds_list_;
 }
 
