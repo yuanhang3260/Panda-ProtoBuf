@@ -585,5 +585,9 @@ void ProtoParser::PrintParseState() const {
   }
 }
 
+std::vector<std::shared_ptr<Message>>& ProtoParser::messages_list() {
+  return messages_list_;
+}
+
 }  // namespace ProtoParser
 }  // namespace Proto

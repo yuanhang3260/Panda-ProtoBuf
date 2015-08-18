@@ -40,6 +40,9 @@ void CppCodeGenerator::GenerateHeader() {
   printer.Print("#include \"Proto/Message.h\"\n");
   printer.Print("#include \"Proto/RepeatedFields.h\"\n\n");
 
+  GenerateProtoPathName();
+  printer.Print("void static_init" + proto_path_name_ + "();\n\n");
+
   // Declare global enums.
   for (auto& e: enums_map_) {
     DeclareGlobalEnum(e.second.get());
@@ -53,6 +56,12 @@ void CppCodeGenerator::GenerateHeader() {
   CheckoutNameSpace(pkg_stack_, std::vector<std::string>());
   printer.Print("\n#endif  /* " + StringUtils::Upper(filename) + "_H_ */\n");
   printer.Flush();
+}
+
+void CppCodeGenerator::GenerateProtoPathName() {
+  std::string suffix = proto_file_.substr(0, proto_file_.length() - 6);
+  proto_path_name_ = suffix.substr(StringUtils::findFirstMatch(suffix, "/"));
+  StringUtils::replaceWith(proto_path_name_, '/', '_');
 }
 
 void CppCodeGenerator::DeclareGlobalEnum(EnumType* enum_p) {
@@ -164,6 +173,8 @@ void CppCodeGenerator::DeclarePrivateFields(Message* message) {
     printer.Print(";\n");
   }
 
+  printer.Print("  friend void ::static_init" + proto_path_name_ + "();\n\n");
+
   printer.Print("  // default instance\n"
                 "  ${msg_name}* default_instance_ = nullptr;\n",
                 std::map<std::string, std::string>{
@@ -184,6 +195,7 @@ void CppCodeGenerator::GenerateCC() {
   std::vector<std::string> result = StringUtils::Split(outfile, '/');
   std::string filename = result[result.size() - 1];
   printer.Print("#include \"Compiler/Message.h\"\n");
+  printer.Print("#include \"Compiler/ProtoParser.h\"\n");
   printer.Print("#include \"Proto/MessageReflection.h\"\n\n");
   printer.Print("#include \"" + filename + ".h\"\n\n");
 
@@ -202,7 +214,7 @@ void CppCodeGenerator::GenerateCC() {
 
 void CppCodeGenerator::DefineStaticMetadata() {
   printer.Print("namespace {\n\n");
-  for (auto& message: messages_list_) {
+  for (const auto& message: messages_list_) {
     std::map<std::string, std::string> matches {
       {"msg_name", message->name()},
     };
@@ -214,16 +226,37 @@ void CppCodeGenerator::DefineStaticMetadata() {
 }
 
 void CppCodeGenerator::DefineStaticInit() {
-  printer.Print("namespace {\n\n");
-  std::string suffix = proto_file_.substr(0, proto_file_.length() - 6);
-  std::string func_name =
-    suffix.substr(StringUtils::findFirstMatch(suffix, "/"));
-  StringUtils::replaceWith(func_name, '/', '_');
-  func_name = "static_initialization" + func_name;
-  printer.Print("void " + func_name + "() {\n");
+  std::string static_init_func = "static_init" + proto_path_name_;
+  printer.Print("void " + static_init_func + "() {\n");
+  
+  std::map<std::string, std::string> matches{
+    {"proto_file_", proto_file_},
+  };
   // TODO: implement static init.
-  printer.Print("}\n");
-  printer.Print("\n}  // namepsace\n\n");
+  printer.Print("  ::proto::ProtoParser::ProtoParser* parser = \n"
+                "      new ::proto::ProtoParser::ProtoParser(::proto::ProtoParser::ProtoParser::CPP, \"${proto_file_}\");\n"
+                "  CHECK(parser->ParseProto(),\n"
+                "        \"static class initialization for ${proto_file_} failed\");\n"
+                "\n",
+                matches);
+  for (const auto& message: messages_list_) {
+    matches["msg_name"] = message->name();
+    matches["number_fields"] = std::to_string(message->fields_list().size());
+    printer.Print("  static const int ${msg_name}_offsets_[${number_fields}] = {\n",
+                  matches);
+    std::string prefix = GetNameSpacePrefix(std::vector<std::string>(),
+                                            message->pkg_stack());
+    matches["whole_msg_name"] = prefix + message->name();
+    for (const auto& field: message->fields_list()) {
+      matches["field_name"] = field->name();
+      printer.Print("    PROTO_MESSAGE_FIELD_OFFSET(${whole_msg_name}, ${field_name}_),\n",
+                    matches);
+    }
+    printer.Print("  };\n");
+  }
+  
+  printer.Print("\n  delete parser;\n");
+  printer.Print("}\n\n");
 }
 
 void CppCodeGenerator::DefineClassMethods(Message* message) {

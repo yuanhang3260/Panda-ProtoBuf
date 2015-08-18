@@ -20,6 +20,8 @@ class CppCodeGenerator : public ProtoParser {
   // ------------------------ Generate header file. ------------------------- //
   void GenerateHeader();
 
+  void GenerateProtoPathName();
+
   // Declare global enum.
   void DeclareGlobalEnum(EnumType* enum_p);
 
@@ -103,9 +105,10 @@ class CppCodeGenerator : public ProtoParser {
   std::string GetNameSpacePrefix(const std::vector<std::string>& context_stk,
                                  const std::vector<std::string>& target_stk);
 
-
   // Text printer.
   IO::TextPrinter printer;
+
+  std::string proto_path_name_;
 };
 
 }  // Compiler

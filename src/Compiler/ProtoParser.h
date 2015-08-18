@@ -37,9 +37,11 @@ class ProtoParser {
 
   bool ParseProto();
   void PrintParsedProto() const;
-  virtual void GenerateCode() = 0;  // Need language-specific implementation.
+  virtual void GenerateCode() {}  // Need language-specific implementation.
 
   static LANGUAGE GetLanguageFromString(std::string lang);
+
+  std::vector<std::shared_ptr<Message>>& messages_list();
 
  protected:
   bool ReadProtoFile();
