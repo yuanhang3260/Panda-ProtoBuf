@@ -41,7 +41,9 @@ void CppCodeGenerator::GenerateHeader() {
   printer.Print("#include \"Proto/RepeatedFields.h\"\n\n");
 
   GenerateProtoPathName();
-  printer.Print("void static_init" + proto_path_name_ + "();\n\n");
+  printer.Print("void static_init" + proto_path_name_ + "();\n");
+  printer.Print(
+    "void static_init_default_instances" + proto_path_name_ + "();\n\n");
 
   // Declare global enums.
   for (auto& e: enums_map_) {
@@ -134,8 +136,9 @@ void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
   printer.Print(
       "  inline ::proto::Message* New() override;  // New()\n",
       msg_match);
-  printer.Print("  void Swap(${msg_name}* other);\n", msg_match);
-  printer.Print("\n");
+  printer.Print("  void Swap(${msg_name}* other);\n\n", msg_match);
+  printer.Print("  static const ${msg_name}& default_instance();\n\n",
+                msg_match);
 }
 
 void CppCodeGenerator::DeclarePrivateFields(Message* message) {
@@ -173,13 +176,17 @@ void CppCodeGenerator::DeclarePrivateFields(Message* message) {
     printer.Print(";\n");
   }
 
-  printer.Print("  friend void ::static_init" + proto_path_name_ + "();\n\n");
-
+  printer.Print(
+      "\n  // InitAsDefaultInstance()\n"
+      "  void InitAsDefaultInstance() override;\n");
   printer.Print("  // default instance\n"
-                "  static ${msg_name}* default_instance_;\n",
+                "  static ${msg_name}* default_instance_;\n\n",
                 std::map<std::string, std::string>{
                   {"msg_name", message->name()}
                 });
+
+  printer.Print("  friend void ::static_init" + proto_path_name_ + "();\n");
+  printer.Print("  friend void ::static_init_default_instances" + proto_path_name_ + "();\n");
 }
 
 void CppCodeGenerator::GenerateCC() {
@@ -197,14 +204,17 @@ void CppCodeGenerator::GenerateCC() {
   printer.Print("#include <memory>\n\n");
   printer.Print("#include \"Compiler/Message.h\"\n");
   printer.Print("#include \"Compiler/ProtoParser.h\"\n");
-  printer.Print("#include \"Proto/MessageReflection.h\"\n\n");
+  printer.Print("#include \"Proto/MessageReflection.h\"\n");
+  printer.Print("#include \"Proto/MessageFactory.h\"\n\n");
   printer.Print("#include \"" + filename + ".h\"\n\n");
 
   // Define message reflection and descriptors.
   DefineStaticMetadata();
+  DefineStaticInitDefaultInstances();
   DefineStaticInit();
 
   // Print class methods.
+  printer.Print("\n");
   for (auto& message: messages_list_) {
     DefineClassMethods(message.get());
   }
@@ -226,14 +236,37 @@ void CppCodeGenerator::DefineStaticMetadata() {
   printer.Print("\n}  // namepsace\n\n");
 }
 
+void CppCodeGenerator::DefineStaticInitDefaultInstances() {
+  std::map<std::string, std::string> matches;
+  std::string static_init_func = "static_init_default_instances" +
+                                 proto_path_name_;
+  printer.Print("void " + static_init_func + "() {\n");
+  printer.Print("  static bool already_called = false;\n"
+                "  if (already_called) return;\n"
+                "  already_called = true;\n\n");
+  for (const auto& message: messages_list_) {
+    matches["msg_name"] = message->name();
+    std::string prefix = GetNameSpacePrefix(std::vector<std::string>(),
+                                            message->pkg_stack());
+    matches["whole_msg_name"] = prefix + message->name();
+    printer.Print("  if (${whole_msg_name}::default_instance_ == NULL) {\n"
+                  "    ${whole_msg_name}::default_instance_ = new ${whole_msg_name}();\n"
+                  "    ${whole_msg_name}::default_instance_->InitAsDefaultInstance();\n"
+                  "  }\n",
+                  matches);
+  }
+  printer.Print("}\n\n");
+}
+
 void CppCodeGenerator::DefineStaticInit() {
   std::string static_init_func = "static_init" + proto_path_name_;
   printer.Print("void " + static_init_func + "() {\n");
   
   std::map<std::string, std::string> matches{
     {"proto_file_", proto_file_},
+    {"proto_path_name", proto_path_name_},
   };
-  // TODO: implement static init.
+
   printer.Print("  ::proto::ProtoParser::ProtoParser parser(\n"
                 "      ::proto::ProtoParser::ProtoParser::CPP,\n"
                 "      \"${proto_file_}\");\n"
@@ -241,7 +274,9 @@ void CppCodeGenerator::DefineStaticInit() {
                 "        \"static class initialization for ${proto_file_} failed\");\n"
                 "\n",
                 matches);
-  printer.Print("  int i = 0;\n");
+  printer.Print("  static_init_default_instances${proto_path_name}();\n\n"
+                "  int i = 0;\n",
+                matches);
   int message_index = 0;
   for (const auto& message: messages_list_) {
     matches["msg_name"] = message->name();
@@ -264,12 +299,12 @@ void CppCodeGenerator::DefineStaticInit() {
                   "    field->set_field_offset(${msg_name}_offsets_[i++]);\n"
                   "  }\n"
                   "  ${msg_name}_descriptor_ = parser.mutable_messages_list()[${msg_index}];\n"
-                  "  ${whole_msg_name}::default_instance_ = new ${whole_msg_name}();\n"
                   "  ${msg_name}_reflection_.reset(\n"
                   "      new ::proto::MessageReflection(\n"
                   "          ${msg_name}_descriptor_,\n"
                   "          ${whole_msg_name}::default_instance_)\n"
-                  "  );"
+                  "  );\n"
+                  "  ::proto::MessageFactory::RegisterGeneratedMessage(${msg_name}_reflection_);\n"
                   "\n",
                   matches);
   }
@@ -294,13 +329,16 @@ void CppCodeGenerator::DefineClassMethods(Message* message) {
   // Check out name space.
   CheckoutNameSpace(pkg_stack_, message->pkg_stack());
   // Print constructors and destructor.
+  printer.Print("// -------------------- " + message->name() + " --------------------- //\n");
   DefineConstructor(message);
   DefineCopyConstructor(message);
   DefineMoveConstructor(message);
   DefineCopyAssigner(message);
   DefineMoveAssigner(message);
   DefineNew(message);
+  DefineInitAsDefaultInstance(message);
   DefineSwapper(message);
+  DefineGetDefaultInstance(message);
   DefineDestructor(message);
   // Print accessors.
   for (auto& field : message->fields_list()) {
@@ -463,6 +501,40 @@ void CppCodeGenerator::DefineNew(Message* message) {
                 "  return reinterpret_cast<::proto::Message*>(new ${msg_name}());\n"
                 "}\n\n",
                 msg_match);
+}
+
+void CppCodeGenerator::DefineInitAsDefaultInstance(Message* message) {
+  printer.Print("// InitAsDefaultInstance()\n");
+
+  std::map<std::string, std::string> matches{
+     {"msg_name", message->name()},
+  };
+  printer.Print("void ${msg_name}::InitAsDefaultInstance() {\n",
+                matches);
+  for (const auto& field: message->fields_list()) {
+    if (field->IsSingularMessageType()) {
+      matches = GetFieldMatchMap(message, field.get());
+      printer.Print("  ${field_name}_ = const_cast<${type_name}*>(&${type_name}::default_instance());\n",
+                    matches);
+    }
+  }
+  printer.Print("}\n\n");
+}
+
+void CppCodeGenerator::DefineGetDefaultInstance(Message* message) {
+  printer.Print("// default_instance()\n");
+
+  std::map<std::string, std::string> matches{
+     {"msg_name", message->name()},
+     {"proto_path_name", proto_path_name_}
+  };
+  printer.Print("const ${msg_name}& ${msg_name}::default_instance() {\n"
+                "  if (default_instance_ == NULL) {\n"
+                "    static_init_default_instances${proto_path_name}();\n"
+                "  }\n"
+                "  return *default_instance_;\n"
+                "}\n\n",
+                matches);
 }
 
 void CppCodeGenerator::DefineSwapper(Message* message) {

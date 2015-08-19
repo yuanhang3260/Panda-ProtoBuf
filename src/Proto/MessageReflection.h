@@ -25,6 +25,9 @@ class MessageReflection {
       std::shared_ptr<::proto::ProtoParser::Message> message_descirptor,
       Message* defatult_instance);
 
+  const ::proto::ProtoParser::Message* descriptor();
+  const Message* defatult_instance();
+
  private:
   std::shared_ptr<::proto::ProtoParser::Message> message_descirptor_;
   Message* defatult_instance_;

@@ -8,6 +8,8 @@ class Message {
   virtual ~Message();
 
   inline virtual Message* New() = 0;
+
+  virtual void InitAsDefaultInstance() = 0;
 };
 
 }  // namespace proto

@@ -55,6 +55,7 @@ class CppCodeGenerator : public ProtoParser {
 
   // Define reflection.
   void DefineStaticMetadata();
+  void DefineStaticInitDefaultInstances();
   void DefineStaticInit();
 
   // Define all methods of a message.
@@ -75,6 +76,12 @@ class CppCodeGenerator : public ProtoParser {
 
   // Define New()
   void DefineNew(Message* message);
+
+  // Define InitAsDefaultInstance()
+  void DefineInitAsDefaultInstance(Message* message);
+
+  // Define default_instance()
+  void DefineGetDefaultInstance(Message* message);
 
   // Define Swapper.
   void DefineSwapper(Message* message);

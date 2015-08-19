@@ -9,4 +9,13 @@ MessageReflection::MessageReflection(
     defatult_instance_(defatult_instance) {
 }
 
+const ::proto::ProtoParser::Message*
+MessageReflection::descriptor() {
+  return message_descirptor_.get();
+}
+
+const Message* MessageReflection::defatult_instance() {
+  return defatult_instance_;
+}
+
 }  // namespace proto
