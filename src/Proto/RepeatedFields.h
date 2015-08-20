@@ -86,7 +86,7 @@ class RepeatedFieldIterator :
       index_(index) {}
 
   template <typename OtherT>
-  RepeatedFieldIterator(RepeatedFieldIterator<OtherT>& other) :
+  RepeatedFieldIterator(const RepeatedFieldIterator& other) :
       v_(other.v_),
       index_(other.index_) {}
 
