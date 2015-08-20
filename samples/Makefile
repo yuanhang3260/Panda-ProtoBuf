@@ -3,7 +3,7 @@ CFLAGS=-Wall -Werror -O2
 LFLAGS=-lssl -lcrypto -pthread
 IFLAGS=-I../src/
 
-OBJ=tiny.o test1.o
+OBJ=tiny.o
 
 all: $(OBJ)
 

@@ -32,17 +32,18 @@ COMPILER_OBJ = \
       $(OBJ_DIR)/Compiler/Type.o \
       
 PROTO_OBJ = \
-			$(OBJ_DIR)/Proto/RepeatedFields.o \
 			$(OBJ_DIR)/Proto/MessageReflection.o \
 			$(OBJ_DIR)/Proto/MessageFactory.o \
 
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
           $(OBJ_DIR)/Utility/StringBuilder_test.o \
           $(OBJ_DIR)/Utility/Strings_test.o \
+          $(OBJ_DIR)/Proto/RepeatedField_test.o \
 
 TESTEXE = test/TextPrinter_test.out \
 					test/StringBuilder_test.out \
-					test/Strings_test.out
+					test/Strings_test.out \
+					test/RepeatedField_test.out \
 
 COMPILEROBJ = $(OBJ_DIR)/Compiler/CppCompiler_main.o
 
@@ -51,7 +52,7 @@ default: library compiler
 test: $(TESTEXE) library
 
 library: $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ)
-	ar cr libsnp.a $(OBJ) $(COMPILER_OBJ)
+	ar cr libsnp.a $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ)
 
 compiler: $(SRC_DIR)/Compiler/Compiler_main.cpp library
 	$(CC) $(CFLAGS) $(LFLAGS) -c $(SRC_DIR)/Compiler/Compiler_main.cpp -o $(COMPILEROBJ)
@@ -78,7 +79,13 @@ $(OBJ_DIR)/Compiler/%.o: $(SRC_DIR)/Compiler/%.cpp $(SRC_DIR)/Compiler/%.h
 $(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cpp $(SRC_DIR)/Proto/%.h
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cpp
+	$(CC) $(CFLAGS) -c $< -o $@
+
 test/%.out: $(OBJ_DIR)/Utility/%.o library
+	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -o $@
+
+test/%.out: $(OBJ_DIR)/Proto/%.o library
 	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -o $@
 
 # test/%.out: $(OBJ_DIR)/Network/%.o library
