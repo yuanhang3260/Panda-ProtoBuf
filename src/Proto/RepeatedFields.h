@@ -10,6 +10,11 @@ struct remove_const {
   typedef T type;
 };
 
+template<typename const T>
+struct remove_const {
+  typedef T type;
+};
+
 class RepeatedFieldBase {
  public:
   RepeatedFieldBase() = default;
@@ -63,6 +68,11 @@ class RepeatedField: public RepeatedFieldBase {
   const_iterator end() const;
   const_iterator cend() const;
 
+  // void pass_const_iterator() const {
+  //   const auto it = begin();
+  //   (void)it;
+  // }
+
  private:
   std::vector<T> elements;
 };
@@ -85,7 +95,6 @@ class RepeatedFieldIterator :
       v_(v),
       index_(index) {}
 
-  template <typename OtherT>
   RepeatedFieldIterator(const RepeatedFieldIterator& other) :
       v_(other.v_),
       index_(other.index_) {}
@@ -95,9 +104,10 @@ class RepeatedFieldIterator :
   reference operator[](int index) const { return (*v_)[index]; }
 
   iterator& operator=(const iterator& other) {
-    v_ = other.v;
+    v_ = other.v_;
     index_ = other.index_;
-  }    
+    return *this;
+  }
 
   bool operator==(const iterator& other) const {
     return v_ == other.v_ && index_ == other.index_;
@@ -118,6 +128,17 @@ class RepeatedFieldIterator :
     iterator temp = iterator(*this);
     index_--;
     return temp;
+  }
+
+  iterator& operator+=(difference_type diff) { index_ += diff; return *this; }
+  friend iterator operator+(const difference_type diff, iterator it) {
+    it += diff;
+    return it;
+  }
+  iterator& operator-=(difference_type diff) { index_ -= diff; return *this; }
+  friend iterator operator-(const difference_type diff, iterator it) {
+    it -= diff;
+    return it;
   }
 
  private:
@@ -205,18 +226,21 @@ void RepeatedField<T>::Clear() {
 template <typename T>
 inline typename RepeatedField<T>::iterator
 RepeatedField<T>::begin() {
+  std::cout << "begin called" << std::endl;
   return iterator(&elements);
 }
 
 template <typename T>
 inline typename RepeatedField<T>::const_iterator
 RepeatedField<T>::begin() const {
+  std::cout << "const begin" << std::endl;
   return iterator(&elements);
 }
 
 template <typename T>
 inline typename RepeatedField<T>::const_iterator
 RepeatedField<T>::cbegin() const {
+  std::cout << "cbegin called" << std::endl;
   return iterator(&elements);
 }
 
