@@ -18,14 +18,15 @@ int main() {
   }
   std::cout << std::endl;
 
-  for (proto::RepeatedField<int>::const_iterator it = list.begin();
-       it != list.end();
+  const proto::RepeatedField<int> list2(list);
+
+  for (proto::RepeatedField<int>::const_iterator it = list2.begin();
+       it != list2.end();
        it++) {
     std::cout << *it;
-    *it = 7;
   }
   std::cout << std::endl;
-  
+
   for (const auto& value: list) {
     std::cout << value;
   }
