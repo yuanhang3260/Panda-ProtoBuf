@@ -2,7 +2,7 @@
 
 #include "RepeatedFields.h"
 
-int main() {
+void test_RepeatedField() {
   proto::RepeatedField<int> list;
   list.Add(1);
   list.Add(2);
@@ -20,7 +20,7 @@ int main() {
 
   const proto::RepeatedField<int> list2(list);
 
-  for (proto::RepeatedField<int>::const_iterator it = list2.begin();
+  for (auto it = list2.begin();
        it != list2.end();
        it++) {
     std::cout << *it;
@@ -61,5 +61,62 @@ int main() {
     std::cout << value << " ";
   }
   std::cout << std::endl;
+}
+
+class DogInfo {
+ public:
+  DogInfo() = default;
+  DogInfo(std::string name, int age) : name_(name), age_(age) {}
+  std::string name() const { return name_; }
+  int age() const { return age_; }
+  void print() const {
+    std::cout << "(" << name_ << ": " << age_ << ") ";
+  }
+  void set_name(const int name) { name_ = name; }
+  void set_age(const int age) { age_ = age; }
+
+private:
+  std::string name_ = "Unknown";
+  int age_ = -1;
+};
+
+void access_const_repeated_ptr_list(
+    const proto::RepeatedPtrField<DogInfo>& list) {
+  for (auto& dog: list) {
+    dog.print();
+    // dog.set_age(4);
+  }
+  std::cout << std::endl;
+}
+
+void test_RepeatedPtrField() {
+  proto::RepeatedPtrField<DogInfo> list;
+  list.AddAllocated(new DogInfo("snoopy", 3));
+  list.AddAllocated(new DogInfo("panda", 5));
+  list.AddAllocated(new DogInfo("hy", 7));
+  for (auto& dog: list) {
+    dog.print();
+    dog.set_age(2);
+  }
+  std::cout << std::endl;
+  access_const_repeated_ptr_list(list);
+
+  list.GetMutable(0)->set_age(3);
+  list.GetMutable(1)->set_age(5);
+  list.GetMutable(2)->set_age(7);
+  access_const_repeated_ptr_list(list);
+
+  list.Add();
+  access_const_repeated_ptr_list(list);
+
+  list.GetMutable(3)->set_age(11);
+  access_const_repeated_ptr_list(list);
+  list.RemoveLast();
+  access_const_repeated_ptr_list(list);
+}
+
+int main() {
+  // test_RepeatedField();
+  test_RepeatedPtrField();
   return 0;
 }

@@ -2,6 +2,7 @@
 #define GENERATED_MESSAGE_REFLECTION_
 
 #include <memory>
+#include <stdexcept>
 
 #include "../Compiler/Message.h"
 #include "Message.h"

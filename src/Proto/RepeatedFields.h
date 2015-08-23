@@ -2,6 +2,7 @@
 #define PROTO_REPEATED_FIELDS_
 
 #include <vector>
+#include <stdexcept>
 
 namespace proto {
 
@@ -72,7 +73,7 @@ class RepeatedField: public RepeatedFieldBase {
 };
 
 // -------------------------- RepeatedPtrField ------------------------------ //
-template <typename T> class RepeatedFieldIterator;
+template <typename T> class RepeatedPtrIterator;
 
 template <typename T>
 class RepeatedPtrField: public RepeatedFieldBase {
@@ -90,7 +91,7 @@ class RepeatedPtrField: public RepeatedFieldBase {
     return *this;
   }
 
-  void AddAllocated(const T* value);
+  void AddAllocated(T* value);
   void Set(int index, const T& value); // Only used for repeated string type.
   T* Add();
   void RemoveLast();
@@ -102,82 +103,109 @@ class RepeatedPtrField: public RepeatedFieldBase {
   const std::vector<T*>& GetElements() const { return elements; }
   std::vector<T*>& Mutable_Elements() { return elements; }
 
+  typedef RepeatedPtrIterator<T> iterator;
+  typedef RepeatedPtrIterator<const T> const_iterator;
+  typedef T value_type;
+  typedef value_type& reference;
+  typedef const value_type& const_reference;
+  typedef value_type* pointer;
+  typedef const value_type* const_pointer;
+  typedef int size_type;
+  // typedef ptrdiff_t difference_type;
+
+  iterator begin();
+  iterator begin() const;
+  iterator cbegin() const;
+  iterator end();
+  iterator end() const;
+  iterator cend() const;
+
  private:
   std::vector<T*> elements;
 };
 
-// template <typename T>
-// class RepeatedFieldIterator :
-//     public std::iterator<std::random_access_iterator_tag, T> {
-//  public:
-//   typedef RepeatedFieldIterator<T> iterator;
-//   typedef std::iterator<std::random_access_iterator_tag, T> superclass;
+// ------------------------ RepeatedPtrIterator ----------------------------- //
+template <typename T>
+class RepeatedPtrIterator :
+    public std::iterator<std::random_access_iterator_tag, T> {
+ public:
+  typedef RepeatedPtrIterator<T> iterator;
+  typedef std::iterator<std::random_access_iterator_tag, T> superclass;
 
-//   typedef typename remove_const<T>::type value_type; // ?
+  typedef typename superclass::reference reference;
+  typedef typename superclass::pointer pointer;
+  typedef typename superclass::difference_type difference_type;
 
-//   typedef typename superclass::reference reference;
-//   typedef typename superclass::pointer pointer;
-//   typedef typename superclass::difference_type difference_type;
+  explicit RepeatedPtrIterator(const std::vector<pointer>* v) : v_(v) {}
+  RepeatedPtrIterator(const std::vector<pointer>* v, const int index) :
+      v_(v),
+      index_(index) {}
 
-//   explicit RepeatedFieldIterator(const std::vector<T>* v) : v_(v) {}
-//   RepeatedFieldIterator(const std::vector<T>* v, const int index) :
-//       v_(v),
-//       index_(index) {}
+  RepeatedPtrIterator(const RepeatedPtrIterator& other) :
+      v_(other.v_),
+      index_(other.index_) {}
 
-//   RepeatedFieldIterator(const RepeatedFieldIterator& other) :
-//       v_(other.v_),
-//       index_(other.index_) {}
+  reference operator*() {
+    return *((*v_)[index_]);
+  }
+  const reference operator*() const {
+    return *((*v_)[index_]);
+  }
 
-//   reference operator*() const { return (*v_)[index_]; }
-//   pointer operator->() const { return &(operator*()); }
-//   reference operator[](int index) const { return (*v_)[index]; }
+  pointer operator->() { return &(operator*()); }
+  const pointer operator->() const { return &(operator*()); }
+  
+  reference operator[](int index)  {
+    return *((*v_)[index]);
+  }
+  const reference operator[](int index) const {
+    return *((*v_)[index]);
+  }
 
-//   iterator& operator=(const iterator& other) {
-//     v_ = other.v_;
-//     index_ = other.index_;
-//     return *this;
-//   }
+  iterator& operator=(const iterator& other) {
+    v_ = other.v_;
+    index_ = other.index_;
+    return *this;
+  }
 
-//   bool operator==(const iterator& other) const {
-//     return v_ == other.v_ && index_ == other.index_;
-//   }
+  bool operator==(const iterator& other) const {
+    return v_ == other.v_ && index_ == other.index_;
+  }
 
-//   bool operator!=(const iterator& other) const {
-//     return v_ != other.v_ || index_ != other.index_;
-//   }
+  bool operator!=(const iterator& other) const {
+    return v_ != other.v_ || index_ != other.index_;
+  }
 
-//   iterator& operator++() { ++index_; return *this; }
-//   iterator operator++(int) {
-//     iterator temp = iterator(*this);
-//     index_++;
-//     return temp;
-//   }
-//   iterator& operator--() { --index_; return *this; }
-//   iterator operator--(int) {
-//     iterator temp = iterator(*this);
-//     index_--;
-//     return temp;
-//   }
+  iterator& operator++() { ++index_; return *this; }
+  iterator operator++(int) {
+    iterator temp = iterator(*this);
+    index_++;
+    return temp;
+  }
+  iterator& operator--() { --index_; return *this; }
+  iterator operator--(int) {
+    iterator temp = iterator(*this);
+    index_--;
+    return temp;
+  }
 
-//   iterator& operator+=(difference_type diff) { index_ += diff; return *this; }
-//   friend iterator operator+(const difference_type diff, iterator it) {
-//     it += diff;
-//     return it;
-//   }
-//   iterator& operator-=(difference_type diff) { index_ -= diff; return *this; }
-//   friend iterator operator-(const difference_type diff, iterator it) {
-//     it -= diff;
-//     return it;
-//   }
+  iterator& operator+=(difference_type diff) { index_ += diff; return *this; }
+  friend iterator operator+(const difference_type diff, iterator it) {
+    it += diff;
+    return it;
+  }
+  iterator& operator-=(difference_type diff) { index_ -= diff; return *this; }
+  friend iterator operator-(const difference_type diff, iterator it) {
+    it -= diff;
+    return it;
+  }
 
-//  private:
-//   const std::vector<T>* v_;
-//   int index_ = 0;
-//   template <typename OtherT>
-//   friend class RepeatedFieldIterator;
-// };
-
-
+ private:
+  const std::vector<pointer>* v_;
+  int index_ = 0;
+  template <typename OtherT>
+  friend class RepeatedPtrIterator;
+};
 
 // ===========================================================================//
 // =========================== Implementation =============================== //
@@ -205,6 +233,10 @@ int RepeatedField<T>::size() const {
 
 template <typename T>
 const T RepeatedField<T>::Get(const int index) const {
+  if (index >= elements.size()) {
+    throw std::runtime_error(
+        "RepeatedField index " + std::to_string(index) + " out of bound");
+  }
   return elements[index];
 }
 
@@ -212,6 +244,10 @@ template <typename T>
 void RepeatedField<T>::Set(const int index, const T& value) {
   if (index < (int)elements.size()) {
     elements[index] = value;
+  }
+  else {
+    throw std::runtime_error(
+        "RepeatedField index " + std::to_string(index) + " out of bound");
   }
 }
 
@@ -265,7 +301,7 @@ RepeatedPtrField<T>::RepeatedPtrField() {
 }
 
 template <typename T>
-void RepeatedPtrField<T>::AddAllocated(const T* value) {
+void RepeatedPtrField<T>::AddAllocated(T* value) {
   if (value) {
     elements.push_back(value);
   }
@@ -280,6 +316,10 @@ void RepeatedPtrField<T>::Set(const int index, const T& value) {
     else {
       elements[index] = new T(value);
     }
+  }
+  else {
+    throw std::runtime_error(
+        "RepeatedPtrField index " + std::to_string(index) + " out of bound");
   }
 }
 
@@ -305,11 +345,19 @@ int RepeatedPtrField<T>::size() const {
 
 template <typename T>
 const T& RepeatedPtrField<T>::Get(const int index) const {
+  if (index >= elements.size()) {
+    throw std::runtime_error(
+        "RepeatedPtrField index " + std::to_string(index) + " out of bound");
+  }
   return *elements[index];
 }
 
 template <typename T>
 T* RepeatedPtrField<T>::GetMutable(const int index) {
+  if (index >= elements.size()) {
+    throw std::runtime_error(
+        "RepeatedPtrField index " + std::to_string(index) + " out of bound");
+  }
   return elements[index];
 }
 
@@ -321,6 +369,45 @@ void RepeatedPtrField<T>::Clear() {
     }
   }
   elements.clear();
+}
+
+template <typename T>
+inline typename RepeatedPtrField<T>::iterator
+RepeatedPtrField<T>::begin() {
+  std::cout << "begin called" << std::endl;
+  return iterator(&elements);
+}
+
+template <typename T>
+inline typename RepeatedPtrField<T>::iterator
+RepeatedPtrField<T>::begin() const {
+  std::cout << "const begin" << std::endl;
+  return iterator(&elements);
+}
+
+template <typename T>
+inline typename RepeatedPtrField<T>::iterator
+RepeatedPtrField<T>::cbegin() const {
+  std::cout << "cbegin called" << std::endl;
+  return iterator(&elements);
+}
+
+template <typename T>
+inline typename RepeatedPtrField<T>::iterator
+RepeatedPtrField<T>::end() {
+  return iterator(&elements, elements.size());
+}
+
+template <typename T>
+inline typename RepeatedPtrField<T>::iterator
+RepeatedPtrField<T>::end() const {
+  return iterator(&elements, elements.size());
+}
+
+template <typename T>
+inline typename RepeatedPtrField<T>::iterator
+RepeatedPtrField<T>::cend() const {
+  return iterator(&elements, elements.size());
 }
 
 
