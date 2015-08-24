@@ -141,6 +141,7 @@ class RepeatedPtrIterator :
   std::conditional<is_const_iterator, const T&, T&>::type reference;
   typedef typename superclass::difference_type difference_type;
 
+  RepeatedPtrIterator() : v_(NULL) {}
   explicit RepeatedPtrIterator(const std::vector<T*>* v) : v_(v) {}
   RepeatedPtrIterator(const std::vector<T*>* v, const int index) :
       v_(v),
@@ -150,6 +151,12 @@ class RepeatedPtrIterator :
       v_(other.v_),
       index_(other.index_) {}
 
+  RepeatedPtrIterator& operator=(const RepeatedPtrIterator<T, false>& other) {
+    v_ = other.v_;
+    index_ = other.index_;
+    return *this;
+  }
+
   reference operator*() const {
     return *((*v_)[index_]);
   }
@@ -158,12 +165,6 @@ class RepeatedPtrIterator :
   
   reference operator[](int index) const {
     return *((*v_)[index]);
-  }
-
-  iterator& operator=(const iterator& other) {
-    v_ = other.v_;
-    index_ = other.index_;
-    return *this;
   }
 
   bool operator==(const iterator& other) const {
@@ -372,14 +373,14 @@ void RepeatedPtrField<T>::Clear() {
 template <typename T>
 inline typename RepeatedPtrField<T>::iterator
 RepeatedPtrField<T>::begin() {
-  // std::cout << "begin called" << std::endl;
+  std::cout << "begin called" << std::endl;
   return iterator(&elements);
 }
 
 template <typename T>
 inline typename RepeatedPtrField<T>::const_iterator
 RepeatedPtrField<T>::begin() const {
-  // std::cout << "const begin" << std::endl;
+  std::cout << "const begin" << std::endl;
   return const_iterator(&elements);
 }
 
