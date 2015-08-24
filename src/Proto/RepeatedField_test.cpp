@@ -86,7 +86,7 @@ void access_const_repeated_ptr_list(
     const proto::RepeatedPtrField<DogInfo>& list) {
   for (auto& dog: list) {
     dog.print();
-    dog.set_age(4);
+    // dog.set_age(4);
   }
   std::cout << std::endl;
 }
