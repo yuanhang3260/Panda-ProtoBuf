@@ -5,7 +5,7 @@ namespace proto {
 
 class Message {
  public:
-  virtual ~Message();
+  virtual ~Message() {};
 
   inline virtual Message* New() = 0;
 

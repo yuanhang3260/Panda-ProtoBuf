@@ -21,6 +21,9 @@ MessageField::MessageField(FIELD_MODIFIER modifier,
   else {
     type_name_ = type_class_->name();
   }
+  if (type_ == STRING) {
+    default_value_ = "\"" + default_value_ + "\"";
+  }
 
   // Set default value.
   if (modifier_ != REPEATED) {

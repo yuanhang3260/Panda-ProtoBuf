@@ -13,6 +13,8 @@ class MessageFactory {
   static void RegisterGeneratedMessage(
     std::shared_ptr<MessageReflection> reflection);
 
+  static int NumMessagesRegistered();
+
  private:
   MessageFactory();
   ~MessageFactory();
@@ -20,7 +22,7 @@ class MessageFactory {
   MessageFactory& operator=(const MessageFactory&) = delete;
 
   static MessageFactory* instance_;
-  static std::map<std::string, std::shared_ptr<MessageReflection>> message_map_;
+  std::map<std::string, std::shared_ptr<MessageReflection>> message_map_;
 };
 
 }//  namespace proto

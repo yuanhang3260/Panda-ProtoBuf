@@ -3,8 +3,8 @@
 package AA;
 
 message FamilyInfo {
-	optional string address = 1;
-	optional int32 numberdogs = 2;
+	optional string address = 1 [default = "Haimen Street"];
+	optional int32 numberdogs = 2 [default=0];
 }
 
 package AA.BB;

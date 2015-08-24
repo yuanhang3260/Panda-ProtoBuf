@@ -108,8 +108,6 @@ clean:
 	rm -rf $(OBJ_DIR)/Log/*.o
 	rm -rf $(OBJ_DIR)/Proto/*.o
 	rm -rf test/*.out
-	rm -rf samples/*.h
-	rm -rf samples/*.cpp
 	rm -rf samples/*.o
 	rm -rf *.output
 

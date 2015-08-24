@@ -1,6 +1,7 @@
 #ifndef PROTO_REPEATED_FIELDS_
 #define PROTO_REPEATED_FIELDS_
 
+#include <iostream>
 #include <vector>
 #include <stdexcept>
 
@@ -259,21 +260,21 @@ void RepeatedField<T>::Clear() {
 template <typename T>
 inline typename RepeatedField<T>::iterator
 RepeatedField<T>::begin() {
-  std::cout << "begin called" << std::endl;
+  // std::cout << "begin called" << std::endl;
   return elements.begin();
 }
 
 template <typename T>
 inline typename RepeatedField<T>::const_iterator
 RepeatedField<T>::begin() const {
-  std::cout << "const begin" << std::endl;
+  // std::cout << "const begin" << std::endl;
   return elements.begin();
 }
 
 template <typename T>
 inline typename RepeatedField<T>::const_iterator
 RepeatedField<T>::cbegin() const {
-  std::cout << "cbegin called" << std::endl;
+  // std::cout << "cbegin called" << std::endl;
   return elements.begin();
 }
 
@@ -374,21 +375,21 @@ void RepeatedPtrField<T>::Clear() {
 template <typename T>
 inline typename RepeatedPtrField<T>::iterator
 RepeatedPtrField<T>::begin() {
-  std::cout << "begin called" << std::endl;
+  // std::cout << "begin called" << std::endl;
   return iterator(&elements);
 }
 
 template <typename T>
 inline typename RepeatedPtrField<T>::iterator
 RepeatedPtrField<T>::begin() const {
-  std::cout << "const begin" << std::endl;
+  // std::cout << "const begin" << std::endl;
   return iterator(&elements);
 }
 
 template <typename T>
 inline typename RepeatedPtrField<T>::iterator
 RepeatedPtrField<T>::cbegin() const {
-  std::cout << "cbegin called" << std::endl;
+  // std::cout << "cbegin called" << std::endl;
   return iterator(&elements);
 }
 

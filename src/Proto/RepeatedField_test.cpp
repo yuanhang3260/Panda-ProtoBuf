@@ -67,6 +67,8 @@ class DogInfo {
  public:
   DogInfo() = default;
   DogInfo(std::string name, int age) : name_(name), age_(age) {}
+  ~DogInfo() { std::cout << "deleting a doggy " << name_ << std::endl; }
+
   std::string name() const { return name_; }
   int age() const { return age_; }
   void print() const {
@@ -76,7 +78,7 @@ class DogInfo {
   void set_age(const int age) { age_ = age; }
 
 private:
-  std::string name_ = "Unknown";
+  std::string name_ = "NoName";
   int age_ = -1;
 };
 
@@ -84,7 +86,7 @@ void access_const_repeated_ptr_list(
     const proto::RepeatedPtrField<DogInfo>& list) {
   for (auto& dog: list) {
     dog.print();
-    // dog.set_age(4);
+    dog.set_age(4);
   }
   std::cout << std::endl;
 }

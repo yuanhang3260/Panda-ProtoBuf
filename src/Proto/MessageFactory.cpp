@@ -1,8 +1,10 @@
+#include <iostream>
+
 #include "MessageFactory.h"
 
 namespace proto {
 
-MessageFactory* MessageFactory::instance_ = NULL;
+MessageFactory* MessageFactory::instance_;
 
 MessageFactory::MessageFactory() {
 }
@@ -17,9 +19,16 @@ MessageFactory* MessageFactory::instance() {
   return instance_;
 }
 
+int MessageFactory::NumMessagesRegistered() {
+  return instance()->message_map_.size();
+}
+
 void MessageFactory::RegisterGeneratedMessage(
     std::shared_ptr<MessageReflection> reflection) {
-  message_map_[reflection->descriptor()->name()] = reflection;
+  std::cout << "Reigstering Genereated Clsss "
+            << reflection->descriptor()->name() << std::endl;
+  MessageFactory::instance()->message_map_[
+    reflection->descriptor()->name()] =reflection;
 }
 
 }  //  namespace proto

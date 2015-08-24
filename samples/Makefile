@@ -3,15 +3,21 @@ CFLAGS=-Wall -Werror -O2
 LFLAGS=-lssl -lcrypto -pthread
 IFLAGS=-I../src/
 
-OBJ=tiny.o
+OBJ=tiny_pb.o
 
-all: $(OBJ)
+all: main.out
 
-tiny.o: tiny_pb.cpp tiny_pb.h
+tiny_pb.o: tiny_pb.cpp tiny_pb.h
 	$(CC) $(CFLAGS) $(IFLAGS) -c tiny_pb.cpp
 
 test1.o: test1_pb.cpp test1_pb.h
 	$(CC) $(CFLAGS) $(IFLAGS) -c test1_pb.cpp
+
+main.o: main.cpp
+	$(CC) $(CFLAGS) $(IFLAGS) -c main.cpp
+
+main.out: $(OBJ) main.o ../libsnp.a
+	$(CC) $(CFLAGS) $(OBJ) main.o ../libsnp.a -o $@
 
 clean:
 	rm -rf *.o
