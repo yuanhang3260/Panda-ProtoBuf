@@ -17,7 +17,7 @@ class SerializedPrimitive: public SerializedObjectInterface {
 
  private:
   ::proto::ProtoParser::FIELD_TYPE type_;
-  StringBuilder internal_buf_;
+  ::Utility::StringBuilder internal_buf_;
 };
 
 }  // namespace proto

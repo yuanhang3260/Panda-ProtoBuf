@@ -4,20 +4,13 @@ namespace proto {
 
 void WireFormat::WriteVariant32(uint32 value,
                                 Utility::StringBuilder* outstream) {
-  while (value > 0) {
-    char b = static_cast<char>(tag & kTagByteSize);
-    value = value >> kTagByteSize;
-    if (value > 0) {
-      b |= kVariantNotEndBit;
-    }
-    outstream->Append(b);
-  }
+  WriteVariant64(static_cast<uint64>(value), outstream);
 }
 
 void WireFormat::WriteVariant64(uint64 value,
                                 Utility::StringBuilder* outstream) {
   while (value > 0) {
-    char b = static_cast<char>(tag & kTagByteSize);
+    char b = static_cast<char>(value & kTagByteSize);
     value = value >> kTagByteSize;
     if (value > 0) {
       b |= kVariantNotEndBit;
@@ -28,7 +21,7 @@ void WireFormat::WriteVariant64(uint64 value,
 
 void WireFormat::EncodeTag(uint32 tag, WireType wire_type,
                            Utility::StringBuilder* outstream) {
-  WriteVariant32((tag << kWireTypeBits) | wire_type);
+  WriteVariant32((tag << kWireTypeBits) | wire_type, outstream);
 }
 
 void WireFormat::EncodeUInt32(uint32 tag, uint32 value,

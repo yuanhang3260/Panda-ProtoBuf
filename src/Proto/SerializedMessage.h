@@ -18,7 +18,7 @@ class SerializedMessage: public SerializedObjectInterface {
   void AddField(std::shared_ptr<SerializedObjectInterface> new_field);
 
  private:
-  vector<std::shared_ptr<SerializedObjectInterface>> fields_;
+  std::vector<std::shared_ptr<SerializedObjectInterface>> fields_;
 };
 
 }  // namespace proto

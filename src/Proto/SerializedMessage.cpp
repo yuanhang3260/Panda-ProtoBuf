@@ -2,7 +2,7 @@
 
 namespace proto {
 
-int SerializedMessage::CopyTo(char* buf) {
+int SerializedMessage::CopyTo(char* buf) const {
   int offset = 0;
   for (const auto& field: fields_) {
     offset += field->CopyTo(buf + offset);
@@ -17,6 +17,3 @@ void SerializedMessage::AddField(
   }
 
 }  // namespace proto
-
-
-#endif  /* SERIALIZED_OBJECT_ */
