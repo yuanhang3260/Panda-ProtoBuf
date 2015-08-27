@@ -15,8 +15,6 @@ class SerializedPrimitive: public SerializedObjectInterface {
 
   int size() const override { return internal_buf_.size(); }
 
-  void Encode(const char* raw_field);
-
  private:
   ::proto::ProtoParser::FIELD_TYPE type_;
   StringBuilder internal_buf_;

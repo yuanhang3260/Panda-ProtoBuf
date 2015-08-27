@@ -13,7 +13,7 @@ class Message {
 
   virtual void InitAsDefaultInstance() = 0;
 
-  virtual SerializedMessage Serialize() = 0;
+  virtual SerializedMessage* Serialize() = 0;
 };
 
 }  // namespace proto

@@ -34,6 +34,9 @@ COMPILER_OBJ = \
 PROTO_OBJ = \
 			$(OBJ_DIR)/Proto/MessageReflection.o \
 			$(OBJ_DIR)/Proto/MessageFactory.o \
+			$(OBJ_DIR)/Proto/SerializedPrimitive.o \
+			$(OBJ_DIR)/Proto/SerializedMessage.o \
+			$(OBJ_DIR)/Proto/WireFormat.o \
 
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
           $(OBJ_DIR)/Utility/StringBuilder_test.o \
