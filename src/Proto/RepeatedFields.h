@@ -162,7 +162,7 @@ class RepeatedPtrIterator :
   }
 
   pointer operator->() const { return &(operator*()); }
-  
+
   reference operator[](int index) const {
     return *((*v_)[index]);
   }

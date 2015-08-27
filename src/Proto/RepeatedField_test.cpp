@@ -89,12 +89,12 @@ void access_const_repeated_ptr_list(
     // dog.set_age(4);
   }
   std::cout << std::endl;
-  for (proto::RepeatedPtrField<DogInfo>::const_iterator it = list.begin();
-       it != list.end();
-       it++) {
-    it->print();
-    // it->set_age(4);
-  }
+  // for (proto::RepeatedPtrField<DogInfo>::const_iterator it = list.begin();
+  //      it != list.end();
+  //      it++) {
+  //   it->print();
+  //   it->set_age(4);
+  // }
   std::cout << std::endl;
 }
 
