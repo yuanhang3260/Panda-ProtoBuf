@@ -35,6 +35,7 @@ class WireFormat {
   };
 
   static const int kWireTypeBits = 3;
+  static const int kWireTypeMask = 0x7;
 
   static const int kTagByteSize = 7;
   static const int kTagByteMask = 0x7f;
@@ -42,9 +43,6 @@ class WireFormat {
   static const int kTagLowByteMask = 0xf;
 
   static const char kVariantNotEndBit = 0x80;
-
-  static void EncodeTag(uint32 tag, WireType wire_type,
-                        Utility::StringBuilder* outstream);
 
   static uint32 ZigZag32(int32 value);
   static uint64 ZigZag64(int64 value);
@@ -57,8 +55,9 @@ class WireFormat {
   static uint64 RawCastDoubleToUint64(double value);
   static uint64 RawCastUint64ToDouble(uint64 value);
 
-
   // ------------------- Encode functions ------------------------- //
+  static void EncodeTag(uint32 tag, WireType wire_type,
+                        Utility::StringBuilder* outstream);
   static void EncodeUInt32(uint32 tag, uint32 value,
                            Utility::StringBuilder* outstream);
   static void EncodeUInt64(uint32 tag, uint64 value,
@@ -80,6 +79,9 @@ class WireFormat {
                            Utility::StringBuilder* outstream);
 
   // -------------------- Decode functions ------------------------ //
+  static void DecodeTag(
+    const char* buf, uint32* tag, int* wire_type, int* size);
+
   static uint32 DecodeUInt32(const char* buf, int* size);
   static uint64 DecodeUInt64(const char* buf, int* size);
 

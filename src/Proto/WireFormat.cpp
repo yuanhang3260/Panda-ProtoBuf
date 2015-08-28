@@ -26,11 +26,6 @@ void WireFormat::WriteFixed64(uint64 value,
   outstream->Append(reinterpret_cast<const char*>(&value), sizeof(uint64));
 }
 
-void WireFormat::EncodeTag(uint32 tag, WireType wire_type,
-                           Utility::StringBuilder* outstream) {
-  WriteVariant32((tag << kWireTypeBits) | wire_type, outstream);
-}
-
 uint32 WireFormat::ZigZag32(int32 value) {
   return (value << 1) ^ (value >> 31);
 }
@@ -59,7 +54,12 @@ double RawCastUint64ToDouble(uint64 value) {
   return f;
 }
 
-// -------------------- Decode functions ------------------------ //
+// -------------------- Encode functions ------------------------ //
+void WireFormat::EncodeTag(uint32 tag, WireType wire_type,
+                           Utility::StringBuilder* outstream) {
+  WriteVariant32((tag << kWireTypeBits) | wire_type, outstream);
+}
+
 void WireFormat::EncodeUInt32(uint32 tag, uint32 value,
                               Utility::StringBuilder* outstream) {
   EncodeTag(tag, WIRETYPE_VARIANT, outstream);
@@ -106,6 +106,13 @@ void WireFormat::EncodeString(uint32 tag, const std::string& str,
 }
 
 // -------------------- Decode functions ------------------------ //
+void WireFormat::DecodeTag(
+    const char* buf, uint32* tag, int* wire_type, int* size) {
+  uint32 raw_uint32 = DecodeUInt32(buf, size);
+  *tag = raw_uint32 >> kWireTypeBits;
+  *wire_type = raw_uint32 & kWireTypeMask;
+}
+
 uint32 WireFormat::DecodeUInt32(const char* buf, int* size) {
   uint32 result = 0;
   int index = 0, offset = 0, cnt = 0;
