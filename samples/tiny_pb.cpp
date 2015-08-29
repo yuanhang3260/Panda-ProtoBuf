@@ -33,7 +33,7 @@ void static_init_default_instances_samples_tiny() {
 
 void static_init_samples_tiny() {
   ::proto::ProtoParser::ProtoParser parser(
-      ::proto::ProtoParser::ProtoParser::CPP,
+      ::proto::ProtoParser::CPP,
       "./samples/tiny.proto");
   CHECK(parser.ParseProto(),
         "static class initialization for ./samples/tiny.proto failed");
@@ -54,7 +54,8 @@ void static_init_samples_tiny() {
   FamilyInfo_reflection_.reset(
       new ::proto::MessageReflection(
           FamilyInfo_descriptor_,
-          AA::FamilyInfo::default_instance_)
+          AA::FamilyInfo::default_instance_,
+          PROTO_MESSAGE_FIELD_OFFSET(AA::FamilyInfo, has_bits_))
   );
   ::proto::MessageFactory::RegisterGeneratedMessage(FamilyInfo_reflection_);
 
@@ -75,7 +76,8 @@ void static_init_samples_tiny() {
   DogInfo_reflection_.reset(
       new ::proto::MessageReflection(
           DogInfo_descriptor_,
-          AA::BB::DogInfo::default_instance_)
+          AA::BB::DogInfo::default_instance_,
+          PROTO_MESSAGE_FIELD_OFFSET(AA::BB::DogInfo, has_bits_))
   );
   ::proto::MessageFactory::RegisterGeneratedMessage(DogInfo_reflection_);
 
@@ -131,6 +133,11 @@ FamilyInfo& FamilyInfo::operator=(FamilyInfo&& other) {
 // New()
 ::proto::Message* FamilyInfo::New() {
   return reinterpret_cast<::proto::Message*>(new FamilyInfo());
+}
+
+// Serialize()
+::proto::SerializedMessage* FamilyInfo::Serialize() {
+  return FamilyInfo_reflection_->Serialize(this);
 }
 
 // InitAsDefaultInstance()
@@ -292,6 +299,11 @@ DogInfo& DogInfo::operator=(DogInfo&& other) {
 // New()
 ::proto::Message* DogInfo::New() {
   return reinterpret_cast<::proto::Message*>(new DogInfo());
+}
+
+// Serialize()
+::proto::SerializedMessage* DogInfo::Serialize() {
+  return DogInfo_reflection_->Serialize(this);
 }
 
 // InitAsDefaultInstance()

@@ -19,6 +19,7 @@ class SerializedMessage: public SerializedObjectInterface {
 
  private:
   std::vector<std::shared_ptr<SerializedObjectInterface>> fields_;
+  int tagWord_;
 };
 
 }  // namespace proto

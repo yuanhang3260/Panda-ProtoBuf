@@ -15,11 +15,16 @@ class MessageFactory {
 
   static int NumMessagesRegistered();
 
+  static const MessageReflection* GetMessageReflection(std::string name);
+
  private:
   MessageFactory();
   ~MessageFactory();
   MessageFactory(const MessageFactory&) = delete;
   MessageFactory& operator=(const MessageFactory&) = delete;
+
+  static std::map<std::string, std::shared_ptr<MessageReflection>>&
+  message_map();
 
   static MessageFactory* instance_;
   std::map<std::string, std::shared_ptr<MessageReflection>> message_map_;

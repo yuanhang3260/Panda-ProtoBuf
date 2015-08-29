@@ -6,6 +6,13 @@
 namespace proto {
 namespace ProtoParser {
 
+enum LANGUAGE {
+  CPP,
+  PYTHON,
+  JAVA,
+  UNKNOWN_LANGUAGE,
+};
+
 enum FIELD_TYPE {
   UNDETERMINED,
   INT32,

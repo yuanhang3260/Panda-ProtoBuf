@@ -14,17 +14,17 @@ int main(int argc, char** argv) {
     return -1;
   }
 
-  ProtoParser::LANGUAGE lang =
+  LANGUAGE lang =
       ProtoParser::GetLanguageFromString(std::string(argv[1]));
   std::string proto = std::string(argv[2]);
   ProtoParser* compiler = NULL;
   switch (lang) {
-    case ProtoParser::CPP:
+    case CPP:
       compiler = new CppCodeGenerator(proto);
       break;
-    case ProtoParser::PYTHON:
+    case PYTHON:
       break;
-    case ProtoParser::JAVA:
+    case JAVA:
       break;
     default: break;
   }

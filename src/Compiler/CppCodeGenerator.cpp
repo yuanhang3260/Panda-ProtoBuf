@@ -38,7 +38,8 @@ void CppCodeGenerator::GenerateHeader() {
   printer.Print("#include <string>\n");
   printer.Print("#include <vector>\n\n");
   printer.Print("#include \"Proto/Message.h\"\n");
-  printer.Print("#include \"Proto/RepeatedFields.h\"\n\n");
+  printer.Print("#include \"Proto/RepeatedFields.h\"\n");
+  printer.Print("#include \"Proto/SerializedMessage.h\"\n\n");
 
   GenerateProtoPathName();
   printer.Print("void static_init" + proto_path_name_ + "();\n");
@@ -133,10 +134,13 @@ void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
   printer.Print(
       "  ${msg_name}& operator=(${msg_name}&& other);  // move assignment\n",
       msg_match);
+  printer.Print("  void Swap(${msg_name}* other);\n\n", msg_match);
   printer.Print(
       "  ::proto::Message* New() override;  // New()\n",
       msg_match);
-  printer.Print("  void Swap(${msg_name}* other);\n\n", msg_match);
+  printer.Print(
+      "  ::proto::SerializedMessage* Serialize() override;  // Serialize()\n",
+      msg_match);
   printer.Print("  static const ${msg_name}& default_instance();\n\n",
                 msg_match);
 }
@@ -268,7 +272,7 @@ void CppCodeGenerator::DefineStaticInit() {
   };
 
   printer.Print("  ::proto::ProtoParser::ProtoParser parser(\n"
-                "      ::proto::ProtoParser::ProtoParser::CPP,\n"
+                "      ::proto::ProtoParser::CPP,\n"
                 "      \"${proto_file_}\");\n"
                 "  CHECK(parser.ParseProto(),\n"
                 "        \"static class initialization for ${proto_file_} failed\");\n"
@@ -302,7 +306,8 @@ void CppCodeGenerator::DefineStaticInit() {
                   "  ${msg_name}_reflection_.reset(\n"
                   "      new ::proto::MessageReflection(\n"
                   "          ${msg_name}_descriptor_,\n"
-                  "          ${whole_msg_name}::default_instance_)\n"
+                  "          ${whole_msg_name}::default_instance_,\n"
+                  "          PROTO_MESSAGE_FIELD_OFFSET(${whole_msg_name}, has_bits_))\n"
                   "  );\n"
                   "  ::proto::MessageFactory::RegisterGeneratedMessage(${msg_name}_reflection_);\n"
                   "\n",
@@ -336,6 +341,7 @@ void CppCodeGenerator::DefineClassMethods(Message* message) {
   DefineCopyAssigner(message);
   DefineMoveAssigner(message);
   DefineNew(message);
+  DefineSerialize(message);
   DefineInitAsDefaultInstance(message);
   DefineSwapper(message);
   DefineGetDefaultInstance(message);
@@ -499,6 +505,18 @@ void CppCodeGenerator::DefineNew(Message* message) {
   };
   printer.Print("::proto::Message* ${msg_name}::New() {\n"
                 "  return reinterpret_cast<::proto::Message*>(new ${msg_name}());\n"
+                "}\n\n",
+                msg_match);
+}
+
+void CppCodeGenerator::DefineSerialize(Message* message) {
+  printer.Print("// Serialize()\n");
+
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+  printer.Print("::proto::SerializedMessage* ${msg_name}::Serialize() {\n"
+                "  return ${msg_name}_reflection_->Serialize(this);\n"
                 "}\n\n",
                 msg_match);
 }

@@ -6,6 +6,7 @@
 
 #include "Proto/Message.h"
 #include "Proto/RepeatedFields.h"
+#include "Proto/SerializedMessage.h"
 
 void static_init_samples_tiny();
 void static_init_default_instances_samples_tiny();
@@ -21,9 +22,10 @@ class FamilyInfo: public ::proto::Message {
   FamilyInfo(FamilyInfo&& other);  // move constructor
   FamilyInfo& operator=(const FamilyInfo& other);  // copy assignment
   FamilyInfo& operator=(FamilyInfo&& other);  // move assignment
-  ::proto::Message* New() override;  // New()
   void Swap(FamilyInfo* other);
 
+  ::proto::Message* New() override;  // New()
+  ::proto::SerializedMessage* Serialize() override;  // Serialize()
   static const FamilyInfo& default_instance();
 
   // --- Field accessors --- //
@@ -70,9 +72,10 @@ class DogInfo: public ::proto::Message {
   DogInfo(DogInfo&& other);  // move constructor
   DogInfo& operator=(const DogInfo& other);  // copy assignment
   DogInfo& operator=(DogInfo&& other);  // move assignment
-  ::proto::Message* New() override;  // New()
   void Swap(DogInfo* other);
 
+  ::proto::Message* New() override;  // New()
+  ::proto::SerializedMessage* Serialize() override;  // Serialize()
   static const DogInfo& default_instance();
 
   // --- Field accessors --- //

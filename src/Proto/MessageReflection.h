@@ -5,6 +5,8 @@
 #include <stdexcept>
 
 #include "../Compiler/Message.h"
+#include "../Compiler/PbCommon.h"
+#include "SerializedMessage.h"
 #include "Message.h"
 
 namespace proto {
@@ -24,14 +26,20 @@ class MessageReflection {
  public:
   MessageReflection(
       std::shared_ptr<::proto::ProtoParser::Message> message_descirptor,
-      Message* defatult_instance);
+      Message* defatult_instance,
+      int has_bits_offset);
 
   const ::proto::ProtoParser::Message* descriptor();
   const Message* defatult_instance();
+  SerializedMessage* Serialize(const Message* message) const;
+
+ private:
+  bool HasField(const Message* message, int tag) const;
 
  private:
   std::shared_ptr<::proto::ProtoParser::Message> message_descirptor_;
   Message* defatult_instance_;
+  int has_bits_offset_;
 };
 
 }  // namespace proto

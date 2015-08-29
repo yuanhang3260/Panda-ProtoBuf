@@ -543,8 +543,7 @@ bool ProtoParser::IsValidVariableName(std::string str) {
   return true;
 }
 
-ProtoParser::LANGUAGE
-ProtoParser::GetLanguageFromString(std::string lang) {
+LANGUAGE ProtoParser::GetLanguageFromString(std::string lang) {
   if (lang == "cpp") {
     return CPP;
   }

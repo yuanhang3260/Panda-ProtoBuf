@@ -16,13 +16,6 @@ class CppGeneratorImpl;
 
 class ProtoParser {
  public:
-  enum LANGUAGE {
-    CPP,
-    PYTHON,
-    JAVA,
-    UNKNOWN_LANGUAGE,
-  };
-
   enum ParseState {
     GLOBAL,
     PARSINGMSG,

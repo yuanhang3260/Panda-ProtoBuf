@@ -23,6 +23,31 @@ PbType::PbType(std::string name, std::string package, std::string message) :
   }
 }
 
+std::string PbType::PackagePrefix(LANGUAGE lang) const {
+  std::string prefix = "", seprator = ".";
+  switch (lang) {
+    case CPP:
+      seprator = "::";
+      break;
+    case JAVA:
+    case PYTHON:
+    default:
+      break;
+  }
+  for (const auto& package: pkg_stack_) {
+    prefix += (package + seprator);
+  }
+  if (lang == CPP) {
+    prefix = "::" + prefix;
+  }
+  return prefix;
+}
+
+
+std::string PbType::FullNameWithPackagePrefix(LANGUAGE lang) const {
+  return PackagePrefix(lang) + name_;
+}
+
 }  // namespace ProtoParser
 }  // namespace Proto
 

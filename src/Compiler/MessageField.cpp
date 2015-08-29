@@ -90,6 +90,10 @@ bool MessageField::IsPrimitiveType() const {
   return type_ != STRING && type_ != MESSAGETYPE;
 }
 
+bool MessageField::IsMessageType() const {
+  return type_ == MESSAGETYPE;
+}
+
 bool MessageField::IsSingularNumericType() const {
   return modifier_ != MessageField::REPEATED &&
          type_ != MESSAGETYPE &&
