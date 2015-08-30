@@ -60,9 +60,10 @@ void static_init_samples_tiny() {
   ::proto::MessageFactory::RegisterGeneratedMessage(FamilyInfo_reflection_);
 
   // static init for class DogInfo
-  static const int DogInfo_offsets_[6] = {
+  static const int DogInfo_offsets_[7] = {
     PROTO_MESSAGE_FIELD_OFFSET(AA::BB::DogInfo, age_),
     PROTO_MESSAGE_FIELD_OFFSET(AA::BB::DogInfo, name_),
+    PROTO_MESSAGE_FIELD_OFFSET(AA::BB::DogInfo, sex_),
     PROTO_MESSAGE_FIELD_OFFSET(AA::BB::DogInfo, weights_),
     PROTO_MESSAGE_FIELD_OFFSET(AA::BB::DogInfo, family_),
     PROTO_MESSAGE_FIELD_OFFSET(AA::BB::DogInfo, alias_),
@@ -236,6 +237,7 @@ DogInfo::DogInfo() {
 DogInfo::DogInfo(const DogInfo& other) {
   age_ = other.age();
   name_ = other.name();
+  sex_ = other.sex();
   weights_ = other.weights();
   if (!family_) {
     family_ = new ::AA::FamilyInfo();
@@ -254,6 +256,7 @@ DogInfo::DogInfo(DogInfo&& other) {
   age_ = other.age();
   other.clear_age();
   name_ = std::move(other.mutable_name());
+  sex_ = std::move(other.mutable_sex());
   weights_ = std::move(other.mutable_weights());
   if (family_ ) {
     delete family_;
@@ -267,6 +270,7 @@ DogInfo::DogInfo(DogInfo&& other) {
 DogInfo& DogInfo::operator=(const DogInfo& other) {
   age_ = other.age();
   name_ = other.name();
+  sex_ = other.sex();
   weights_ = other.weights();
   if (!family_) {
     family_ = new ::AA::FamilyInfo();
@@ -286,6 +290,7 @@ DogInfo& DogInfo::operator=(DogInfo&& other) {
   age_ = other.age();
   other.clear_age();
   name_ = std::move(other.mutable_name());
+  sex_ = std::move(other.mutable_sex());
   weights_ = std::move(other.mutable_weights());
   if (family_ ) {
     delete family_;
@@ -320,6 +325,10 @@ void DogInfo::Swap(DogInfo* other) {
   std::string name_tmp__ = std::move(other->mutable_name());
   other->mutable_name() = std::move(name_);
   name_ = std::move(name_tmp__);
+
+  ::proto::RepeatedField<DogInfo::Sex> sex_tmp__ = std::move(other->mutable_sex());
+  other->mutable_sex() = std::move(sex_);
+  sex_ = std::move(sex_tmp__);
 
   ::proto::RepeatedField<double> weights_tmp__ = std::move(other->mutable_weights());
   other->mutable_weights() = std::move(weights_);
@@ -403,6 +412,37 @@ std::string DogInfo::mutable_name() {
 void DogInfo::clear_name() {
   name_ = "";
   has_bits_[0] &= (~0x8);
+}
+
+// "sex" = 4
+int DogInfo::sex_size() const {
+  return sex_.size();
+}
+
+DogInfo::Sex DogInfo::sex(int index) {
+  return sex_.Get(index);
+}
+
+void DogInfo::set_sex(int index, DogInfo::Sex value) {
+  if ((int)sex_.size() > index) {
+    sex_.Set(index, value);
+  }
+}
+
+void DogInfo::add_sex(DogInfo::Sex value) {
+   sex_.Add(value);
+}
+
+void DogInfo::clear_sex() {
+  sex_ .Clear();
+}
+
+const ::proto::RepeatedField<DogInfo::Sex>& DogInfo::sex() const {
+  return sex_;
+}
+
+::proto::RepeatedField<DogInfo::Sex>& DogInfo::mutable_sex() {
+  return sex_;
 }
 
 // "weights" = 5

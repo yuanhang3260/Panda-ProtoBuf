@@ -24,6 +24,7 @@ class SerializedObjectInterface {
   virtual int CopyTo(char* buf) const = 0;
 
   virtual int size() const { return size_; }
+  void set_size(const int size) { size_ = size; } 
 
  protected:
   int size_ = 0;

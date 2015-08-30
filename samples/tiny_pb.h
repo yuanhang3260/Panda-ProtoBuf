@@ -65,6 +65,11 @@ namespace BB {
 
 class DogInfo: public ::proto::Message {
  public:
+  enum Sex {
+    MALE,
+    FEMALE,
+  };
+
   // constructors and destructor //
   DogInfo();
   ~DogInfo();
@@ -94,6 +99,15 @@ class DogInfo: public ::proto::Message {
   void set_name(const char* name, int size);
   std::string mutable_name();
   void clear_name();
+
+  // "sex" = 4
+  int sex_size() const;
+  DogInfo::Sex sex(int index);
+  void set_sex(int index, DogInfo::Sex value);
+  void add_sex(DogInfo::Sex value);
+  void clear_sex();
+  const ::proto::RepeatedField<DogInfo::Sex>& sex() const;
+  ::proto::RepeatedField<DogInfo::Sex>& mutable_sex();
 
   // "weights" = 5
   int weights_size() const;
@@ -142,6 +156,7 @@ class DogInfo: public ::proto::Message {
   // message fields
   int age_;
   std::string name_ = "";
+  ::proto::RepeatedField<DogInfo::Sex> sex_;
   ::proto::RepeatedField<double> weights_;
   ::AA::FamilyInfo* family_ = nullptr;
   ::proto::RepeatedPtrField<std::string> alias_;

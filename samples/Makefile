@@ -13,6 +13,9 @@ tiny_pb.o: tiny_pb.cpp tiny_pb.h
 test1.o: test1_pb.cpp test1_pb.h
 	$(CC) $(CFLAGS) $(IFLAGS) -c test1_pb.cpp
 
+simple_pb.o: simple_pb.cpp simple_pb.h
+	$(CC) $(CFLAGS) $(IFLAGS) -c simple_pb.cpp
+
 main.o: main.cpp
 	$(CC) $(CFLAGS) $(IFLAGS) -c main.cpp
 

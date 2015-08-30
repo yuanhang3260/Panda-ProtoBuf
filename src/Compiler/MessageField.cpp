@@ -94,6 +94,10 @@ bool MessageField::IsMessageType() const {
   return type_ == MESSAGETYPE;
 }
 
+bool MessageField::IsRepeatedType() const {
+  return modifier_ == MessageField::REPEATED;
+}
+
 bool MessageField::IsSingularNumericType() const {
   return modifier_ != MessageField::REPEATED &&
          type_ != MESSAGETYPE &&

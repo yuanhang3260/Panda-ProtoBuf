@@ -12,8 +12,8 @@ int SerializedMessage::CopyTo(char* buf) const {
 
 void SerializedMessage::AddField(
     std::shared_ptr<SerializedObjectInterface> new_field) {
-    fields_.push_back(new_field);
-    size_ += new_field->size();
-  }
+  fields_.push_back(new_field);
+  size_ += new_field->size();
+}
 
 }  // namespace proto

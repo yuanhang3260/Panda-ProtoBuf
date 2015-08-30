@@ -1,5 +1,5 @@
-#ifndef WIRE_FORMAT
-#define WIRE_FORMAT
+#ifndef WIRE_FORMAT_
+#define WIRE_FORMAT_
 
 #include "../Utility/StringBuilder.h"
 
@@ -19,9 +19,6 @@ class DecodeException: public std::exception {
       return message_.c_str();
   }
 };
-
-DecodeException::DecodeException(const std::string& message) :
-  message_(message) {}
 
 class WireFormat {
  public:
@@ -53,52 +50,100 @@ class WireFormat {
   static void WriteFixed64(uint64 value, Utility::StringBuilder* outstream);
 
   static uint64 RawCastDoubleToUint64(double value);
-  static uint64 RawCastUint64ToDouble(uint64 value);
+  static double RawCastUint64ToDouble(uint64 value);
+
+  static void WriteVariant32(uint32 value, Utility::StringBuilder* outstream);
+  static void WriteVariant64(uint64 value, Utility::StringBuilder* outstream);
+
+  // -------------------- write functions ------------------------ //
+  static void WriteUInt32(const uint32 value, Utility::StringBuilder* outstream);
+  static void WriteUInt64(const uint64 value, Utility::StringBuilder* outstream);
+  static void WriteSInt32(const int32 value, Utility::StringBuilder* outstream);
+  static void WriteSInt64(const int64 value, Utility::StringBuilder* outstream);
+  static void WriteDouble(const double value, Utility::StringBuilder* outstream);
+  static void WriteBool(const bool value, Utility::StringBuilder* outstream);
+  static void WriteString(const std::string& str, Utility::StringBuilder* outstream);
 
   // ------------------- Encode functions ------------------------- //
-  static void EncodeTag(uint32 tag, WireType wire_type,
+  static void EncodeTag(const uint32 tag, WireType wire_type,
                         Utility::StringBuilder* outstream);
-  static void EncodeUInt32(uint32 tag, uint32 value,
+  static void EncodeUInt32(const uint32 tag, const uint32 value,
                            Utility::StringBuilder* outstream);
-  static void EncodeUInt64(uint32 tag, uint64 value,
-                           Utility::StringBuilder* outstream);
-
-
-  static void EncodeSInt32(uint32 tag, int32 value,
-                           Utility::StringBuilder* outstream);
-  static void EncodeSInt64(uint32 tag, int64 value,
+  static void EncodeUInt64(const uint32 tag, const uint64 value,
                            Utility::StringBuilder* outstream);
 
-  static void EncodeDouble(uint32 tag, double value,
+
+  static void EncodeSInt32(const uint32 tag, const int32 value,
+                           Utility::StringBuilder* outstream);
+  static void EncodeSInt64(const uint32 tag, const int64 value,
                            Utility::StringBuilder* outstream);
 
-  static void EncodeBool(uint32 tag, bool value,
+  static void EncodeDouble(const uint32 tag, const double value,
+                           Utility::StringBuilder* outstream);
+
+  static void EncodeBool(const uint32 tag, const bool value,
                          Utility::StringBuilder* outstream);
 
-  static void EncodeString(uint32 tag, const std::string& str,
+  static void EncodeString(const uint32 tag, const std::string& str,
                            Utility::StringBuilder* outstream);
 
   // -------------------- Decode functions ------------------------ //
   static void DecodeTag(
-    const char* buf, uint32* tag, int* wire_type, int* size);
+    const char* buf, uint32* tag, int* wire_type, uint32* size);
 
-  static uint32 DecodeUInt32(const char* buf, int* size);
-  static uint64 DecodeUInt64(const char* buf, int* size);
+  static uint32 DecodeUInt32(const char* buf, uint32* size);
+  static uint64 DecodeUInt64(const char* buf, uint32* size);
 
-  static int32 DecodeSInt32(const char* buf, int* size);
-  static int64 DecodeSInt64(const char* buf, int* size);
+  static int32 DecodeSInt32(const char* buf, uint32* size);
+  static int64 DecodeSInt64(const char* buf, uint32* size);
 
-  static double DecodeDouble(const char* buf, int* size);
+  static double DecodeDouble(const char* buf, uint32* size);
 
-  static bool DecodeBool(const char* buf, int* size);
+  static bool DecodeBool(const char* buf, uint32* size);
 
-  std::string DecodeString(const char* buf, int size);
+  std::string DecodeString(const char* buf, uint32* size);
 
  private:
-  static void WriteVariant32(uint32 value, Utility::StringBuilder* outstream);
-  static void WriteVariant64(uint64 value, Utility::StringBuilder* outstream);
 };
+
+inline void WireFormat::WriteUInt32(const uint32 value,
+                                    Utility::StringBuilder* outstream) {
+  WriteVariant32(value, outstream);
+}
+
+inline void WireFormat::WriteUInt64(const uint64 value,
+                                    Utility::StringBuilder* outstream) {
+  WriteVariant64(value, outstream);
+}
+
+inline void WireFormat::WriteSInt32(const int32 value,
+                                    Utility::StringBuilder* outstream) {
+  WriteVariant32(ZigZag32(value), outstream);
+}
+
+inline void WireFormat::WriteSInt64(const int64 value,
+                                    Utility::StringBuilder* outstream) {
+  WriteVariant64(ZigZag64(value), outstream);
+}
+
+inline void WireFormat::WriteDouble(const double value,
+                                    Utility::StringBuilder* outstream) {
+  WriteFixed64(RawCastDoubleToUint64(value), outstream);
+}
+
+inline void WireFormat::WriteBool(const bool value,
+                                  Utility::StringBuilder* outstream) {
+  WriteVariant32(static_cast<uint32>(value), outstream);
+}
+
+inline void WireFormat::WriteString(const std::string& str,
+                                    Utility::StringBuilder* outstream) {
+  WriteVariant32(str.length(), outstream);
+  for (uint32 i = 0; i < str.length(); i++) {
+    outstream->Append(str[i]);
+  }
+}
 
 }  // namespace proto
 
-#endif  /* WIRE_FORMAT */
+#endif  /* WIRE_FORMAT_ */

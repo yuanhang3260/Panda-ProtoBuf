@@ -34,7 +34,7 @@ void test_RepeatedField() {
 
   auto it = list.begin();
   it++;
-  for (int i = 0; i < list.size() - 1; i++) {
+  for (unsigned int i = 0; i < list.size() - 1; i++) {
     *it = 100 - i;
     it += 1;
   }

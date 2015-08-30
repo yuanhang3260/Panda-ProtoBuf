@@ -22,9 +22,10 @@ class RepeatedFieldBase {
   RepeatedFieldBase() = default;
   ~RepeatedFieldBase() {}
 
-  virtual int size() const = 0;
+  virtual unsigned int size() const = 0;
   virtual void Clear() = 0;
   virtual bool empty() const = 0;
+  virtual const char* GetElementPtr(const unsigned int index) const = 0;
 };
 
 // ----------------------------- RepeatedField ------------------------------ //
@@ -44,13 +45,14 @@ class RepeatedField: public RepeatedFieldBase {
 
   void Add(const T value);
   void RemoveLast();
-  int size() const override;
+  unsigned int size() const override;
   const T Get(const int index) const;
   void Set(const int index, const T& value);
   void Clear() override;
   bool empty() const override { return elements.size() == 0; }
   const std::vector<T>& GetElements() const { return elements; }
   std::vector<T>& Mutable_Elements() { return elements; }
+  const char* GetElementPtr(const unsigned int index) const override;
 
   typedef typename std::vector<T>::iterator iterator;
   typedef typename std::vector<T>::const_iterator const_iterator;
@@ -96,13 +98,14 @@ class RepeatedPtrField: public RepeatedFieldBase {
   void Set(int index, const T& value); // Only used for repeated string type.
   T* Add();
   void RemoveLast();
-  int size() const override;
+  unsigned int size() const override;
   const T& Get(const int index) const;
   T* GetMutable(const int index);
   void Clear() override;
   bool empty() const override { return elements.size() == 0; }
   const std::vector<T*>& GetElements() const { return elements; }
   std::vector<T*>& Mutable_Elements() { return elements; }
+  const char* GetElementPtr(const unsigned int index) const override;
 
   typedef RepeatedPtrIterator<T, false> iterator;
   typedef RepeatedPtrIterator<T, true> const_iterator;
@@ -226,7 +229,7 @@ void RepeatedField<T>::RemoveLast() {
 }
 
 template <typename T>
-int RepeatedField<T>::size() const {
+unsigned int RepeatedField<T>::size() const {
   return elements.size();
 }
 
@@ -237,6 +240,14 @@ const T RepeatedField<T>::Get(const int index) const {
         "RepeatedField index " + std::to_string(index) + " out of bound");
   }
   return elements[index];
+}
+
+template <typename T>
+const char* RepeatedField<T>::GetElementPtr(const unsigned int index) const {
+  if (index < elements.size()) {
+    return reinterpret_cast<const char*>(&(elements[index]));
+  }
+  return nullptr;
 }
 
 template <typename T>
@@ -338,7 +349,7 @@ void RepeatedPtrField<T>::RemoveLast() {
 }
 
 template <typename T>
-int RepeatedPtrField<T>::size() const {
+unsigned int RepeatedPtrField<T>::size() const {
   return elements.size();
 }
 
@@ -349,6 +360,14 @@ const T& RepeatedPtrField<T>::Get(const int index) const {
         "RepeatedPtrField index " + std::to_string(index) + " out of bound");
   }
   return *elements[index];
+}
+
+template <typename T>
+const char* RepeatedPtrField<T>::GetElementPtr(const unsigned int index) const {
+  if (index < elements.size()) {
+    return reinterpret_cast<const char*>(elements[index]);
+  }
+  return nullptr;
 }
 
 template <typename T>

@@ -27,7 +27,7 @@ class Message : public PbType {
   const std::vector<std::shared_ptr<MessageField>>& fields_list() const;
   const std::map<std::string, std::shared_ptr<EnumType>>& enums_map() const;
   const std::set<int>& tag_set() const;
-  int highest_tag() const { return highest_tag_; }
+  const int highest_tag() const { return highest_tag_; }
   MessageField* FindMessage(std::string name) const;
   EnumType* FindEnumType(std::string name) const;
 
@@ -49,7 +49,7 @@ class Message : public PbType {
   bool has_message_field_ = false;
   bool has_string_field_ = false;
   bool has_repeated_field_ = false;
-  int highest_tag_ = -1;
+  unsigned int highest_tag_ = 0;
 };
 
 }  // namespace ProtoParser

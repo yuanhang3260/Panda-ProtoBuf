@@ -29,7 +29,7 @@ class MessageField {
   FIELD_TYPE type() const { return type_; }
   PbType* type_class() const { return type_class_; }
   std::string name() const { return name_; }
-  int tag() const { return tag_; }
+  unsigned int tag() const { return tag_; }
   std::string default_value() const { return default_value_; }
   std::string type_name() const { return type_name_; }
   int field_offset() const { return field_offset_; }
@@ -40,6 +40,7 @@ class MessageField {
 
   bool IsPrimitiveType() const;
   bool IsMessageType() const;
+  bool IsRepeatedType() const;
   bool IsSingularNumericType() const;
   bool IsSingularStringType() const;
   bool IsSingularMessageType() const;
@@ -52,7 +53,7 @@ class MessageField {
   FIELD_TYPE type_;
   PbType* type_class_;
   std::string name_;
-  int tag_;
+  unsigned int tag_;
   std::string default_value_;
   std::string type_name_;
   bool has_user_default_value_ = false;

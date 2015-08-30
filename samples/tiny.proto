@@ -10,11 +10,16 @@ message FamilyInfo {
 package AA.BB;
 
 message DogInfo {
+	enum Sex {
+		MALE,
+		FEMALE,
+	}
   optional int32 age =1;
   optional string name= 3;
   repeated string alias = 18;
   repeated double weights = 5;
   optional FamilyInfo family = 13;
   repeated FamilyInfo neighbors = 25;
+  repeated Sex sex = 4;
 }
 

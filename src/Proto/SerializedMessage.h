@@ -11,6 +11,8 @@ namespace proto {
 class SerializedMessage: public SerializedObjectInterface {
  public:
   SerializedMessage() {}
+  SerializedMessage(const SerializedMessage& other) = delete;
+  SerializedMessage& operator=(const SerializedMessage& other) = delete;
   ~SerializedMessage() {}
 
   int CopyTo(char* buf) const override;

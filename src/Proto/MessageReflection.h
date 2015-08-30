@@ -7,6 +7,7 @@
 #include "../Compiler/Message.h"
 #include "../Compiler/PbCommon.h"
 #include "SerializedMessage.h"
+#include "SerializedPrimitive.h"
 #include "Message.h"
 
 namespace proto {
@@ -35,6 +36,30 @@ class MessageReflection {
 
  private:
   bool HasField(const Message* message, int tag) const;
+
+  // Create a serialized singular message object.
+  std::shared_ptr<SerializedObjectInterface>
+  CreateSerializedSingularMessage(
+    const Message* message,
+    const ProtoParser::MessageField* field)  const;
+
+  // Create a serialized repeated message object.
+  std::shared_ptr<SerializedObjectInterface>
+  CreateSerializedRepeatedMessage(
+    const Message* message,
+    const ProtoParser::MessageField* field)  const;
+
+  // Create a serialized singular primitive object.
+  std::shared_ptr<SerializedObjectInterface>
+  CreateSerializedSingularPrimitive(
+    const Message* message,
+    const ProtoParser::MessageField* field) const;
+
+  // Create a repeated singular primitive object.
+  std::shared_ptr<SerializedObjectInterface>
+  CreateSerializedRepeatedPrimitive(
+    const Message* message,
+    const ProtoParser::MessageField* field) const;
 
  private:
   std::shared_ptr<::proto::ProtoParser::Message> message_descirptor_;
