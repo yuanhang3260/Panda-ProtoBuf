@@ -10,7 +10,7 @@ DecodeException::DecodeException(const std::string& message) :
 
 void WireFormat::WriteVariant32(uint32 value,
                                 Utility::StringBuilder* outstream) {
-  printf("writing 0x%x\n", value);
+  //printf("writing 0x%x\n", value);
   WriteVariant64(static_cast<uint64>(value), outstream);
 }
 
@@ -62,13 +62,13 @@ double WireFormat::RawCastUint64ToDouble(uint64 value) {
 // -------------------- Encode functions ------------------------ //
 void WireFormat::EncodeTag(const uint32 tag, WireType wire_type,
                            Utility::StringBuilder* outstream) {
-  std::cout << "tag = " << tag << ", wire = " << wire_type << std::endl;
+  //std::cout << "encoding tag = " << tag << ", wire = " << wire_type << std::endl;
   WriteVariant32((tag << kWireTypeBits) | wire_type, outstream);
 }
 
 void WireFormat::EncodeUInt32(const uint32 tag, const uint32 value,
                               Utility::StringBuilder* outstream) {
-  std::cout << "encoding value = " << value << std::endl;
+  //std::cout << "encoding uint32 value = " << value << std::endl;
   EncodeTag(tag, WIRETYPE_VARIANT, outstream);
   WriteVariant32(value, outstream);
 }
@@ -181,8 +181,8 @@ bool WireFormat::DecodeBool(const char* buf, uint32* size) {
 std::string WireFormat::DecodeString(const char* buf, uint32 *size) {
   uint32 str_size_size;
   uint32 str_size = DecodeUInt32(buf, &str_size_size);
-  return std::string(buf + str_size_size, str_size);
   *size = str_size_size + str_size;
+  return std::string(buf + str_size_size, str_size);
 }
 
 

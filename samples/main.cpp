@@ -91,8 +91,6 @@ void test_Basic() {
 
 void test_Serialize() {
   std::cout << __FUNCTION__ << "() ..." << std::endl;
-  // SerializedPrimitive* sdprim = new SerializedPrimitive(ProtoParser::UINT32);
-  // std::cout << "created sdprim 1 size = " << sdprim->size() << std::endl;
 
   ::HaiZhong::Student stu1;
   PRINT_HAS(stu1, name, "stu1", "name")
@@ -112,6 +110,10 @@ void test_Serialize() {
   PRINT_HAS(stu2, name, "stu2", "name")
   PRINT_HAS(stu2, age, "stu2", "age")
   stu2.DeSerialize(obj_data, sdmsg->size());
+  std::cout << "stu2 name = " << stu2.name() << std::endl;
+  std::cout << "stu2 age = " << stu2.age() << std::endl;
+  PRINT_HAS(stu2, name, "stu2", "name")
+  PRINT_HAS(stu2, age, "stu2", "age")
   std::cout << "deleting sdmsg ..." << std::endl;
   delete sdmsg;
 }

@@ -46,14 +46,12 @@ SerializedMessage* MessageReflection::Serialize(const Message* message) const {
     // Primitive Type and String type
     else {
       if (!field->IsRepeatedType()) {
-        std::shared_ptr<SerializedObjectInterface> aa =
-            CreateSerializedSingularPrimitive(message, field.get());
-        // std::vector<std::shared_ptr<SerializedObjectInterface>> fields_;
-        // fields_.push_back(aa);
-        sdmsg->AddField(aa);
+        sdmsg->AddField(
+            CreateSerializedSingularPrimitive(message, field.get()));
       }
       else {
-        sdmsg->AddField(CreateSerializedRepeatedPrimitive(message, field.get()));
+        sdmsg->AddField(
+            CreateSerializedRepeatedPrimitive(message, field.get()));
       }
     }
   }
@@ -154,7 +152,6 @@ MessageReflection::CreateSerializedSingularPrimitive(
   const char* msg_addr = reinterpret_cast<const char*>(message);
   switch (field->type()) {
     case ProtoParser::UINT32:
-      // uint32 value = *reinterpret_cast<const uint32*>(msg_addr + field->field_offset());
       ENCODE_SINGULAR_PRITIMIVE(uint32, UInt32)
       break;
     case ProtoParser::UINT64:
@@ -235,7 +232,8 @@ MessageReflection::CreateSerializedRepeatedPrimitive(
       break;
     }
     case ProtoParser::STRING: {
-      ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_LENGTH_DIMITED, std::string, String)
+      ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_LENGTH_DIMITED,
+                                std::string, String)
       break;
     }
     case ProtoParser::ENUMTYPE: {
@@ -321,9 +319,12 @@ void MessageReflection::DeSerialize(
   uint32 tag;
   WireFormat::WireType wire_type;
   uint32 parsed_size, offset = 0;
+  std::cout << "DeSerialize Size = " << size << std::endl;
   while (offset < size) {
     WireFormat::DecodeTag(buf + offset, &tag, &wire_type, &parsed_size);
     offset += parsed_size;
+    //std::cout << "tag = " << tag << std::endl;
+    //std::cout << "tag parsed_size = " << parsed_size << std::endl;
     const ProtoParser::MessageField* field =
         message_descirptor_->FindFieldByTag(tag);
 
