@@ -35,6 +35,7 @@ bool Message::AddField(std::shared_ptr<MessageField> field) {
   }
 
   fields_map_[field->name()] = field;
+  tag_fields_map_[field->tag()] = field;
   fileds_list_.push_back(field);
   if (field->type() == MESSAGETYPE) {
     has_message_field_  = true;
@@ -91,6 +92,13 @@ MessageField* Message::FindMessage(std::string name) const {
     return NULL;
   }
   return fields_map_.at(name).get();
+}
+
+const MessageField* Message::FindFieldByTag(const unsigned int tag) const {
+  if (tag_fields_map_.find(tag) == tag_fields_map_.end()) {
+    return NULL;
+  }
+  return tag_fields_map_.at(tag).get();
 }
 
 EnumType* Message::FindEnumType(std::string name) const {

@@ -1,4 +1,3 @@
-#include "WireFormat.h"
 #include "RepeatedFields.h"
 #include "MessageFactory.h"
 #include "MessageReflection.h"
@@ -25,6 +24,9 @@ const Message* MessageReflection::defatult_instance() {
   return defatult_instance_;
 }
 
+// -------------------------------------------------------------------------- //
+// ---------------------------- Serialize routines -------------------------- //
+// -------------------------------------------------------------------------- //
 SerializedMessage* MessageReflection::Serialize(const Message* message) const {
   SerializedMessage* sdmsg = new SerializedMessage();
   // Begin serializing a message
@@ -44,7 +46,11 @@ SerializedMessage* MessageReflection::Serialize(const Message* message) const {
     // Primitive Type and String type
     else {
       if (!field->IsRepeatedType()) {
-        sdmsg->AddField(CreateSerializedSingularPrimitive(message, field.get()));
+        std::shared_ptr<SerializedObjectInterface> aa =
+            CreateSerializedSingularPrimitive(message, field.get());
+        // std::vector<std::shared_ptr<SerializedObjectInterface>> fields_;
+        // fields_.push_back(aa);
+        sdmsg->AddField(aa);
       }
       else {
         sdmsg->AddField(CreateSerializedRepeatedPrimitive(message, field.get()));
@@ -58,7 +64,9 @@ std::shared_ptr<SerializedObjectInterface>
 MessageReflection::CreateSerializedSingularMessage(
     const Message* message,
     const ProtoParser::MessageField* field)  const {
-
+  // Serialize a singular nested message
+  std::cout << "serializing singular nested message: "
+            << field->name() << std::endl;
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(
           message_descirptor_->FullNameWithPackagePrefix(ProtoParser::CPP));
@@ -73,6 +81,12 @@ MessageReflection::CreateSerializedSingularMessage(
       (reinterpret_cast<const char*>(message) + field->field_offset())
     )
   );
+  // Encdoe meta data:
+  // | TagType | Payload Size | ... |
+  WireFormat::EncodeTag(field->tag(), WireFormat::WIRETYPE_LENGTH_DIMITED,
+                        nested_sdmsg->meta_data());
+  WireFormat::WriteUInt32(nested_sdmsg->size(), nested_sdmsg->meta_data());
+  nested_sdmsg->ReCalculateSize();
   return std::shared_ptr<SerializedObjectInterface>(nested_sdmsg);
 }
 
@@ -80,8 +94,10 @@ std::shared_ptr<SerializedObjectInterface>
 MessageReflection::CreateSerializedRepeatedMessage(
     const Message* message,
     const ProtoParser::MessageField* field)  const {
+  std::cout << "serializing repeated nested message: "
+            << field->name() << std::endl;
   // Create a new SerializedMessage to store repeated messages.
-  SerializedMessage* sdmsg = new SerializedMessage();
+  SerializedMessage* sdmsg = new SerializedMessage(true);
   // get reflection
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(
@@ -103,10 +119,23 @@ MessageReflection::CreateSerializedRepeatedMessage(
     SerializedMessage* nested_sdmsg = nested_msg_reflection->Serialize(
       reinterpret_cast<const Message*>(element_ptr)
     );
+    // Encdoe meta data for element message:
+    // | Paylod Size | ... Data ... |
+    WireFormat::WriteUInt32(nested_sdmsg->size(), nested_sdmsg->meta_data());
+    nested_sdmsg->ReCalculateSize();
     sdmsg->AddField(std::shared_ptr<SerializedObjectInterface>(nested_sdmsg));
   }
+  // Encode meta data for RepeatedPtrField:
+  // | TagType | List Size | Element1 |  Element2 | ... ... | Element N |
+  //                           |
+  //                           --> | Payload Size | ... Data ... |
+  WireFormat::EncodeTag(field->tag(), WireFormat::WIRETYPE_LENGTH_DIMITED,
+                        sdmsg->meta_data());
+  WireFormat::WriteUInt32(repeated_field->size(), sdmsg->meta_data());
+  sdmsg->ReCalculateSize();
   return std::shared_ptr<SerializedObjectInterface>(sdmsg);
 }
+
 
 #define ENCODE_SINGULAR_PRITIMIVE(CPP_TYPE, WIRE_TYPENAME)                   \
   WireFormat::Encode##WIRE_TYPENAME(                                         \
@@ -114,15 +143,18 @@ MessageReflection::CreateSerializedRepeatedMessage(
     *reinterpret_cast<const CPP_TYPE*>(msg_addr + field->field_offset()),    \
     sdprim->mutable_ostream());
 
+
 std::shared_ptr<SerializedObjectInterface>
 MessageReflection::CreateSerializedSingularPrimitive(
     const Message* message,
     const ProtoParser::MessageField* field)  const {
-
+  std::cout << "serializing singular primitive: "
+            << field->name() << std::endl;
   SerializedPrimitive* sdprim = new SerializedPrimitive(field->type());
   const char* msg_addr = reinterpret_cast<const char*>(message);
   switch (field->type()) {
     case ProtoParser::UINT32:
+      // uint32 value = *reinterpret_cast<const uint32*>(msg_addr + field->field_offset());
       ENCODE_SINGULAR_PRITIMIVE(uint32, UInt32)
       break;
     case ProtoParser::UINT64:
@@ -156,6 +188,7 @@ MessageReflection::CreateSerializedSingularPrimitive(
   return std::shared_ptr<SerializedObjectInterface>(sdprim);
 }
 
+
 #define ENCODE_REPEATED_PRITIMIVE(WIRE_TYPE, CPP_TYPE, WIRE_TYPENAME)        \
   WireFormat::EncodeTag(                                                     \
     field->tag(), WIRE_TYPE, sdprim->mutable_ostream());                     \
@@ -166,11 +199,13 @@ MessageReflection::CreateSerializedSingularPrimitive(
     WireFormat::Write##WIRE_TYPENAME(value, sdprim->mutable_ostream());      \
   }
 
+
 std::shared_ptr<SerializedObjectInterface>
 MessageReflection::CreateSerializedRepeatedPrimitive(
     const Message* message,
     const ProtoParser::MessageField* field)  const {
-
+  std::cout << "serializing repeated primitive: "
+            << field->name() << std::endl;
   SerializedPrimitive* sdprim = new SerializedPrimitive(field->type());
   const char* field_addr =
       reinterpret_cast<const char*>(message) + field->field_offset();
@@ -231,6 +266,108 @@ bool MessageReflection::HasField(const Message* message, int tag) const {
   const char* has_bits =
     reinterpret_cast<const char*>(message) + has_bits_offset_;
   return (has_bits[tag / 8] & (0x1 << (tag % 8))) != 0;
+}
+
+// -------------------------------------------------------------------------- //
+// --------------------------- DeSerialize routines ------------------------- //
+// -------------------------------------------------------------------------- //
+template <typename T>
+inline T* MessageReflection::Mutable_Raw(
+    Message* message,
+    const ProtoParser::MessageField* field) const {
+  char* ptr = reinterpret_cast<char*>(message) + field->field_offset();
+  return reinterpret_cast<T*>(ptr);
+}
+
+template <typename T>
+inline void MessageReflection::SetType(
+    Message* message,
+    const ProtoParser::MessageField* field, T value) const {
+  *Mutable_Raw<T>(message, field) = value;
+}
+
+#define DEFINE_PRIMITIVE_ACCESSORS(CPP_TYPE, WIRE_TYPENAME)                \
+  inline uint32 MessageReflection::Set##WIRE_TYPENAME(                     \
+      Message* message,                                                    \
+      const ProtoParser::MessageField* field,                              \
+      const char* buf) const {                                             \
+    uint32 parsed_size;                                                    \
+    CPP_TYPE value = WireFormat::Decode##WIRE_TYPENAME(buf, &parsed_size); \
+    SetType<CPP_TYPE>(message, field, value);                              \
+    SetHasBit(message, field->tag());                                      \
+    return parsed_size;                                                    \
+  }
+
+
+DEFINE_PRIMITIVE_ACCESSORS(uint32, UInt32)
+DEFINE_PRIMITIVE_ACCESSORS(uint64, UInt64)
+DEFINE_PRIMITIVE_ACCESSORS(int32, SInt32)
+DEFINE_PRIMITIVE_ACCESSORS(int64, SInt64)
+DEFINE_PRIMITIVE_ACCESSORS(bool, Bool)
+DEFINE_PRIMITIVE_ACCESSORS(double, Double)
+DEFINE_PRIMITIVE_ACCESSORS(std::string, String)
+
+
+void MessageReflection::SetHasBit(Message* message, const uint32 tag) const {
+  char* has_bits =
+    reinterpret_cast<char*>(message) + has_bits_offset_;
+  has_bits[tag / 8] |= (0x1 << (tag % 8));
+}
+
+void MessageReflection::DeSerialize(
+    Message* message,
+    const char* buf,
+    uint32 size) const {
+  uint32 tag;
+  WireFormat::WireType wire_type;
+  uint32 parsed_size, offset = 0;
+  while (offset < size) {
+    WireFormat::DecodeTag(buf + offset, &tag, &wire_type, &parsed_size);
+    offset += parsed_size;
+    const ProtoParser::MessageField* field =
+        message_descirptor_->FindFieldByTag(tag);
+
+    switch (field->type()) {
+      case ProtoParser::UINT32: {
+        offset += SetUInt32(message, field, buf + offset);
+        break;
+      }
+      case ProtoParser::UINT64: {
+        offset += SetUInt64(message, field, buf + offset);
+        break;
+      }
+      case ProtoParser::INT32: {
+        offset += SetSInt32(message, field, buf + offset);
+        break;
+      }
+      case ProtoParser::INT64: {
+        offset += SetSInt64(message, field, buf + offset);
+        break;
+      }
+      case ProtoParser::BOOL:{
+        offset += SetBool(message, field, buf + offset);
+        break;
+      }
+      case ProtoParser::DOUBLE: {
+        offset += SetDouble(message, field, buf + offset);
+        break;
+      }
+      case ProtoParser::ENUMTYPE: {
+        offset += SetUInt32(message, field, buf + offset);
+        break;
+      }
+      case ProtoParser::STRING: {
+        offset += SetString(message, field, buf + offset);
+        break;
+      }
+      default:
+        throw std::runtime_error(
+                  "type " +
+                  ProtoParser::PbCommon::GetTypeAsString(field->type()) +
+                  " is not primitive");
+        break;
+    }
+  }
 }
 
 }  // namespace proto

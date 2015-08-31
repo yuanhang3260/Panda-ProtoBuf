@@ -6,6 +6,7 @@
 
 #include "../Compiler/Message.h"
 #include "../Compiler/PbCommon.h"
+#include "WireFormat.h"
 #include "SerializedMessage.h"
 #include "SerializedPrimitive.h"
 #include "Message.h"
@@ -33,6 +34,7 @@ class MessageReflection {
   const ::proto::ProtoParser::Message* descriptor();
   const Message* defatult_instance();
   SerializedMessage* Serialize(const Message* message) const;
+  void DeSerialize(Message* message, const char* buf, uint32 size) const;
 
  private:
   bool HasField(const Message* message, int tag) const;
@@ -60,6 +62,46 @@ class MessageReflection {
   CreateSerializedRepeatedPrimitive(
     const Message* message,
     const ProtoParser::MessageField* field) const;
+
+  // Get mutable raw field ptr from message.
+  template <typename T>
+  inline T* Mutable_Raw(Message* message,
+                        const ProtoParser::MessageField* field) const;
+  // Set field in message.
+  template <typename T>
+  inline void SetType(Message* message,
+                      const ProtoParser::MessageField* field, T value) const;
+
+  // Set message field routines
+  inline uint32 SetUInt32(
+      Message* message,
+      const ProtoParser::MessageField* field, const char* buf) const;
+
+  inline uint32 SetUInt64(
+      Message* message,
+      const ProtoParser::MessageField* field, const char* buf) const;
+
+  inline uint32 SetSInt32(
+      Message* message,
+      const ProtoParser::MessageField* field, const char* buf) const;
+
+  inline uint32 SetSInt64(
+      Message* message,
+      const ProtoParser::MessageField* field, const char* buf) const;
+
+  inline uint32 SetBool(
+      Message* message,
+      const ProtoParser::MessageField* field, const char* buf) const;
+
+  inline uint32 SetDouble(
+      Message* message,
+      const ProtoParser::MessageField* field, const char* buf) const;
+
+  inline uint32 SetString(
+      Message* message,
+      const ProtoParser::MessageField* field, const char* buf) const;
+
+  void SetHasBit(Message* message, const uint32 tag) const;
 
  private:
   std::shared_ptr<::proto::ProtoParser::Message> message_descirptor_;

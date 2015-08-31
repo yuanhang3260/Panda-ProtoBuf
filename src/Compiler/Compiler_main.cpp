@@ -14,6 +14,7 @@ int main(int argc, char** argv) {
     return -1;
   }
 
+// for (int i = 0; i < 10000; i++) {
   LANGUAGE lang =
       ProtoParser::GetLanguageFromString(std::string(argv[1]));
   std::string proto = std::string(argv[2]);
@@ -38,5 +39,6 @@ int main(int argc, char** argv) {
   compiler->GenerateCode();
 
   delete compiler;
+// }
   return 0;
 }

@@ -30,6 +30,7 @@ class Message : public PbType {
   const int highest_tag() const { return highest_tag_; }
   MessageField* FindMessage(std::string name) const;
   EnumType* FindEnumType(std::string name) const;
+  const MessageField* FindFieldByTag(const unsigned int tag) const;
 
   bool has_message_field() const { return has_message_field_; }
   bool has_repeated_field() const { return has_repeated_field_; }
@@ -41,6 +42,7 @@ class Message : public PbType {
 
  protected:
   std::map<std::string, std::shared_ptr<MessageField>> fields_map_;
+  std::map<unsigned int, std::shared_ptr<MessageField>> tag_fields_map_;
   std::vector<std::shared_ptr<MessageField>> fileds_list_;
   std::map<std::string, std::shared_ptr<EnumType>> enums_map_;
   std::set<int> tag_set_;

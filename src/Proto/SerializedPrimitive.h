@@ -17,7 +17,7 @@ class SerializedPrimitive: public SerializedObjectInterface {
 
   ::Utility::StringBuilder* mutable_ostream() { return &internal_buf_; }
 
-  int size() const override { return internal_buf_.size(); }
+  unsigned int size() const override { return internal_buf_.size(); }
 
  private:
   ::proto::ProtoParser::FIELD_TYPE type_;

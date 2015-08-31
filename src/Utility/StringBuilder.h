@@ -12,7 +12,7 @@ class StringBuilder {
   ~StringBuilder();
 
   const char* CharArray() const;
-  int size() const;
+  unsigned int size() const;
   int IsEmpty() const { return size() == 0; }
   std::string ToString() const;
   void Clear();
@@ -26,7 +26,7 @@ class StringBuilder {
   int buf_size_ = 0;
   int extend_size_ = 128;
   int size_ = 0;
-  char* buf_;
+  char* buf_ = nullptr;
 };
 
 }

@@ -137,8 +137,13 @@ FamilyInfo& FamilyInfo::operator=(FamilyInfo&& other) {
 }
 
 // Serialize()
-::proto::SerializedMessage* FamilyInfo::Serialize() {
+::proto::SerializedMessage* FamilyInfo::Serialize() const {
   return FamilyInfo_reflection_->Serialize(this);
+}
+
+// DeSerialize()
+void FamilyInfo::DeSerialize(const char* buf, unsigned int size) {
+  FamilyInfo_reflection_->DeSerialize(this, buf, size);
 }
 
 // InitAsDefaultInstance()
@@ -307,8 +312,13 @@ DogInfo& DogInfo::operator=(DogInfo&& other) {
 }
 
 // Serialize()
-::proto::SerializedMessage* DogInfo::Serialize() {
+::proto::SerializedMessage* DogInfo::Serialize() const {
   return DogInfo_reflection_->Serialize(this);
+}
+
+// DeSerialize()
+void DogInfo::DeSerialize(const char* buf, unsigned int size) {
+  DogInfo_reflection_->DeSerialize(this, buf, size);
 }
 
 // InitAsDefaultInstance()

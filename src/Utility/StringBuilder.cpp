@@ -18,14 +18,16 @@ StringBuilder::StringBuilder(const int size) :
 }
 
 StringBuilder::~StringBuilder() {
-  delete buf_;
+  if (buf_) {
+    delete buf_;
+  }
 }
 
 const char* StringBuilder::CharArray() const {
   return buf_;
 }
 
-int StringBuilder::size() const {
+unsigned int StringBuilder::size() const {
   return size_;
 }
 

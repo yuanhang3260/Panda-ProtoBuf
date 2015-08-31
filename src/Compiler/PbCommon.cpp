@@ -13,10 +13,10 @@ PbCommon::GetMessageFieldType(std::string type) {
     return INT64;
   }
   if (type == "uint32") {
-    return INT32;
+    return UINT32;
   }
   if (type == "uint64") {
-    return INT64;
+    return UINT64;
   }
   if (type == "double") {
     return DOUBLE;

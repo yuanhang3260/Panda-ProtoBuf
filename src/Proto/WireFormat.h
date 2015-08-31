@@ -89,7 +89,7 @@ class WireFormat {
 
   // -------------------- Decode functions ------------------------ //
   static void DecodeTag(
-    const char* buf, uint32* tag, int* wire_type, uint32* size);
+    const char* buf, uint32* tag, WireType* wire_type, uint32* size);
 
   static uint32 DecodeUInt32(const char* buf, uint32* size);
   static uint64 DecodeUInt64(const char* buf, uint32* size);
@@ -101,7 +101,7 @@ class WireFormat {
 
   static bool DecodeBool(const char* buf, uint32* size);
 
-  std::string DecodeString(const char* buf, uint32* size);
+  static std::string DecodeString(const char* buf, uint32* size);
 
  private:
 };

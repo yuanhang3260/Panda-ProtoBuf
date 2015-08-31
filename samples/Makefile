@@ -3,7 +3,7 @@ CFLAGS=-Wall -Werror -O2
 LFLAGS=-lssl -lcrypto -pthread
 IFLAGS=-I../src/
 
-OBJ=tiny_pb.o
+OBJ=tiny_pb.o simple_pb.o
 
 all: main.out
 

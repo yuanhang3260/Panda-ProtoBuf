@@ -18,6 +18,14 @@ void test_RepeatedField() {
   }
   std::cout << std::endl;
 
+  const auto& v = list.Mutable_Elements();
+  for (unsigned i = 0; i < list.size(); i++) {
+    if (list.GetElementPtr(i) != reinterpret_cast<const char*>(&v[i])) {
+      std::cout << "check element ptr failed" << std::endl;
+      return;
+    }
+  }
+
   const proto::RepeatedField<int> list2(list);
 
   for (auto it = list2.begin();
@@ -103,6 +111,15 @@ void test_RepeatedPtrField() {
   list.AddAllocated(new DogInfo("snoopy", 3));
   list.AddAllocated(new DogInfo("panda", 5));
   list.AddAllocated(new DogInfo("hy", 7));
+
+  const auto& v = list.Mutable_Elements();
+  for (unsigned i = 0; i < list.size(); i++) {
+    if (list.GetElementPtr(i) != reinterpret_cast<const char*>(v[i])) {
+      std::cout << "check element ptr failed" << std::endl;
+      return;
+    }
+  }
+
   for (auto& dog: list) {
     dog.print();
     dog.set_age(2);

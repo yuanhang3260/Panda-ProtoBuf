@@ -25,7 +25,8 @@ class FamilyInfo: public ::proto::Message {
   void Swap(FamilyInfo* other);
 
   ::proto::Message* New() override;  // New()
-  ::proto::SerializedMessage* Serialize() override;  // Serialize()
+  ::proto::SerializedMessage* Serialize() const override;  // Serialize()
+  void DeSerialize(const char* buf, unsigned int size) override;  // DeSerialize()
   static const FamilyInfo& default_instance();
 
   // --- Field accessors --- //
@@ -80,7 +81,8 @@ class DogInfo: public ::proto::Message {
   void Swap(DogInfo* other);
 
   ::proto::Message* New() override;  // New()
-  ::proto::SerializedMessage* Serialize() override;  // Serialize()
+  ::proto::SerializedMessage* Serialize() const override;  // Serialize()
+  void DeSerialize(const char* buf, unsigned int size) override;  // DeSerialize()
   static const DogInfo& default_instance();
 
   // --- Field accessors --- //

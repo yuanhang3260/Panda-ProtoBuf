@@ -1,36 +1,15 @@
 // test1 proto
 
-package AA;
+package HaiZhong;
 
-enum FriendType{
-  Human,
-  Animal,
+message Student {
+	optional string name = 1;
+	optional uint32 age = 2;
 }
 
-package AA.BB;
-
-message DogInfo {
-  required string name= 2;
-  required int32 age =1;
-  enum Sex {
-    Male,
-    Female,
-  }
-  required Sex sex = 6 [default=Male];
-  optional FriendType  friend_type = 4[default= Human];
+message SchoolClass {
+	optional int32 number = 1;
+	optional string alias = 2;
+	// optional Student captain;
 }
 
-package AA;
-message FamilyInfo {
-	optional string address = 1;
-	optional int32 numberdogs = 2;
-}
-
-package AA.BB.CC;
-
-message DogFamilyInfo {
-  optional FamilyInfo family = 1;
-  repeated double utility_fee = 2;
-  repeated DogInfo dogs = 3;
-  repeated string locations = 4;
-}

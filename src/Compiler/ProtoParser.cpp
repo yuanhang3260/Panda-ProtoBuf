@@ -42,9 +42,9 @@ bool ProtoParser::ReadProtoFile() {
   while (br.ReadLine(&line)) {
     line_number_++;
     line = StringUtils::Strip(line);
-    std::cout << "--------------------------------------------" << std::endl;
-    PrintParseState();
-    std::cout << "Parsing: \"" << line << "\"\n" << std::endl;
+    //std::cout << "--------------------------------------------" << std::endl;
+    //PrintParseState();
+    //std::cout << "Parsing: \"" << line << "\"\n" << std::endl;
 
     // Skip empty and comment lines.
     if (line.length() == 0 || StringUtils::StartWith(line, "//")) {

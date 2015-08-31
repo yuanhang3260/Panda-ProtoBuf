@@ -13,7 +13,9 @@ class Message {
 
   virtual void InitAsDefaultInstance() = 0;
 
-  virtual SerializedMessage* Serialize() = 0;
+  virtual SerializedMessage* Serialize() const = 0;
+
+  virtual void DeSerialize(const char* buf, unsigned int size) = 0;  
 };
 
 }  // namespace proto

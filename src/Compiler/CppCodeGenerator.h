@@ -80,6 +80,9 @@ class CppCodeGenerator : public ProtoParser {
   // Define Serialize()
   void DefineSerialize(Message* message);
 
+  // Define DeSerialize()
+  void DefineDeSerialize(Message* message);
+
   // Define InitAsDefaultInstance()
   void DefineInitAsDefaultInstance(Message* message);
 

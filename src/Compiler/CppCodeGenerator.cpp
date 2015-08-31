@@ -139,7 +139,10 @@ void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
       "  ::proto::Message* New() override;  // New()\n",
       msg_match);
   printer.Print(
-      "  ::proto::SerializedMessage* Serialize() override;  // Serialize()\n",
+      "  ::proto::SerializedMessage* Serialize() const override;  // Serialize()\n",
+      msg_match);
+  printer.Print(
+      "  void DeSerialize(const char* buf, unsigned int size) override;  // DeSerialize()\n",
       msg_match);
   printer.Print("  static const ${msg_name}& default_instance();\n\n",
                 msg_match);
@@ -342,6 +345,7 @@ void CppCodeGenerator::DefineClassMethods(Message* message) {
   DefineMoveAssigner(message);
   DefineNew(message);
   DefineSerialize(message);
+  DefineDeSerialize(message);
   DefineInitAsDefaultInstance(message);
   DefineSwapper(message);
   DefineGetDefaultInstance(message);
@@ -515,8 +519,20 @@ void CppCodeGenerator::DefineSerialize(Message* message) {
   std::map<std::string, std::string> msg_match{
      {"msg_name", message->name()},
   };
-  printer.Print("::proto::SerializedMessage* ${msg_name}::Serialize() {\n"
+  printer.Print("::proto::SerializedMessage* ${msg_name}::Serialize() const {\n"
                 "  return ${msg_name}_reflection_->Serialize(this);\n"
+                "}\n\n",
+                msg_match);
+}
+
+void CppCodeGenerator::DefineDeSerialize(Message* message) {
+  printer.Print("// DeSerialize()\n");
+
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+  printer.Print("void ${msg_name}::DeSerialize(const char* buf, unsigned int size) {\n"
+                "  ${msg_name}_reflection_->DeSerialize(this, buf, size);\n"
                 "}\n\n",
                 msg_match);
 }
@@ -1262,7 +1278,7 @@ std::string CppCodeGenerator::GetNameSpacePrefix(
       prefix += (target_stk[i] + "::");
     }
   }
-  std::cout << "prefix = " << prefix << std::endl;
+  // std::cout << "prefix = " << prefix << std::endl;
   return prefix;
 }
 

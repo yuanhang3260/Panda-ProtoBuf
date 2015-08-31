@@ -20,7 +20,7 @@ struct remove_const<T const> {
 class RepeatedFieldBase {
  public:
   RepeatedFieldBase() = default;
-  ~RepeatedFieldBase() {}
+  virtual ~RepeatedFieldBase() {}
 
   virtual unsigned int size() const = 0;
   virtual void Clear() = 0;

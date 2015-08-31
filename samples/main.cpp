@@ -5,12 +5,16 @@
 #include "Compiler/ProtoParser.h"
 #include "Proto/MessageReflection.h"
 #include "Proto/MessageFactory.h"
+#include "Proto/SerializedMessage.h"
+#include "Proto/SerializedPrimitive.h"
+
 
 #include "tiny_pb.h"
+#include "simple_pb.h"
 
 using namespace proto;
 
-int main() {
+void test_Basic() {
   // test singular numeric field;
   AA::BB::DogInfo dog1;
   std::cout << dog1.has_age() << std::endl;
@@ -75,6 +79,45 @@ int main() {
               << ") ";
   }
   std::cout << std::endl;
+}
 
+#define PRINT_HAS(obj, field, obj_name, field_name)                       \
+  if (obj.has_##field()) {                                                \
+    std::cout << obj_name << " has " << field_name << std::endl;          \
+  }                                                                       \
+  else {                                                                  \
+    std::cout << obj_name << " not has " << field_name << std::endl;      \
+  }
+
+void test_Serialize() {
+  std::cout << __FUNCTION__ << "() ..." << std::endl;
+  // SerializedPrimitive* sdprim = new SerializedPrimitive(ProtoParser::UINT32);
+  // std::cout << "created sdprim 1 size = " << sdprim->size() << std::endl;
+
+  ::HaiZhong::Student stu1;
+  PRINT_HAS(stu1, name, "stu1", "name")
+  PRINT_HAS(stu1, age, "stu1", "age")
+  stu1.set_name("hy");
+  stu1.set_age(24);
+  PRINT_HAS(stu1, name, "stu1", "name")
+  PRINT_HAS(stu1, age, "stu1", "age")
+
+  ::proto::SerializedMessage* sdmsg = stu1.Serialize();
+  const char* obj_data = sdmsg->GetBytes();
+  for (unsigned int i = 0; i < sdmsg->size(); i++) {
+    printf("0x%x ", obj_data[i]);
+  }
+  printf("\n");
+  ::HaiZhong::Student stu2;
+  PRINT_HAS(stu2, name, "stu2", "name")
+  PRINT_HAS(stu2, age, "stu2", "age")
+  stu2.DeSerialize(obj_data, sdmsg->size());
+  std::cout << "deleting sdmsg ..." << std::endl;
+  delete sdmsg;
+}
+
+int main() {
+  std::cout << "-------------------- Test ----------------------" << std::endl;
+  test_Serialize();
   return 0;
 }
