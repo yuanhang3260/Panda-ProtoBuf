@@ -25,7 +25,7 @@ class WireFormat {
   enum WireType {
     WIRETYPE_VARIANT            = 0,
     WIRETYPE_FIXD64             = 1,
-    WIRETYPE_LENGTH_DIMITED     = 2,
+    WIRETYPE_LENGTH_DELIMITED   = 2,
     WIRETYPE_START_GROUP        = 3,
     WIRETYPE_END_GROUP          = 4,
     WIRETYPE_FIXD32             = 5,
@@ -40,6 +40,8 @@ class WireFormat {
   static const int kTagLowByteMask = 0xf;
 
   static const char kVariantNotEndBit = 0x80;
+
+  static std::string WireTypeAsString(const WireType wire_type);
 
   static uint32 ZigZag32(int32 value);
   static uint64 ZigZag64(int64 value);

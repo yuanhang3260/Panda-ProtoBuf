@@ -15,6 +15,11 @@ namespace HaiZhong {
 
 class Student: public ::proto::Message {
  public:
+  enum Sex {
+    MALE,
+    FEMALE,
+  };
+
   // constructors and destructor //
   Student();
   ~Student();
@@ -25,8 +30,9 @@ class Student: public ::proto::Message {
   void Swap(Student* other);
 
   ::proto::Message* New() override;  // New()
-  ::proto::SerializedMessage* Serialize() const override;  // Serialize()
-  void DeSerialize(const char* buf, unsigned int size) override;  // DeSerialize()
+  // Serialize() and DeSerialize().
+  ::proto::SerializedMessage* Serialize() const override;
+  void DeSerialize(const char* buf, unsigned int size) override;
   static const Student& default_instance();
 
   // --- Field accessors --- //
@@ -46,12 +52,54 @@ class Student: public ::proto::Message {
   void set_age(unsigned int age);
   void clear_age();
 
+  // "xyz" = 3
+  bool has_xyz() const;
+  int xyz() const;
+  void set_xyz(int xyz);
+  void clear_xyz();
+
+  // "def" = 4
+  bool has_def() const;
+  unsigned long long def() const;
+  void set_def(unsigned long long def);
+  void clear_def();
+
+  // "ghi" = 5
+  bool has_ghi() const;
+  long long ghi() const;
+  void set_ghi(long long ghi);
+  void clear_ghi();
+
+  // "graduated" = 6
+  bool has_graduated() const;
+  bool graduated() const;
+  void set_graduated(bool graduated);
+  void clear_graduated();
+
+  // "weight" = 7
+  bool has_weight() const;
+  double weight() const;
+  void set_weight(double weight);
+  void clear_weight();
+
+  // "sex" = 25
+  bool has_sex() const;
+  Student::Sex sex() const;
+  void set_sex(Student::Sex sex);
+  void clear_sex();
+
  private:
   // has bits
-  char has_bits_[1];
+  char has_bits_[4];
   // message fields
   std::string name_ = "";
-  unsigned int age_;
+  unsigned int age_ = 0;
+  int xyz_ = 0;
+  unsigned long long def_ = 0;
+  long long ghi_ = 0;
+  bool graduated_ = false;
+  double weight_ = 0;
+  Student::Sex sex_ = Student::MALE;
 
   // InitAsDefaultInstance()
   void InitAsDefaultInstance() override;
@@ -74,8 +122,9 @@ class SchoolClass: public ::proto::Message {
   void Swap(SchoolClass* other);
 
   ::proto::Message* New() override;  // New()
-  ::proto::SerializedMessage* Serialize() const override;  // Serialize()
-  void DeSerialize(const char* buf, unsigned int size) override;  // DeSerialize()
+  // Serialize() and DeSerialize().
+  ::proto::SerializedMessage* Serialize() const override;
+  void DeSerialize(const char* buf, unsigned int size) override;
   static const SchoolClass& default_instance();
 
   // --- Field accessors --- //
@@ -99,7 +148,7 @@ class SchoolClass: public ::proto::Message {
   // has bits
   char has_bits_[1];
   // message fields
-  int number_;
+  int number_ = 0;
   std::string alias_ = "";
 
   // InitAsDefaultInstance()

@@ -101,7 +101,13 @@ class MessageReflection {
       Message* message,
       const ProtoParser::MessageField* field, const char* buf) const;
 
+  // Set has_bit in message for a field.
   void SetHasBit(Message* message, const uint32 tag) const;
+
+  // Check wire type matches field type
+  void CheckWireType(WireFormat::WireType wire_type,
+                     ProtoParser::FIELD_TYPE type,
+                     ProtoParser::MessageField::FIELD_MODIFIER modifier) const;
 
  private:
   std::shared_ptr<::proto::ProtoParser::Message> message_descirptor_;

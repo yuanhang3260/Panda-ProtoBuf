@@ -81,7 +81,7 @@ MessageReflection::CreateSerializedSingularMessage(
   );
   // Encdoe meta data:
   // | TagType | Payload Size | ... |
-  WireFormat::EncodeTag(field->tag(), WireFormat::WIRETYPE_LENGTH_DIMITED,
+  WireFormat::EncodeTag(field->tag(), WireFormat::WIRETYPE_LENGTH_DELIMITED,
                         nested_sdmsg->meta_data());
   WireFormat::WriteUInt32(nested_sdmsg->size(), nested_sdmsg->meta_data());
   nested_sdmsg->ReCalculateSize();
@@ -127,7 +127,7 @@ MessageReflection::CreateSerializedRepeatedMessage(
   // | TagType | List Size | Element1 |  Element2 | ... ... | Element N |
   //                           |
   //                           --> | Payload Size | ... Data ... |
-  WireFormat::EncodeTag(field->tag(), WireFormat::WIRETYPE_LENGTH_DIMITED,
+  WireFormat::EncodeTag(field->tag(), WireFormat::WIRETYPE_LENGTH_DELIMITED,
                         sdmsg->meta_data());
   WireFormat::WriteUInt32(repeated_field->size(), sdmsg->meta_data());
   sdmsg->ReCalculateSize();
@@ -232,7 +232,7 @@ MessageReflection::CreateSerializedRepeatedPrimitive(
       break;
     }
     case ProtoParser::STRING: {
-      ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_LENGTH_DIMITED,
+      ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_LENGTH_DELIMITED,
                                 std::string, String)
       break;
     }
@@ -312,6 +312,40 @@ void MessageReflection::SetHasBit(Message* message, const uint32 tag) const {
   has_bits[tag / 8] |= (0x1 << (tag % 8));
 }
 
+void MessageReflection::CheckWireType(
+    WireFormat::WireType wire_type,
+    ProtoParser::FIELD_TYPE type,
+    ProtoParser::MessageField::FIELD_MODIFIER modifier) const {
+  if (modifier == ProtoParser::MessageField::REPEATED) {
+    if (wire_type == WireFormat::WIRETYPE_LENGTH_DELIMITED) {
+      return;
+    }
+  }
+
+  if (type == ProtoParser::UINT32 || type == ProtoParser::UINT64 ||
+      type == ProtoParser::INT32  || type == ProtoParser::INT64  ||
+      type == ProtoParser::BOOL   || type == ProtoParser::ENUMTYPE) {
+    if (wire_type == WireFormat::WIRETYPE_VARIANT) {
+      return;
+    }
+  }
+  else if (type == ProtoParser::DOUBLE) {
+    if (wire_type == WireFormat::WIRETYPE_FIXD64) {
+      return;
+    }
+  }
+  else if (type == ProtoParser::STRING || type == ProtoParser::MESSAGETYPE) {
+    if (wire_type == WireFormat::WIRETYPE_LENGTH_DELIMITED) {
+      return;
+    }
+  }
+  throw std::runtime_error(
+      "WireType " + WireFormat::WireTypeAsString(wire_type) +
+      " mismatch with  " +
+      ProtoParser::MessageField::GetModifierAsString(modifier) + " "
+      " FieldType " + ProtoParser::PbCommon::GetTypeAsString(type));
+}
+
 void MessageReflection::DeSerialize(
     Message* message,
     const char* buf,
@@ -323,10 +357,17 @@ void MessageReflection::DeSerialize(
   while (offset < size) {
     WireFormat::DecodeTag(buf + offset, &tag, &wire_type, &parsed_size);
     offset += parsed_size;
-    //std::cout << "tag = " << tag << std::endl;
+    std::cout << "tag = " << tag << std::endl;
     //std::cout << "tag parsed_size = " << parsed_size << std::endl;
     const ProtoParser::MessageField* field =
         message_descirptor_->FindFieldByTag(tag);
+    if (!field) {
+      throw std::runtime_error(
+        "Message " + message_descirptor_->name() +
+        " has no field with tag " + std::to_string(tag));
+    }
+
+    CheckWireType(wire_type, field->type(), field->modifier());
 
     switch (field->type()) {
       case ProtoParser::UINT32: {
@@ -368,6 +409,10 @@ void MessageReflection::DeSerialize(
                   " is not primitive");
         break;
     }
+  }
+  if (offset != size) {
+    throw std::runtime_error(
+        "parsed size exceeds for message " + message_descirptor_->name());
   }
 }
 

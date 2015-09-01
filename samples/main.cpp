@@ -93,27 +93,39 @@ void test_Serialize() {
   std::cout << __FUNCTION__ << "() ..." << std::endl;
 
   ::HaiZhong::Student stu1;
-  PRINT_HAS(stu1, name, "stu1", "name")
-  PRINT_HAS(stu1, age, "stu1", "age")
   stu1.set_name("hy");
   stu1.set_age(24);
-  PRINT_HAS(stu1, name, "stu1", "name")
-  PRINT_HAS(stu1, age, "stu1", "age")
+  stu1.set_xyz(-3);
+  stu1.set_def(17375839784);
+  stu1.set_ghi(-73159748968);
+  stu1.set_graduated(true);
+  stu1.set_weight(70.5);
+  stu1.set_sex(::HaiZhong::Student::FEMALE);
 
   ::proto::SerializedMessage* sdmsg = stu1.Serialize();
   const char* obj_data = sdmsg->GetBytes();
   for (unsigned int i = 0; i < sdmsg->size(); i++) {
-    printf("0x%x ", obj_data[i]);
+    printf("0x%x ", obj_data[i] & 0xff);
   }
   printf("\n");
   ::HaiZhong::Student stu2;
-  PRINT_HAS(stu2, name, "stu2", "name")
-  PRINT_HAS(stu2, age, "stu2", "age")
   stu2.DeSerialize(obj_data, sdmsg->size());
-  std::cout << "stu2 name = " << stu2.name() << std::endl;
-  std::cout << "stu2 age = " << stu2.age() << std::endl;
+  std::cout << "stu2.name() = " << stu2.name() << std::endl;
+  std::cout << "stu2.age() = " << stu2.age() << std::endl;
+  std::cout << "stu2.xyz() = " << stu2.xyz() << std::endl;
+  std::cout << "stu2.def() = " << stu2.def() << std::endl;
+  std::cout << "stu2.ghi() = " << stu2.ghi() << std::endl;
+  std::cout << "stu2.graduated() = " << stu2.graduated() << std::endl;
+  std::cout << "stu2.weight() = " << stu2.weight() << std::endl;
+  std::cout << "stu2.sex() = " << stu2.sex() << std::endl;
   PRINT_HAS(stu2, name, "stu2", "name")
   PRINT_HAS(stu2, age, "stu2", "age")
+  PRINT_HAS(stu2, xyz, "stu2", "xyz")
+  PRINT_HAS(stu2, def, "stu2", "deg")
+  PRINT_HAS(stu2, ghi, "stu2", "ghi")
+  PRINT_HAS(stu2, graduated, "stu2", "graduated")
+  PRINT_HAS(stu2, weight, "stu2", "weight")
+  PRINT_HAS(stu2, sex, "stu2", "sex")
   std::cout << "deleting sdmsg ..." << std::endl;
   delete sdmsg;
 }

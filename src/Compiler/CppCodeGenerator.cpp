@@ -139,10 +139,11 @@ void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
       "  ::proto::Message* New() override;  // New()\n",
       msg_match);
   printer.Print(
-      "  ::proto::SerializedMessage* Serialize() const override;  // Serialize()\n",
+      "  // Serialize() and DeSerialize().\n"
+      "  ::proto::SerializedMessage* Serialize() const override;\n",
       msg_match);
   printer.Print(
-      "  void DeSerialize(const char* buf, unsigned int size) override;  // DeSerialize()\n",
+      "  void DeSerialize(const char* buf, unsigned int size) override;\n",
       msg_match);
   printer.Print("  static const ${msg_name}& default_instance();\n\n",
                 msg_match);
@@ -177,9 +178,7 @@ void CppCodeGenerator::DeclarePrivateFields(Message* message) {
     }
     printer.Print(declearation_line, matches);
     // add default value if exists.
-    if (field->has_user_default_value()) {
-      printer.Print(" = ${default_value}", matches);
-    }
+    printer.Print(" = ${default_value}", matches);
     printer.Print(";\n");
   }
 

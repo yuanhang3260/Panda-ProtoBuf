@@ -1,12 +1,28 @@
 #include <iostream>
 #include <exception>
 
+#include <map>
 #include "WireFormat.h"
 
 namespace proto {
 
+std::map<WireFormat::WireType, std::string> wire_type_str_map_ {
+  {WireFormat::WIRETYPE_VARIANT, "Variant"},
+  {WireFormat::WIRETYPE_FIXD64, "Fixed-64"},
+  {WireFormat::WIRETYPE_LENGTH_DELIMITED, "Length-Dilimited"},
+};
+
 DecodeException::DecodeException(const std::string& message) :
   message_(message) {}
+
+std::string WireFormat::WireTypeAsString(const WireType wire_type) {
+  if (wire_type_str_map_.find(wire_type) != wire_type_str_map_.end()) {
+    return wire_type_str_map_[wire_type];
+  }
+  else {
+    return "Unknown-Wire-Type";
+  }
+}
 
 void WireFormat::WriteVariant32(uint32 value,
                                 Utility::StringBuilder* outstream) {
@@ -16,14 +32,14 @@ void WireFormat::WriteVariant32(uint32 value,
 
 void WireFormat::WriteVariant64(uint64 value,
                                 Utility::StringBuilder* outstream) {
-  while (value > 0) {
+   do {
     char b = static_cast<char>(value & kTagByteMask);
     value = value >> kTagByteSize;
     if (value > 0) {
       b |= kVariantNotEndBit;
     }
     outstream->Append(b);
-  }
+  } while (value > 0);
 }
 
 void WireFormat::WriteFixed64(uint64 value,
@@ -94,7 +110,7 @@ void WireFormat::EncodeSInt64(const uint32 tag, const int64 value,
 void WireFormat::EncodeDouble(const uint32 tag, const double value,
                               Utility::StringBuilder* outstream) {
   EncodeTag(tag, WIRETYPE_FIXD64, outstream);
-  WriteFixed64(RawCastDoubleToUint64(value), outstream);
+  WriteVariant64(RawCastDoubleToUint64(value), outstream);
 }
 
 void WireFormat::EncodeBool(const uint32 tag, const bool value,
@@ -105,7 +121,7 @@ void WireFormat::EncodeBool(const uint32 tag, const bool value,
 
 void WireFormat::EncodeString(const uint32 tag, const std::string& str,
                               Utility::StringBuilder* outstream) {
-  EncodeTag(tag, WIRETYPE_LENGTH_DIMITED, outstream);
+  EncodeTag(tag, WIRETYPE_LENGTH_DELIMITED, outstream);
   WriteVariant32(str.length(), outstream);
   for (uint32 i = 0; i < str.length(); i++) {
     outstream->Append(str[i]);
@@ -141,20 +157,19 @@ uint32 WireFormat::DecodeUInt32(const char* buf, uint32* size) {
 
 uint64 WireFormat::DecodeUInt64(const char* buf, uint32* size) {
   uint64 result = 0;
-  int index = 0, offset = 0, cnt = 0;
+  int index = 0, offset = 0;
   while (1) {
     char c = buf[index++];
-    result |= ((c & kTagByteMask) << offset);
+    result |= ((static_cast<uint64>(c & kTagByteMask)) << offset);
     offset += kTagByteSize;
     if ((c & (~kTagByteMask)) == 0) {
       break;
     }
-    cnt++;
-    if (cnt > 9) {
+    if (index > 9) {
       throw DecodeException("too long encoded unsigned 64");
     }
   }
-  *size = cnt + 1;
+  *size = index;
   return result;
 }
 
@@ -170,6 +185,7 @@ int64 WireFormat::DecodeSInt64(const char* buf, uint32* size) {
 
 double WireFormat::DecodeDouble(const char* buf, uint32* size) {
   uint64 raw_uint64 = DecodeUInt64(buf, size);
+  //*size = 8;
   return RawCastUint64ToDouble(raw_uint64);
 }
 

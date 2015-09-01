@@ -42,9 +42,15 @@ void static_init_samples_simple() {
 
   int i = 0;
   // static init for class Student
-  static const int Student_offsets_[2] = {
+  static const int Student_offsets_[8] = {
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, name_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, age_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, xyz_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, def_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, ghi_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, graduated_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, weight_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, sex_),
   };
   i = 0;
   for (auto& field: parser.mutable_messages_list()[0]->mutable_fields_list()) {
@@ -102,6 +108,12 @@ Student::Student() {
 Student::Student(const Student& other) {
   name_ = other.name();
   age_ = other.age();
+  xyz_ = other.xyz();
+  def_ = other.def();
+  ghi_ = other.ghi();
+  graduated_ = other.graduated();
+  weight_ = other.weight();
+  sex_ = other.sex();
 }
 
 // move constructor
@@ -109,12 +121,30 @@ Student::Student(Student&& other) {
   name_ = std::move(other.mutable_name());
   age_ = other.age();
   other.clear_age();
+  xyz_ = other.xyz();
+  other.clear_xyz();
+  def_ = other.def();
+  other.clear_def();
+  ghi_ = other.ghi();
+  other.clear_ghi();
+  graduated_ = other.graduated();
+  other.clear_graduated();
+  weight_ = other.weight();
+  other.clear_weight();
+  sex_ = other.sex();
+  other.clear_sex();
 }
 
 // copy assignment
 Student& Student::operator=(const Student& other) {
   name_ = other.name();
   age_ = other.age();
+  xyz_ = other.xyz();
+  def_ = other.def();
+  ghi_ = other.ghi();
+  graduated_ = other.graduated();
+  weight_ = other.weight();
+  sex_ = other.sex();
   return *this;
 }
 
@@ -123,6 +153,18 @@ Student& Student::operator=(Student&& other) {
   name_ = std::move(other.mutable_name());
   age_ = other.age();
   other.clear_age();
+  xyz_ = other.xyz();
+  other.clear_xyz();
+  def_ = other.def();
+  other.clear_def();
+  ghi_ = other.ghi();
+  other.clear_ghi();
+  graduated_ = other.graduated();
+  other.clear_graduated();
+  weight_ = other.weight();
+  other.clear_weight();
+  sex_ = other.sex();
+  other.clear_sex();
   return *this;
 }
 
@@ -154,6 +196,30 @@ void Student::Swap(Student* other) {
   unsigned int age_tmp__ = other->age();
   other->set_age(age_);
   set_age(age_tmp__);
+
+  int xyz_tmp__ = other->xyz();
+  other->set_xyz(xyz_);
+  set_xyz(xyz_tmp__);
+
+  unsigned long long def_tmp__ = other->def();
+  other->set_def(def_);
+  set_def(def_tmp__);
+
+  long long ghi_tmp__ = other->ghi();
+  other->set_ghi(ghi_);
+  set_ghi(ghi_tmp__);
+
+  bool graduated_tmp__ = other->graduated();
+  other->set_graduated(graduated_);
+  set_graduated(graduated_tmp__);
+
+  double weight_tmp__ = other->weight();
+  other->set_weight(weight_);
+  set_weight(weight_tmp__);
+
+  Student::Sex sex_tmp__ = other->sex();
+  other->set_sex(sex_);
+  set_sex(sex_tmp__);
 }
 
 // default_instance()
@@ -220,6 +286,120 @@ void Student::set_age(unsigned int age) {
 void Student::clear_age() {
   age_ = 0;
   has_bits_[0] &= (~0x4);
+}
+
+// "xyz" = 3
+bool Student::has_xyz() const {
+  return (has_bits_[0] & 0x8) != 0;
+}
+
+int Student::xyz() const {
+  return xyz_;
+}
+
+void Student::set_xyz(int xyz) {
+  xyz_ = xyz;
+  has_bits_[0] |= 0x8;
+}
+
+void Student::clear_xyz() {
+  xyz_ = 0;
+  has_bits_[0] &= (~0x8);
+}
+
+// "def" = 4
+bool Student::has_def() const {
+  return (has_bits_[0] & 0x10) != 0;
+}
+
+unsigned long long Student::def() const {
+  return def_;
+}
+
+void Student::set_def(unsigned long long def) {
+  def_ = def;
+  has_bits_[0] |= 0x10;
+}
+
+void Student::clear_def() {
+  def_ = 0;
+  has_bits_[0] &= (~0x10);
+}
+
+// "ghi" = 5
+bool Student::has_ghi() const {
+  return (has_bits_[0] & 0x20) != 0;
+}
+
+long long Student::ghi() const {
+  return ghi_;
+}
+
+void Student::set_ghi(long long ghi) {
+  ghi_ = ghi;
+  has_bits_[0] |= 0x20;
+}
+
+void Student::clear_ghi() {
+  ghi_ = 0;
+  has_bits_[0] &= (~0x20);
+}
+
+// "graduated" = 6
+bool Student::has_graduated() const {
+  return (has_bits_[0] & 0x40) != 0;
+}
+
+bool Student::graduated() const {
+  return graduated_;
+}
+
+void Student::set_graduated(bool graduated) {
+  graduated_ = graduated;
+  has_bits_[0] |= 0x40;
+}
+
+void Student::clear_graduated() {
+  graduated_ = false;
+  has_bits_[0] &= (~0x40);
+}
+
+// "weight" = 7
+bool Student::has_weight() const {
+  return (has_bits_[0] & 0x80) != 0;
+}
+
+double Student::weight() const {
+  return weight_;
+}
+
+void Student::set_weight(double weight) {
+  weight_ = weight;
+  has_bits_[0] |= 0x80;
+}
+
+void Student::clear_weight() {
+  weight_ = 0;
+  has_bits_[0] &= (~0x80);
+}
+
+// "sex" = 25
+bool Student::has_sex() const {
+  return (has_bits_[3] & 0x2) != 0;
+}
+
+Student::Sex Student::sex() const {
+  return sex_;
+}
+
+void Student::set_sex(Student::Sex sex) {
+  sex_ = sex;
+  has_bits_[3] |= 0x2;
+}
+
+void Student::clear_sex() {
+  sex_ = Student::MALE;
+  has_bits_[3] &= (~0x2);
 }
 
 // -------------------- SchoolClass --------------------- //
