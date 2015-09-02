@@ -16,8 +16,8 @@ namespace HaiZhong {
 class Pet: public ::proto::Message {
  public:
   enum PetType {
-    DOG,
     PANDA,
+    DOG,
   };
 
   // constructors and destructor //
@@ -29,7 +29,7 @@ class Pet: public ::proto::Message {
   Pet& operator=(Pet&& other);  // move assignment
   void Swap(Pet* other);
 
-  ::proto::Message* New() override;  // New()
+  ::proto::Message* New() const override;  // New()
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -57,7 +57,7 @@ class Pet: public ::proto::Message {
   char has_bits_[1];
   // message fields
   std::string name_ = "";
-  Pet::PetType type_ = Pet::DOG;
+  Pet::PetType type_ = Pet::PANDA;
 
   // InitAsDefaultInstance()
   void InitAsDefaultInstance() override;
@@ -84,7 +84,7 @@ class Student: public ::proto::Message {
   Student& operator=(Student&& other);  // move assignment
   void Swap(Student* other);
 
-  ::proto::Message* New() override;  // New()
+  ::proto::Message* New() const override;  // New()
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -211,7 +211,7 @@ class SchoolClass: public ::proto::Message {
   SchoolClass& operator=(SchoolClass&& other);  // move assignment
   void Swap(SchoolClass* other);
 
-  ::proto::Message* New() override;  // New()
+  ::proto::Message* New() const override;  // New()
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;

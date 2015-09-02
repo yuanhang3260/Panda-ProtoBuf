@@ -24,7 +24,7 @@ class FamilyInfo: public ::proto::Message {
   FamilyInfo& operator=(FamilyInfo&& other);  // move assignment
   void Swap(FamilyInfo* other);
 
-  ::proto::Message* New() override;  // New()
+  ::proto::Message* New() const override;  // New()
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -81,7 +81,7 @@ class DogInfo: public ::proto::Message {
   DogInfo& operator=(DogInfo&& other);  // move assignment
   void Swap(DogInfo* other);
 
-  ::proto::Message* New() override;  // New()
+  ::proto::Message* New() const override;  // New()
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -158,7 +158,7 @@ class DogInfo: public ::proto::Message {
   // has bits
   char has_bits_[4];
   // message fields
-  int age_;
+  int age_ = 0;
   std::string name_ = "";
   ::proto::RepeatedField<DogInfo::Sex> sex_;
   ::proto::RepeatedField<double> weights_;

@@ -132,7 +132,7 @@ FamilyInfo& FamilyInfo::operator=(FamilyInfo&& other) {
 }
 
 // New()
-::proto::Message* FamilyInfo::New() {
+::proto::Message* FamilyInfo::New() const {
   return reinterpret_cast<::proto::Message*>(new FamilyInfo());
 }
 
@@ -307,7 +307,7 @@ DogInfo& DogInfo::operator=(DogInfo&& other) {
 }
 
 // New()
-::proto::Message* DogInfo::New() {
+::proto::Message* DogInfo::New() const {
   return reinterpret_cast<::proto::Message*>(new DogInfo());
 }
 

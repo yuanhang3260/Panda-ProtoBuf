@@ -4,8 +4,8 @@ package HaiZhong;
 
 message Pet {
 	enum PetType {
-		DOG,
 		PANDA,
+		DOG,
 	}
 	optional string name = 1;
 	optional PetType type = 2;

@@ -97,7 +97,7 @@ void test_Serialize() {
   stu1.set_age(24);
   stu1.set_xyz(-3);
   stu1.set_def(17375839784);
-  stu1.set_ghi(-73159748968);
+  stu1.set_ghi(-53159748968);
   stu1.set_graduated(true);
   stu1.set_weight(70.5);
   stu1.set_sex(::HaiZhong::Student::FEMALE);
@@ -106,6 +106,10 @@ void test_Serialize() {
   stu1.add_scores(30);
   stu1.add_alias("chicken");
   stu1.add_alias("xiaoji");
+  ::HaiZhong::Pet* pet = new ::HaiZhong::Pet();
+  pet->set_name("snoopy");
+  pet->set_type(::HaiZhong::Pet::DOG);
+  stu1.set_allocated_pet(pet);
 
   ::proto::SerializedMessage* sdmsg = stu1.Serialize();
   const char* obj_data = sdmsg->GetBytes();
@@ -113,8 +117,19 @@ void test_Serialize() {
     printf("0x%x ", obj_data[i] & 0xff);
   }
   printf("\n");
+  
   ::HaiZhong::Student stu2;
   stu2.DeSerialize(obj_data, sdmsg->size());
+  
+  PRINT_HAS(stu2, name, "stu2", "name")
+  PRINT_HAS(stu2, age, "stu2", "age")
+  PRINT_HAS(stu2, xyz, "stu2", "xyz")
+  PRINT_HAS(stu2, def, "stu2", "deg")
+  PRINT_HAS(stu2, ghi, "stu2", "ghi")
+  PRINT_HAS(stu2, graduated, "stu2", "graduated")
+  PRINT_HAS(stu2, weight, "stu2", "weight")
+  PRINT_HAS(stu2, sex, "stu2", "sex")
+  PRINT_HAS(stu2, pet, "stu2", "pet")
   std::cout << "stu2.name() = " << stu2.name() << std::endl;
   std::cout << "stu2.age() = " << stu2.age() << std::endl;
   std::cout << "stu2.xyz() = " << stu2.xyz() << std::endl;
@@ -133,14 +148,9 @@ void test_Serialize() {
     std::cout << alias << " ";
   }
   std::cout << "]" << std::endl;
-  PRINT_HAS(stu2, name, "stu2", "name")
-  PRINT_HAS(stu2, age, "stu2", "age")
-  PRINT_HAS(stu2, xyz, "stu2", "xyz")
-  PRINT_HAS(stu2, def, "stu2", "deg")
-  PRINT_HAS(stu2, ghi, "stu2", "ghi")
-  PRINT_HAS(stu2, graduated, "stu2", "graduated")
-  PRINT_HAS(stu2, weight, "stu2", "weight")
-  PRINT_HAS(stu2, sex, "stu2", "sex")
+  std::cout << "stu2.pet.name = " << stu2.pet().name() << std::endl;
+  std::cout << "stu2.pet.type = " << stu2.pet().type() << std::endl;
+  
   std::cout << "deleting sdmsg ..." << std::endl;
   delete sdmsg;
 }

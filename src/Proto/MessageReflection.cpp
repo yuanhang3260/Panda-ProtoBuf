@@ -71,18 +71,19 @@ MessageReflection::CreateSerializedSingularMessage(
     const ProtoParser::MessageField* field)  const {
   // Serialize a singular nested message
   std::cout << "serializing singular nested message: "
-            << field->name() << std::endl;
+            << field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP)
+            << std::endl;
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(
-          message_descirptor_->FullNameWithPackagePrefix(ProtoParser::CPP));
+          field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP));
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        message_descirptor_->FullNameWithPackagePrefix(ProtoParser::CPP) +
+        field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP) +
         " exists.");
   }
   SerializedMessage* nested_sdmsg = nested_msg_reflection->Serialize(
-    reinterpret_cast<const Message*>(
+    *reinterpret_cast<Message* const*>(
       (reinterpret_cast<const char*>(message) + field->field_offset())
     )
   );
@@ -106,11 +107,11 @@ MessageReflection::CreateSerializedRepeatedMessage(
   // get reflection
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(
-          message_descirptor_->FullNameWithPackagePrefix(ProtoParser::CPP));
+          field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP));
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        message_descirptor_->FullNameWithPackagePrefix(ProtoParser::CPP) +
+        field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP) +
         " exists.");
   }
   // Get RepeatedMessagePtr
@@ -406,6 +407,7 @@ void MessageReflection::DeSerialize(
   std::cout << "DeSerialize Size = " << size << std::endl;
   while (offset < size) {
     WireFormat::DecodeTag(buf + offset, &tag, &wire_type, &parsed_size);
+    //std::cout << "parsed tag size = " << parsed_size << std::endl;
     offset += parsed_size;
     std::cout << "tag = " << tag << std::endl;
     //std::cout << "tag parsed_size = " << parsed_size << std::endl;
@@ -421,7 +423,8 @@ void MessageReflection::DeSerialize(
 
     if (field->IsMessageType()) {
       if (field->IsSingularType()) {
-        offset += DeSerializeSingularMessage(message, field, buf + offset);
+        offset += DeSerializeSingularMessage(message, field,
+                                             buf + offset);
       }
       else {
 
@@ -447,6 +450,7 @@ uint32 MessageReflection::DeSerializeSingularMessage(
     Message* message,
     const ProtoParser::MessageField* field,
     const char* buf) const {
+  std::cout << "DeSerializing singular message " << std::endl;
   uint32 offset = 0;
   uint32 obj_size = WireFormat::DecodeUInt32(buf, &offset);
   std::string class_name = 
@@ -456,14 +460,15 @@ uint32 MessageReflection::DeSerializeSingularMessage(
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        message_descirptor_->FullNameWithPackagePrefix(ProtoParser::CPP) +
+        field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP) +
         " exists.");
   }
   Message* new_obj = nested_msg_reflection->defatult_instance()->New();
-  nested_msg_reflection->DeSerialize(new_obj, buf, obj_size);
+  nested_msg_reflection->DeSerialize(new_obj, buf + offset, obj_size);
   char* field_addr = reinterpret_cast<char*>(message) + field->field_offset();
-  *reinterpret_cast<void**>(field_addr) = new_obj;
-  return obj_size;
+  *reinterpret_cast<Message**>(field_addr) = new_obj;
+  SetHasBit(message, field->tag());
+  return offset + obj_size;
 }
 
 
@@ -472,6 +477,7 @@ uint32 MessageReflection::DeSerializeSingularPrimitive(
     const ProtoParser::MessageField* field,
     const char* buf) const {
   int offset = 0;
+  std::cout << "DeSerializing singular primitive " << std::endl;
   switch (field->type()) {
     case ProtoParser::UINT32: {
       offset = SetUInt32(message, field, buf);
@@ -519,6 +525,7 @@ uint32 MessageReflection::DeSerializeRepeatedPrimitive(
     Message* message,
     const ProtoParser::MessageField* field,
     const char* buf) const {
+  std::cout << "DeSerializing repeated primitive " << std::endl;
   uint32 offset = 0;
   uint32 list_size = WireFormat::DecodeUInt32(buf, &offset);
   switch (field->type()) {

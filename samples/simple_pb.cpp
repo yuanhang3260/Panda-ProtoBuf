@@ -160,7 +160,7 @@ Pet& Pet::operator=(Pet&& other) {
 }
 
 // New()
-::proto::Message* Pet::New() {
+::proto::Message* Pet::New() const {
   return reinterpret_cast<::proto::Message*>(new Pet());
 }
 
@@ -251,7 +251,7 @@ void Pet::set_type(Pet::PetType type) {
 }
 
 void Pet::clear_type() {
-  type_ = Pet::DOG;
+  type_ = Pet::PANDA;
   has_bits_[0] &= (~0x4);
 }
 
@@ -357,7 +357,7 @@ Student& Student::operator=(Student&& other) {
 }
 
 // New()
-::proto::Message* Student::New() {
+::proto::Message* Student::New() const {
   return reinterpret_cast<::proto::Message*>(new Student());
 }
 
@@ -785,7 +785,7 @@ SchoolClass& SchoolClass::operator=(SchoolClass&& other) {
 }
 
 // New()
-::proto::Message* SchoolClass::New() {
+::proto::Message* SchoolClass::New() const {
   return reinterpret_cast<::proto::Message*>(new SchoolClass());
 }
 
