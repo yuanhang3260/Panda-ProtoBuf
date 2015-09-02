@@ -66,7 +66,7 @@ void static_init_samples_simple() {
   ::proto::MessageFactory::RegisterGeneratedMessage(Pet_reflection_);
 
   // static init for class Student
-  static const int Student_offsets_[11] = {
+  static const int Student_offsets_[13] = {
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, name_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, age_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, xyz_),
@@ -74,9 +74,11 @@ void static_init_samples_simple() {
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, ghi_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, graduated_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, weight_),
-    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, pet_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, pets_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, scores_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, first_pet_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, alias_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, partner_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, sex_),
   };
   i = 0;
@@ -251,7 +253,7 @@ void Pet::set_type(Pet::PetType type) {
 }
 
 void Pet::clear_type() {
-  type_ = Pet::PANDA;
+  type_ = Pet::DOG;
   has_bits_[0] &= (~0x4);
 }
 
@@ -273,14 +275,21 @@ Student::Student(const Student& other) {
   ghi_ = other.ghi();
   graduated_ = other.graduated();
   weight_ = other.weight();
-  if (!pet_) {
-    pet_ = new Pet();
+  for (const Pet* p: other.pets().GetElements()) {
+    pets_.AddAllocated(new Pet(*p));
   }
-  *pet_ = other.pet();
   scores_ = other.scores();
+  if (!first_pet_) {
+    first_pet_ = new Pet();
+  }
+  *first_pet_ = other.first_pet();
   for (const std::string* p: other.alias().GetElements()) {
     alias_.AddAllocated(new std::string(*p));
   }
+  if (!partner_) {
+    partner_ = new Student();
+  }
+  *partner_ = other.partner();
   sex_ = other.sex();
 }
 
@@ -299,12 +308,17 @@ Student::Student(Student&& other) {
   other.clear_graduated();
   weight_ = other.weight();
   other.clear_weight();
-  if (pet_ ) {
-    delete pet_;
-  }
-  pet_ = other.release_pet();
+  pets_ = std::move(other.mutable_pets());
   scores_ = std::move(other.mutable_scores());
+  if (first_pet_ ) {
+    delete first_pet_;
+  }
+  first_pet_ = other.release_first_pet();
   alias_ = std::move(other.mutable_alias());
+  if (partner_ ) {
+    delete partner_;
+  }
+  partner_ = other.release_partner();
   sex_ = other.sex();
   other.clear_sex();
 }
@@ -318,14 +332,21 @@ Student& Student::operator=(const Student& other) {
   ghi_ = other.ghi();
   graduated_ = other.graduated();
   weight_ = other.weight();
-  if (!pet_) {
-    pet_ = new Pet();
+  for (const Pet* p: other.pets().GetElements()) {
+    pets_.AddAllocated(new Pet(*p));
   }
-  *pet_ = other.pet();
   scores_ = other.scores();
+  if (!first_pet_) {
+    first_pet_ = new Pet();
+  }
+  *first_pet_ = other.first_pet();
   for (const std::string* p: other.alias().GetElements()) {
     alias_.AddAllocated(new std::string(*p));
   }
+  if (!partner_) {
+    partner_ = new Student();
+  }
+  *partner_ = other.partner();
   sex_ = other.sex();
   return *this;
 }
@@ -345,12 +366,17 @@ Student& Student::operator=(Student&& other) {
   other.clear_graduated();
   weight_ = other.weight();
   other.clear_weight();
-  if (pet_ ) {
-    delete pet_;
-  }
-  pet_ = other.release_pet();
+  pets_ = std::move(other.mutable_pets());
   scores_ = std::move(other.mutable_scores());
+  if (first_pet_ ) {
+    delete first_pet_;
+  }
+  first_pet_ = other.release_first_pet();
   alias_ = std::move(other.mutable_alias());
+  if (partner_ ) {
+    delete partner_;
+  }
+  partner_ = other.release_partner();
   sex_ = other.sex();
   other.clear_sex();
   return *this;
@@ -373,7 +399,8 @@ void Student::DeSerialize(const char* buf, unsigned int size) {
 
 // InitAsDefaultInstance()
 void Student::InitAsDefaultInstance() {
-  pet_ = const_cast<Pet*>(&Pet::default_instance());
+  first_pet_ = const_cast<Pet*>(&Pet::default_instance());
+  partner_ = const_cast<Student*>(&Student::default_instance());
 }
 
 // swapper
@@ -406,17 +433,25 @@ void Student::Swap(Student* other) {
   other->set_weight(weight_);
   set_weight(weight_tmp__);
 
-  Pet* pet_tmp__ = other->release_pet();
-  other->set_allocated_pet(this->release_pet());
-  set_allocated_pet(pet_tmp__);
+  ::proto::RepeatedPtrField<Pet> pets_tmp__ = std::move(other->mutable_pets());
+  other->mutable_pets() = std::move(pets_);
+  pets_ = std::move(pets_tmp__);
 
   ::proto::RepeatedField<int> scores_tmp__ = std::move(other->mutable_scores());
   other->mutable_scores() = std::move(scores_);
   scores_ = std::move(scores_tmp__);
 
+  Pet* first_pet_tmp__ = other->release_first_pet();
+  other->set_allocated_first_pet(this->release_first_pet());
+  set_allocated_first_pet(first_pet_tmp__);
+
   ::proto::RepeatedPtrField<std::string> alias_tmp__ = std::move(other->mutable_alias());
   other->mutable_alias() = std::move(alias_);
   alias_ = std::move(alias_tmp__);
+
+  Student* partner_tmp__ = other->release_partner();
+  other->set_allocated_partner(this->release_partner());
+  set_allocated_partner(partner_tmp__);
 
   Student::Sex sex_tmp__ = other->sex();
   other->set_sex(sex_);
@@ -435,7 +470,8 @@ Student* Student::default_instance_ = NULL;
 
 // destructor
 Student::~Student() {
-  delete pet_;
+  delete first_pet_;
+  delete partner_;
 }
 
 // "name" = 1
@@ -585,57 +621,33 @@ void Student::clear_weight() {
   has_bits_[0] &= (~0x80);
 }
 
-// "pet" = 9
-bool Student::has_pet() const {
-  return (has_bits_[1] & 0x2) != 0;
+// "pets" = 9
+int Student::pets_size() const {
+  return pets_.size();
 }
 
-const Pet& Student::pet() const {
-  if (has_pet() && pet_) {
-    return *pet_;
-  }
-  else {
-    return Pet::default_instance();
-  }
+const Pet& Student::pets(int index) {
+  return pets_.Get(index);
 }
 
-Pet* Student::mutable_pet() {
-  if (has_pet() && pet_) {
-    return pet_;
-  }
-  else {
-    pet_ = new Pet();
-    has_bits_[1] |= 0x2;
-    return pet_;
-  }
+Pet* Student::add_pets() {
+  return pets_.Add();
 }
 
-void Student::set_allocated_pet(Pet* pet) {
-  if (pet_) {
-    delete pet_;
-  }
-  pet_ = pet;
-  if (pet_) {
-    has_bits_[1] |= 0x2;
-  }
-  else {
-    has_bits_[1] &= (~0x2);
-  }
+Pet* Student::mutable_pets(int index) {
+  return pets_.GetMutable(index);
 }
 
-Pet* Student::release_pet() {
-  Pet* pet_tmp__ = pet_;
-  pet_ = nullptr;
-  has_bits_[1] &= (~0x2);
-  return pet_tmp__;
+void Student::clear_pets() {
+  pets_.Clear();
 }
 
-void Student::clear_pet() {
-  if (pet_) {
-    delete pet_;
-  }
-  pet_ = nullptr;
-  has_bits_[1] &= (~0x2);
+const ::proto::RepeatedPtrField<Pet>& Student::pets() const {
+  return pets_;
+}
+
+::proto::RepeatedPtrField<Pet>& Student::mutable_pets() {
+  return pets_;
 }
 
 // "scores" = 11
@@ -667,6 +679,59 @@ const ::proto::RepeatedField<int>& Student::scores() const {
 
 ::proto::RepeatedField<int>& Student::mutable_scores() {
   return scores_;
+}
+
+// "first_pet" = 12
+bool Student::has_first_pet() const {
+  return (has_bits_[1] & 0x10) != 0;
+}
+
+const Pet& Student::first_pet() const {
+  if (has_first_pet() && first_pet_) {
+    return *first_pet_;
+  }
+  else {
+    return Pet::default_instance();
+  }
+}
+
+Pet* Student::mutable_first_pet() {
+  if (has_first_pet() && first_pet_) {
+    return first_pet_;
+  }
+  else {
+    first_pet_ = new Pet();
+    has_bits_[1] |= 0x10;
+    return first_pet_;
+  }
+}
+
+void Student::set_allocated_first_pet(Pet* first_pet) {
+  if (first_pet_) {
+    delete first_pet_;
+  }
+  first_pet_ = first_pet;
+  if (first_pet_) {
+    has_bits_[1] |= 0x10;
+  }
+  else {
+    has_bits_[1] &= (~0x10);
+  }
+}
+
+Pet* Student::release_first_pet() {
+  Pet* first_pet_tmp__ = first_pet_;
+  first_pet_ = nullptr;
+  has_bits_[1] &= (~0x10);
+  return first_pet_tmp__;
+}
+
+void Student::clear_first_pet() {
+  if (first_pet_) {
+    delete first_pet_;
+  }
+  first_pet_ = nullptr;
+  has_bits_[1] &= (~0x10);
 }
 
 // "alias" = 15
@@ -726,6 +791,59 @@ const ::proto::RepeatedPtrField<std::string>& Student::alias() const {
 
 ::proto::RepeatedPtrField<std::string>& Student::mutable_alias() {
   return alias_;
+}
+
+// "partner" = 18
+bool Student::has_partner() const {
+  return (has_bits_[2] & 0x4) != 0;
+}
+
+const Student& Student::partner() const {
+  if (has_partner() && partner_) {
+    return *partner_;
+  }
+  else {
+    return Student::default_instance();
+  }
+}
+
+Student* Student::mutable_partner() {
+  if (has_partner() && partner_) {
+    return partner_;
+  }
+  else {
+    partner_ = new Student();
+    has_bits_[2] |= 0x4;
+    return partner_;
+  }
+}
+
+void Student::set_allocated_partner(Student* partner) {
+  if (partner_) {
+    delete partner_;
+  }
+  partner_ = partner;
+  if (partner_) {
+    has_bits_[2] |= 0x4;
+  }
+  else {
+    has_bits_[2] &= (~0x4);
+  }
+}
+
+Student* Student::release_partner() {
+  Student* partner_tmp__ = partner_;
+  partner_ = nullptr;
+  has_bits_[2] &= (~0x4);
+  return partner_tmp__;
+}
+
+void Student::clear_partner() {
+  if (partner_) {
+    delete partner_;
+  }
+  partner_ = nullptr;
+  has_bits_[2] &= (~0x4);
 }
 
 // "sex" = 25

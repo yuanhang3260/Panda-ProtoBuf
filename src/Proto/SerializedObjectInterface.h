@@ -7,7 +7,7 @@ class SerializedObjectInterface {
  public:
   SerializedObjectInterface() {}
   virtual ~SerializedObjectInterface() {
-    std::cout << "deleting SerializedObjectInterface" << std::endl;
+    //std::cout << "deleting SerializedObjectInterface" << std::endl;
     if (flat_buf_) {
       delete flat_buf_;
     }

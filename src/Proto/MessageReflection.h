@@ -82,6 +82,12 @@ class MessageReflection {
     const ProtoParser::MessageField* field,
     const char* buf) const;
 
+  // Deserialize a repeated message field.
+  uint32 DeSerializeRepeatedMessage(
+    Message* message,
+    const ProtoParser::MessageField* field,
+    const char* buf) const;
+
 
   // Get mutable raw field ptr from message.
   template <typename T>
@@ -168,6 +174,8 @@ class MessageReflection {
   void CheckWireType(WireFormat::WireType wire_type,
                      ProtoParser::FIELD_TYPE type,
                      ProtoParser::MessageField::FIELD_MODIFIER modifier) const;
+
+  //std::string indent() const;
 
  private:
   std::shared_ptr<::proto::ProtoParser::Message> message_descirptor_;

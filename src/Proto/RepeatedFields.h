@@ -28,6 +28,14 @@ class RepeatedFieldBase {
   virtual const char* GetElementPtr(const unsigned int index) const = 0;
 };
 
+class RepeatedPtrFieldBase : RepeatedFieldBase {
+ public:
+  RepeatedPtrFieldBase() = default;
+  virtual ~RepeatedPtrFieldBase() {}
+
+  virtual void Add_Allocated_Raw(void* p) = 0;
+};
+
 // ----------------------------- RepeatedField ------------------------------ //
 template <typename T>
 class RepeatedField: public RepeatedFieldBase {
@@ -79,7 +87,7 @@ class RepeatedField: public RepeatedFieldBase {
 template <typename T, bool is_const_iterator> class RepeatedPtrIterator;
 
 template <typename T>
-class RepeatedPtrField: public RepeatedFieldBase {
+class RepeatedPtrField: public RepeatedPtrFieldBase {
  public:
   RepeatedPtrField<T>();
   ~RepeatedPtrField<T>() { Clear(); }
@@ -95,6 +103,7 @@ class RepeatedPtrField: public RepeatedFieldBase {
   }
 
   void AddAllocated(T* value);
+  void Add_Allocated_Raw(void* value) override;
   void Set(int index, const T& value); // Only used for repeated string type.
   T* Add();
   void RemoveLast();
@@ -314,6 +323,13 @@ template <typename T>
 void RepeatedPtrField<T>::AddAllocated(T* value) {
   if (value) {
     elements.push_back(value);
+  }
+}
+
+template <typename T>
+void RepeatedPtrField<T>::Add_Allocated_Raw(void* value) {
+  if (value) {
+    elements.push_back(reinterpret_cast<T*>(value));
   }
 }
 

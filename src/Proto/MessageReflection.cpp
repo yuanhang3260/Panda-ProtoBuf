@@ -4,6 +4,15 @@
 
 namespace proto {
 
+int indent_num = 0;
+std::string indent(){
+  std::string re = "";
+  for (int i = 0; i < indent_num; i++) {
+    re += "  ";
+  }
+  return re;
+}
+
 MessageReflection::MessageReflection(
     std::shared_ptr<::proto::ProtoParser::Message> message_descirptor,
     Message* defatult_instance,
@@ -70,9 +79,10 @@ MessageReflection::CreateSerializedSingularMessage(
     const Message* message,
     const ProtoParser::MessageField* field)  const {
   // Serialize a singular nested message
-  std::cout << "serializing singular nested message: "
+  std::cout << indent() << "serializing singular nested message: "
             << field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP)
             << std::endl;
+  indent_num++;
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(
           field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP));
@@ -93,6 +103,7 @@ MessageReflection::CreateSerializedSingularMessage(
                         nested_sdmsg->meta_data());
   WireFormat::WriteUInt32(nested_sdmsg->size(), nested_sdmsg->meta_data());
   nested_sdmsg->ReCalculateSize();
+  indent_num--;
   return std::shared_ptr<SerializedObjectInterface>(nested_sdmsg);
 }
 
@@ -100,8 +111,9 @@ std::shared_ptr<SerializedObjectInterface>
 MessageReflection::CreateSerializedRepeatedMessage(
     const Message* message,
     const ProtoParser::MessageField* field)  const {
-  std::cout << "serializing repeated nested message: "
+  std::cout << indent() << "serializing repeated nested message: "
             << field->name() << std::endl;
+  indent_num++;
   // Create a new SerializedMessage to store repeated messages.
   SerializedMessage* sdmsg = new SerializedMessage(true);
   // get reflection
@@ -121,6 +133,7 @@ MessageReflection::CreateSerializedRepeatedMessage(
       reinterpret_cast<const RepeatedFieldBase*>(field_addr);
   // Serialize repeated messages one by one.
   for (uint32 i = 0; i < repeated_field->size(); i++) {
+    std::cout << indent() << "[... element " << i << " ...]" << std::endl;
     const char* element_ptr = repeated_field->GetElementPtr(i);
     SerializedMessage* nested_sdmsg = nested_msg_reflection->Serialize(
       reinterpret_cast<const Message*>(element_ptr)
@@ -139,6 +152,7 @@ MessageReflection::CreateSerializedRepeatedMessage(
                         sdmsg->meta_data());
   WireFormat::WriteUInt32(repeated_field->size(), sdmsg->meta_data());
   sdmsg->ReCalculateSize();
+  indent_num--;
   return std::shared_ptr<SerializedObjectInterface>(sdmsg);
 }
 
@@ -154,8 +168,9 @@ std::shared_ptr<SerializedObjectInterface>
 MessageReflection::CreateSerializedSingularPrimitive(
     const Message* message,
     const ProtoParser::MessageField* field)  const {
-  std::cout << "serializing singular primitive: "
+  std::cout << indent() << "serializing singular primitive: "
             << field->name() << std::endl;
+  indent_num++;
   SerializedPrimitive* sdprim = new SerializedPrimitive(field->type());
   const char* msg_addr = reinterpret_cast<const char*>(message);
   switch (field->type()) {
@@ -190,6 +205,7 @@ MessageReflection::CreateSerializedSingularPrimitive(
                 " is not primitive");
       break;
   }
+  indent_num--;
   return std::shared_ptr<SerializedObjectInterface>(sdprim);
 }
 
@@ -209,8 +225,9 @@ std::shared_ptr<SerializedObjectInterface>
 MessageReflection::CreateSerializedRepeatedPrimitive(
     const Message* message,
     const ProtoParser::MessageField* field)  const {
-  std::cout << "serializing repeated primitive: "
+  std::cout << indent() << "serializing repeated primitive: "
             << field->name() << std::endl;
+  indent_num++;
   SerializedPrimitive* sdprim = new SerializedPrimitive(field->type());
   const char* field_addr =
       reinterpret_cast<const char*>(message) + field->field_offset();
@@ -275,6 +292,7 @@ MessageReflection::CreateSerializedRepeatedPrimitive(
                 " is not primitive");
       break;
   }
+  indent_num--;
   return std::shared_ptr<SerializedObjectInterface>(sdprim);
 }
 
@@ -404,12 +422,12 @@ void MessageReflection::DeSerialize(
   uint32 tag;
   WireFormat::WireType wire_type;
   uint32 parsed_size, offset = 0;
-  std::cout << "DeSerialize Size = " << size << std::endl;
+  std::cout << indent() << "DeSerialize Size = " << size << std::endl;
   while (offset < size) {
     WireFormat::DecodeTag(buf + offset, &tag, &wire_type, &parsed_size);
     //std::cout << "parsed tag size = " << parsed_size << std::endl;
     offset += parsed_size;
-    std::cout << "tag = " << tag << std::endl;
+    std::cout << indent() << "tag = " << tag << std::endl;
     //std::cout << "tag parsed_size = " << parsed_size << std::endl;
     const ProtoParser::MessageField* field =
         message_descirptor_->FindFieldByTag(tag);
@@ -423,11 +441,10 @@ void MessageReflection::DeSerialize(
 
     if (field->IsMessageType()) {
       if (field->IsSingularType()) {
-        offset += DeSerializeSingularMessage(message, field,
-                                             buf + offset);
+        offset += DeSerializeSingularMessage(message, field, buf + offset);
       }
       else {
-
+        offset += DeSerializeRepeatedMessage(message, field, buf + offset);
       }
     }
     // Primitive Type and String type
@@ -450,7 +467,8 @@ uint32 MessageReflection::DeSerializeSingularMessage(
     Message* message,
     const ProtoParser::MessageField* field,
     const char* buf) const {
-  std::cout << "DeSerializing singular message " << std::endl;
+  std::cout << indent() << "DeSerializing singular nested message " << std::endl;
+  indent_num++;
   uint32 offset = 0;
   uint32 obj_size = WireFormat::DecodeUInt32(buf, &offset);
   std::string class_name = 
@@ -468,7 +486,46 @@ uint32 MessageReflection::DeSerializeSingularMessage(
   char* field_addr = reinterpret_cast<char*>(message) + field->field_offset();
   *reinterpret_cast<Message**>(field_addr) = new_obj;
   SetHasBit(message, field->tag());
+  indent_num--;
   return offset + obj_size;
+}
+
+uint32 MessageReflection::DeSerializeRepeatedMessage(
+    Message* message,
+    const ProtoParser::MessageField* field,
+    const char* buf) const {
+  std::cout << indent() << "DeSerializing repeated nested message " << std::endl;
+  indent_num++;
+  uint32 offset = 0;
+  uint32 list_size = WireFormat::DecodeUInt32(buf, &offset);
+  std::string class_name = 
+      field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP);
+  const MessageReflection* nested_msg_reflection =
+      MessageFactory::GetMessageReflection(class_name);
+  if (!nested_msg_reflection) {
+    throw std::runtime_error(
+        "No cpp generated class type " +
+        field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP) +
+        " exists.");
+  }
+
+  char* field_addr = reinterpret_cast<char*>(message) + field->field_offset();
+  std::cout << indent()
+            << "DeSerializing " << list_size << " objects" << std::endl;
+  for (uint32 i = 0; i < list_size; i++) {
+    // Parse object size first.
+    std::cout << indent() << "[... element " << i << " ...]" << std::endl;
+    uint32 parsed_size = 0;
+    uint32 obj_size = WireFormat::DecodeUInt32(buf + offset, &parsed_size);
+    offset += parsed_size;
+    // Deserialize object data.
+    Message* new_obj = nested_msg_reflection->defatult_instance()->New();
+    nested_msg_reflection->DeSerialize(new_obj, buf + offset, obj_size);
+    reinterpret_cast<RepeatedPtrFieldBase*>(field_addr)->Add_Allocated_Raw(new_obj);
+    offset += obj_size;
+  }
+  indent_num--;
+  return offset;
 }
 
 
@@ -477,7 +534,8 @@ uint32 MessageReflection::DeSerializeSingularPrimitive(
     const ProtoParser::MessageField* field,
     const char* buf) const {
   int offset = 0;
-  std::cout << "DeSerializing singular primitive " << std::endl;
+  std::cout << indent() << "DeSerializing singular primitive " << std::endl;
+  indent_num++;
   switch (field->type()) {
     case ProtoParser::UINT32: {
       offset = SetUInt32(message, field, buf);
@@ -518,6 +576,7 @@ uint32 MessageReflection::DeSerializeSingularPrimitive(
                 " is not primitive");
       break;
   }
+  indent_num--;
   return offset;
 }
 
@@ -525,7 +584,8 @@ uint32 MessageReflection::DeSerializeRepeatedPrimitive(
     Message* message,
     const ProtoParser::MessageField* field,
     const char* buf) const {
-  std::cout << "DeSerializing repeated primitive " << std::endl;
+  std::cout << indent() << "DeSerializing repeated primitive " << std::endl;
+  indent_num++;
   uint32 offset = 0;
   uint32 list_size = WireFormat::DecodeUInt32(buf, &offset);
   switch (field->type()) {
@@ -584,6 +644,7 @@ uint32 MessageReflection::DeSerializeRepeatedPrimitive(
                 " is not primitive");
       break;
   }
+  indent_num--;
   return offset;
 }
 

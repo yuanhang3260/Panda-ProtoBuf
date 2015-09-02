@@ -106,10 +106,24 @@ void test_Serialize() {
   stu1.add_scores(30);
   stu1.add_alias("chicken");
   stu1.add_alias("xiaoji");
+  
   ::HaiZhong::Pet* pet = new ::HaiZhong::Pet();
+  pet->set_name("panda");
+  pet->set_type(::HaiZhong::Pet::PANDA);
+  stu1.set_allocated_first_pet(pet);
+  
+  pet = stu1.add_pets();
   pet->set_name("snoopy");
   pet->set_type(::HaiZhong::Pet::DOG);
-  stu1.set_allocated_pet(pet);
+  pet = stu1.add_pets();;
+  pet->set_name("xiaoxiong");
+  pet->set_type(::HaiZhong::Pet::PANDA);
+
+  ::HaiZhong::Student* partner = new ::HaiZhong::Student();
+  partner->set_name("cb");
+  partner->set_age(25);
+  partner->set_ghi(-111212);
+  stu1.set_allocated_partner(partner);
 
   ::proto::SerializedMessage* sdmsg = stu1.Serialize();
   const char* obj_data = sdmsg->GetBytes();
@@ -129,7 +143,8 @@ void test_Serialize() {
   PRINT_HAS(stu2, graduated, "stu2", "graduated")
   PRINT_HAS(stu2, weight, "stu2", "weight")
   PRINT_HAS(stu2, sex, "stu2", "sex")
-  PRINT_HAS(stu2, pet, "stu2", "pet")
+  PRINT_HAS(stu2, first_pet, "stu2", "first_pet")
+  PRINT_HAS(stu2, partner, "stu2", "partner")
   std::cout << "stu2.name() = " << stu2.name() << std::endl;
   std::cout << "stu2.age() = " << stu2.age() << std::endl;
   std::cout << "stu2.xyz() = " << stu2.xyz() << std::endl;
@@ -148,8 +163,19 @@ void test_Serialize() {
     std::cout << alias << " ";
   }
   std::cout << "]" << std::endl;
-  std::cout << "stu2.pet.name = " << stu2.pet().name() << std::endl;
-  std::cout << "stu2.pet.type = " << stu2.pet().type() << std::endl;
+
+  std::cout << "stu2.pets(): [ ";
+  for (const auto& pet: stu2.pets()) {
+    std::cout << "(" << pet.name() << " ";
+    std::cout << pet.type() << "), ";  
+  }
+  std::cout << " ]" << std::endl;
+  std::cout << "stu2.first_pet.name = " << stu2.first_pet().name() << std::endl;
+  std::cout << "stu2.first_pet.type = " << stu2.first_pet().type() << std::endl;
+
+  std::cout << "stu2.partner.name = " << stu2.partner().name() << std::endl;
+  std::cout << "stu2.partner.age = " << stu2.partner().age() << std::endl;
+  std::cout << "stu2.partner.ghi = " << stu2.partner().ghi() << std::endl;
   
   std::cout << "deleting sdmsg ..." << std::endl;
   delete sdmsg;

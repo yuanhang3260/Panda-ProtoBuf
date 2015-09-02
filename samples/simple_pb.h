@@ -16,8 +16,8 @@ namespace HaiZhong {
 class Pet: public ::proto::Message {
  public:
   enum PetType {
-    PANDA,
     DOG,
+    PANDA,
   };
 
   // constructors and destructor //
@@ -57,7 +57,7 @@ class Pet: public ::proto::Message {
   char has_bits_[1];
   // message fields
   std::string name_ = "";
-  Pet::PetType type_ = Pet::PANDA;
+  Pet::PetType type_ = Pet::DOG;
 
   // InitAsDefaultInstance()
   void InitAsDefaultInstance() override;
@@ -137,13 +137,14 @@ class Student: public ::proto::Message {
   void set_weight(double weight);
   void clear_weight();
 
-  // "pet" = 9
-  bool has_pet() const;
-  const Pet& pet() const;
-  Pet* mutable_pet();
-  void set_allocated_pet(Pet* pet);
-  Pet* release_pet();
-  void clear_pet();
+  // "pets" = 9
+  int pets_size() const;
+  const Pet& pets(int index);
+  Pet* add_pets();
+  Pet* mutable_pets(int index);
+  void clear_pets();
+  const ::proto::RepeatedPtrField<Pet>& pets() const;
+  ::proto::RepeatedPtrField<Pet>& mutable_pets();
 
   // "scores" = 11
   int scores_size() const;
@@ -153,6 +154,14 @@ class Student: public ::proto::Message {
   void clear_scores();
   const ::proto::RepeatedField<int>& scores() const;
   ::proto::RepeatedField<int>& mutable_scores();
+
+  // "first_pet" = 12
+  bool has_first_pet() const;
+  const Pet& first_pet() const;
+  Pet* mutable_first_pet();
+  void set_allocated_first_pet(Pet* first_pet);
+  Pet* release_first_pet();
+  void clear_first_pet();
 
   // "alias" = 15
   int alias_size() const;
@@ -168,6 +177,14 @@ class Student: public ::proto::Message {
   void clear_alias();
   const ::proto::RepeatedPtrField<std::string>& alias() const;
   ::proto::RepeatedPtrField<std::string>& mutable_alias();
+
+  // "partner" = 18
+  bool has_partner() const;
+  const Student& partner() const;
+  Student* mutable_partner();
+  void set_allocated_partner(Student* partner);
+  Student* release_partner();
+  void clear_partner();
 
   // "sex" = 25
   bool has_sex() const;
@@ -186,9 +203,11 @@ class Student: public ::proto::Message {
   long long ghi_ = 0;
   bool graduated_ = false;
   double weight_ = 0;
-  Pet* pet_ = nullptr;
+  ::proto::RepeatedPtrField<Pet> pets_;
   ::proto::RepeatedField<int> scores_;
+  Pet* first_pet_ = nullptr;
   ::proto::RepeatedPtrField<std::string> alias_;
+  Student* partner_ = nullptr;
   Student::Sex sex_ = Student::MALE;
 
   // InitAsDefaultInstance()
