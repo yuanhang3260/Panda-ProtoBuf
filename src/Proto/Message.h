@@ -9,7 +9,7 @@ class Message {
  public:
   virtual ~Message() {};
 
-  inline virtual Message* New() = 0;
+  virtual Message* New() const = 0;
 
   virtual void InitAsDefaultInstance() = 0;
 

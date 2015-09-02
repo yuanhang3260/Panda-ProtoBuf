@@ -136,7 +136,7 @@ void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
       msg_match);
   printer.Print("  void Swap(${msg_name}* other);\n\n", msg_match);
   printer.Print(
-      "  ::proto::Message* New() override;  // New()\n",
+      "  ::proto::Message* New() const override;  // New()\n",
       msg_match);
   printer.Print(
       "  // Serialize() and DeSerialize().\n"
@@ -508,7 +508,7 @@ void CppCodeGenerator::DefineNew(Message* message) {
   std::map<std::string, std::string> msg_match{
      {"msg_name", message->name()},
   };
-  printer.Print("::proto::Message* ${msg_name}::New() {\n"
+  printer.Print("::proto::Message* ${msg_name}::New() const {\n"
                 "  return reinterpret_cast<::proto::Message*>(new ${msg_name}());\n"
                 "}\n\n",
                 msg_match);

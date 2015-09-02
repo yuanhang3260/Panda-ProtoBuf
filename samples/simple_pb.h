@@ -13,6 +13,61 @@ void static_init_default_instances_samples_simple();
 
 namespace HaiZhong {
 
+class Pet: public ::proto::Message {
+ public:
+  enum PetType {
+    DOG,
+    PANDA,
+  };
+
+  // constructors and destructor //
+  Pet();
+  ~Pet();
+  Pet(const Pet& other);  // copy constructor
+  Pet(Pet&& other);  // move constructor
+  Pet& operator=(const Pet& other);  // copy assignment
+  Pet& operator=(Pet&& other);  // move assignment
+  void Swap(Pet* other);
+
+  ::proto::Message* New() override;  // New()
+  // Serialize() and DeSerialize().
+  ::proto::SerializedMessage* Serialize() const override;
+  void DeSerialize(const char* buf, unsigned int size) override;
+  static const Pet& default_instance();
+
+  // --- Field accessors --- //
+
+  // "name" = 1
+  bool has_name() const;
+  const std::string& name() const;
+  void set_name(const std::string& name);
+  void set_name(const char* name);
+  void set_name(const char* name, int size);
+  std::string mutable_name();
+  void clear_name();
+
+  // "type" = 2
+  bool has_type() const;
+  Pet::PetType type() const;
+  void set_type(Pet::PetType type);
+  void clear_type();
+
+ private:
+  // has bits
+  char has_bits_[1];
+  // message fields
+  std::string name_ = "";
+  Pet::PetType type_ = Pet::DOG;
+
+  // InitAsDefaultInstance()
+  void InitAsDefaultInstance() override;
+  // default instance
+  static Pet* default_instance_;
+
+  friend void ::static_init_samples_simple();
+  friend void ::static_init_default_instances_samples_simple();
+};
+
 class Student: public ::proto::Message {
  public:
   enum Sex {
@@ -82,6 +137,14 @@ class Student: public ::proto::Message {
   void set_weight(double weight);
   void clear_weight();
 
+  // "pet" = 9
+  bool has_pet() const;
+  const Pet& pet() const;
+  Pet* mutable_pet();
+  void set_allocated_pet(Pet* pet);
+  Pet* release_pet();
+  void clear_pet();
+
   // "scores" = 11
   int scores_size() const;
   int scores(int index);
@@ -123,6 +186,7 @@ class Student: public ::proto::Message {
   long long ghi_ = 0;
   bool graduated_ = false;
   double weight_ = 0;
+  Pet* pet_ = nullptr;
   ::proto::RepeatedField<int> scores_;
   ::proto::RepeatedPtrField<std::string> alias_;
   Student::Sex sex_ = Student::MALE;

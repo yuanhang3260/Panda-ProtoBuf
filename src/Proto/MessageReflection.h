@@ -32,7 +32,7 @@ class MessageReflection {
       int has_bits_offset);
 
   const ::proto::ProtoParser::Message* descriptor();
-  const Message* defatult_instance();
+  const Message* defatult_instance() const;
   SerializedMessage* Serialize(const Message* message) const;
   void DeSerialize(Message* message, const char* buf, uint32 size) const;
 
@@ -72,6 +72,12 @@ class MessageReflection {
 
   // Deserialize a repeated primitive field.
   uint32 DeSerializeRepeatedPrimitive(
+    Message* message,
+    const ProtoParser::MessageField* field,
+    const char* buf) const;
+
+  // Deserialize a singular message field.
+  uint32 DeSerializeSingularMessage(
     Message* message,
     const ProtoParser::MessageField* field,
     const char* buf) const;

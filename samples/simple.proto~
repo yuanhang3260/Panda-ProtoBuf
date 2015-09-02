@@ -2,6 +2,15 @@
 
 package HaiZhong;
 
+message Pet {
+	enum PetType {
+		DOG,
+		PANDA,
+	}
+	optional string name = 1;
+	optional PetType type = 2;
+}
+
 message Student {
 	enum Sex {
 		MALE,
@@ -17,6 +26,7 @@ message Student {
   optional Sex sex = 25;
   repeated int32 scores = 11;
   repeated string alias = 15;
+  optional Pet pet = 9;
 }
 
 message SchoolClass {

@@ -2,8 +2,6 @@
 #include "MessageFactory.h"
 #include "MessageReflection.h"
 
-
-
 namespace proto {
 
 MessageReflection::MessageReflection(
@@ -20,7 +18,7 @@ MessageReflection::descriptor() {
   return message_descirptor_.get();
 }
 
-const Message* MessageReflection::defatult_instance() {
+const Message* MessageReflection::defatult_instance() const {
   return defatult_instance_;
 }
 
@@ -423,7 +421,7 @@ void MessageReflection::DeSerialize(
 
     if (field->IsMessageType()) {
       if (field->IsSingularType()) {
-        
+        offset += DeSerializeSingularMessage(message, field, buf + offset);
       }
       else {
 
@@ -444,6 +442,30 @@ void MessageReflection::DeSerialize(
         "parsed size exceeds for message " + message_descirptor_->name());
   }
 }
+
+uint32 MessageReflection::DeSerializeSingularMessage(
+    Message* message,
+    const ProtoParser::MessageField* field,
+    const char* buf) const {
+  uint32 offset = 0;
+  uint32 obj_size = WireFormat::DecodeUInt32(buf, &offset);
+  std::string class_name = 
+      field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP);
+  const MessageReflection* nested_msg_reflection = 
+      MessageFactory::GetMessageReflection(class_name);
+  if (!nested_msg_reflection) {
+    throw std::runtime_error(
+        "No cpp generated class type " +
+        message_descirptor_->FullNameWithPackagePrefix(ProtoParser::CPP) +
+        " exists.");
+  }
+  Message* new_obj = nested_msg_reflection->defatult_instance()->New();
+  nested_msg_reflection->DeSerialize(new_obj, buf, obj_size);
+  char* field_addr = reinterpret_cast<char*>(message) + field->field_offset();
+  *reinterpret_cast<void**>(field_addr) = new_obj;
+  return obj_size;
+}
+
 
 uint32 MessageReflection::DeSerializeSingularPrimitive(
     Message* message,

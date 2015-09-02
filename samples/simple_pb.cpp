@@ -9,6 +9,8 @@
 
 namespace {
 
+std::shared_ptr<::proto::ProtoParser::Message> Pet_descriptor_;
+std::shared_ptr<::proto::MessageReflection> Pet_reflection_;
 std::shared_ptr<::proto::ProtoParser::Message> Student_descriptor_;
 std::shared_ptr<::proto::MessageReflection> Student_reflection_;
 std::shared_ptr<::proto::ProtoParser::Message> SchoolClass_descriptor_;
@@ -21,6 +23,10 @@ void static_init_default_instances_samples_simple() {
   if (already_called) return;
   already_called = true;
 
+  if (HaiZhong::Pet::default_instance_ == NULL) {
+    HaiZhong::Pet::default_instance_ = new HaiZhong::Pet();
+    HaiZhong::Pet::default_instance_->InitAsDefaultInstance();
+  }
   if (HaiZhong::Student::default_instance_ == NULL) {
     HaiZhong::Student::default_instance_ = new HaiZhong::Student();
     HaiZhong::Student::default_instance_->InitAsDefaultInstance();
@@ -41,8 +47,26 @@ void static_init_samples_simple() {
   static_init_default_instances_samples_simple();
 
   int i = 0;
+  // static init for class Pet
+  static const int Pet_offsets_[2] = {
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Pet, name_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Pet, type_),
+  };
+  i = 0;
+  for (auto& field: parser.mutable_messages_list()[0]->mutable_fields_list()) {
+    field->set_field_offset(Pet_offsets_[i++]);
+  }
+  Pet_descriptor_ = parser.mutable_messages_list()[0];
+  Pet_reflection_.reset(
+      new ::proto::MessageReflection(
+          Pet_descriptor_,
+          HaiZhong::Pet::default_instance_,
+          PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Pet, has_bits_))
+  );
+  ::proto::MessageFactory::RegisterGeneratedMessage(Pet_reflection_);
+
   // static init for class Student
-  static const int Student_offsets_[10] = {
+  static const int Student_offsets_[11] = {
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, name_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, age_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, xyz_),
@@ -50,15 +74,16 @@ void static_init_samples_simple() {
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, ghi_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, graduated_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, weight_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, pet_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, scores_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, alias_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, sex_),
   };
   i = 0;
-  for (auto& field: parser.mutable_messages_list()[0]->mutable_fields_list()) {
+  for (auto& field: parser.mutable_messages_list()[1]->mutable_fields_list()) {
     field->set_field_offset(Student_offsets_[i++]);
   }
-  Student_descriptor_ = parser.mutable_messages_list()[0];
+  Student_descriptor_ = parser.mutable_messages_list()[1];
   Student_reflection_.reset(
       new ::proto::MessageReflection(
           Student_descriptor_,
@@ -73,10 +98,10 @@ void static_init_samples_simple() {
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::SchoolClass, alias_),
   };
   i = 0;
-  for (auto& field: parser.mutable_messages_list()[1]->mutable_fields_list()) {
+  for (auto& field: parser.mutable_messages_list()[2]->mutable_fields_list()) {
     field->set_field_offset(SchoolClass_offsets_[i++]);
   }
-  SchoolClass_descriptor_ = parser.mutable_messages_list()[1];
+  SchoolClass_descriptor_ = parser.mutable_messages_list()[2];
   SchoolClass_reflection_.reset(
       new ::proto::MessageReflection(
           SchoolClass_descriptor_,
@@ -97,6 +122,139 @@ struct static_init_forcer_samples_simple {
 
 namespace HaiZhong {
 
+// -------------------- Pet --------------------- //
+// constructor
+Pet::Pet() {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = 0;
+  }
+  default_instance_ = nullptr;
+}
+
+// copy constructor
+Pet::Pet(const Pet& other) {
+  name_ = other.name();
+  type_ = other.type();
+}
+
+// move constructor
+Pet::Pet(Pet&& other) {
+  name_ = std::move(other.mutable_name());
+  type_ = other.type();
+  other.clear_type();
+}
+
+// copy assignment
+Pet& Pet::operator=(const Pet& other) {
+  name_ = other.name();
+  type_ = other.type();
+  return *this;
+}
+
+// move assignment
+Pet& Pet::operator=(Pet&& other) {
+  name_ = std::move(other.mutable_name());
+  type_ = other.type();
+  other.clear_type();
+  return *this;
+}
+
+// New()
+::proto::Message* Pet::New() {
+  return reinterpret_cast<::proto::Message*>(new Pet());
+}
+
+// Serialize()
+::proto::SerializedMessage* Pet::Serialize() const {
+  return Pet_reflection_->Serialize(this);
+}
+
+// DeSerialize()
+void Pet::DeSerialize(const char* buf, unsigned int size) {
+  Pet_reflection_->DeSerialize(this, buf, size);
+}
+
+// InitAsDefaultInstance()
+void Pet::InitAsDefaultInstance() {
+}
+
+// swapper
+void Pet::Swap(Pet* other) {
+  std::string name_tmp__ = std::move(other->mutable_name());
+  other->mutable_name() = std::move(name_);
+  name_ = std::move(name_tmp__);
+
+  Pet::PetType type_tmp__ = other->type();
+  other->set_type(type_);
+  set_type(type_tmp__);
+}
+
+// default_instance()
+const Pet& Pet::default_instance() {
+  if (default_instance_ == NULL) {
+    static_init_default_instances_samples_simple();
+  }
+  return *default_instance_;
+}
+
+Pet* Pet::default_instance_ = NULL;
+
+// destructor
+Pet::~Pet() {
+}
+
+// "name" = 1
+bool Pet::has_name() const {
+  return (has_bits_[0] & 0x2) != 0;
+}
+
+const std::string& Pet::name() const {
+  return name_;
+}
+
+void Pet::set_name(const std::string& name) {
+  name_ = name;
+  has_bits_[0] |= 0x2;
+}
+
+void Pet::set_name(const char* name) {
+  name_ = std::string(name);
+  has_bits_[0] |= 0x2;
+}
+
+void Pet::set_name(const char* name, int size) {
+  name_ = std::string(name, size);
+  has_bits_[0] |= 0x2;
+}
+
+std::string Pet::mutable_name() {
+  return name_;
+}
+
+void Pet::clear_name() {
+  name_ = "";
+  has_bits_[0] &= (~0x2);
+}
+
+// "type" = 2
+bool Pet::has_type() const {
+  return (has_bits_[0] & 0x4) != 0;
+}
+
+Pet::PetType Pet::type() const {
+  return type_;
+}
+
+void Pet::set_type(Pet::PetType type) {
+  type_ = type;
+  has_bits_[0] |= 0x4;
+}
+
+void Pet::clear_type() {
+  type_ = Pet::DOG;
+  has_bits_[0] &= (~0x4);
+}
+
 // -------------------- Student --------------------- //
 // constructor
 Student::Student() {
@@ -115,6 +273,10 @@ Student::Student(const Student& other) {
   ghi_ = other.ghi();
   graduated_ = other.graduated();
   weight_ = other.weight();
+  if (!pet_) {
+    pet_ = new Pet();
+  }
+  *pet_ = other.pet();
   scores_ = other.scores();
   for (const std::string* p: other.alias().GetElements()) {
     alias_.AddAllocated(new std::string(*p));
@@ -137,6 +299,10 @@ Student::Student(Student&& other) {
   other.clear_graduated();
   weight_ = other.weight();
   other.clear_weight();
+  if (pet_ ) {
+    delete pet_;
+  }
+  pet_ = other.release_pet();
   scores_ = std::move(other.mutable_scores());
   alias_ = std::move(other.mutable_alias());
   sex_ = other.sex();
@@ -152,6 +318,10 @@ Student& Student::operator=(const Student& other) {
   ghi_ = other.ghi();
   graduated_ = other.graduated();
   weight_ = other.weight();
+  if (!pet_) {
+    pet_ = new Pet();
+  }
+  *pet_ = other.pet();
   scores_ = other.scores();
   for (const std::string* p: other.alias().GetElements()) {
     alias_.AddAllocated(new std::string(*p));
@@ -175,6 +345,10 @@ Student& Student::operator=(Student&& other) {
   other.clear_graduated();
   weight_ = other.weight();
   other.clear_weight();
+  if (pet_ ) {
+    delete pet_;
+  }
+  pet_ = other.release_pet();
   scores_ = std::move(other.mutable_scores());
   alias_ = std::move(other.mutable_alias());
   sex_ = other.sex();
@@ -199,6 +373,7 @@ void Student::DeSerialize(const char* buf, unsigned int size) {
 
 // InitAsDefaultInstance()
 void Student::InitAsDefaultInstance() {
+  pet_ = const_cast<Pet*>(&Pet::default_instance());
 }
 
 // swapper
@@ -231,6 +406,10 @@ void Student::Swap(Student* other) {
   other->set_weight(weight_);
   set_weight(weight_tmp__);
 
+  Pet* pet_tmp__ = other->release_pet();
+  other->set_allocated_pet(this->release_pet());
+  set_allocated_pet(pet_tmp__);
+
   ::proto::RepeatedField<int> scores_tmp__ = std::move(other->mutable_scores());
   other->mutable_scores() = std::move(scores_);
   scores_ = std::move(scores_tmp__);
@@ -256,6 +435,7 @@ Student* Student::default_instance_ = NULL;
 
 // destructor
 Student::~Student() {
+  delete pet_;
 }
 
 // "name" = 1
@@ -403,6 +583,59 @@ void Student::set_weight(double weight) {
 void Student::clear_weight() {
   weight_ = 0;
   has_bits_[0] &= (~0x80);
+}
+
+// "pet" = 9
+bool Student::has_pet() const {
+  return (has_bits_[1] & 0x2) != 0;
+}
+
+const Pet& Student::pet() const {
+  if (has_pet() && pet_) {
+    return *pet_;
+  }
+  else {
+    return Pet::default_instance();
+  }
+}
+
+Pet* Student::mutable_pet() {
+  if (has_pet() && pet_) {
+    return pet_;
+  }
+  else {
+    pet_ = new Pet();
+    has_bits_[1] |= 0x2;
+    return pet_;
+  }
+}
+
+void Student::set_allocated_pet(Pet* pet) {
+  if (pet_) {
+    delete pet_;
+  }
+  pet_ = pet;
+  if (pet_) {
+    has_bits_[1] |= 0x2;
+  }
+  else {
+    has_bits_[1] &= (~0x2);
+  }
+}
+
+Pet* Student::release_pet() {
+  Pet* pet_tmp__ = pet_;
+  pet_ = nullptr;
+  has_bits_[1] &= (~0x2);
+  return pet_tmp__;
+}
+
+void Student::clear_pet() {
+  if (pet_) {
+    delete pet_;
+  }
+  pet_ = nullptr;
+  has_bits_[1] &= (~0x2);
 }
 
 // "scores" = 11
