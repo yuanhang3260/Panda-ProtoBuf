@@ -82,6 +82,30 @@ class Student: public ::proto::Message {
   void set_weight(double weight);
   void clear_weight();
 
+  // "scores" = 11
+  int scores_size() const;
+  int scores(int index);
+  void set_scores(int index, int value);
+  void add_scores(int value);
+  void clear_scores();
+  const ::proto::RepeatedField<int>& scores() const;
+  ::proto::RepeatedField<int>& mutable_scores();
+
+  // "alias" = 15
+  int alias_size() const;
+  const std::string& alias(int index);
+  void set_alias(int index, const std::string& value);
+  void set_alias(int index, const char* value);
+  void set_alias(int index, const char* value, int size);
+  std::string* add_alias();
+  void add_alias(const std::string& value);
+  void add_alias(const char* value);
+  void add_alias(const char* value, int size);
+  std::string* mutable_alias(int index);
+  void clear_alias();
+  const ::proto::RepeatedPtrField<std::string>& alias() const;
+  ::proto::RepeatedPtrField<std::string>& mutable_alias();
+
   // "sex" = 25
   bool has_sex() const;
   Student::Sex sex() const;
@@ -99,6 +123,8 @@ class Student: public ::proto::Message {
   long long ghi_ = 0;
   bool graduated_ = false;
   double weight_ = 0;
+  ::proto::RepeatedField<int> scores_;
+  ::proto::RepeatedPtrField<std::string> alias_;
   Student::Sex sex_ = Student::MALE;
 
   // InitAsDefaultInstance()

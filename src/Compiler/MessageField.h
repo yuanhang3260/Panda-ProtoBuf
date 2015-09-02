@@ -40,6 +40,7 @@ class MessageField {
 
   bool IsPrimitiveType() const;
   bool IsMessageType() const;
+  bool IsSingularType() const;
   bool IsRepeatedType() const;
   bool IsSingularNumericType() const;
   bool IsSingularStringType() const;

@@ -21,9 +21,6 @@ MessageField::MessageField(FIELD_MODIFIER modifier,
   else {
     type_name_ = type_class_->name();
   }
-  if (type_ == STRING) {
-    default_value_ = "\"" + default_value_ + "\"";
-  }
 
   // Set default value.
   if (modifier_ != REPEATED) {
@@ -51,6 +48,9 @@ MessageField::MessageField(FIELD_MODIFIER modifier,
       }
     }
     else {
+      if (type_ == STRING) {
+        default_value_ = "\"" + default_value_ + "\"";
+      }
       has_user_default_value_ = true;
     }
   }
@@ -96,6 +96,10 @@ bool MessageField::IsMessageType() const {
 
 bool MessageField::IsRepeatedType() const {
   return modifier_ == MessageField::REPEATED;
+}
+
+bool MessageField::IsSingularType() const {
+  return modifier_ != MessageField::REPEATED;
 }
 
 bool MessageField::IsSingularNumericType() const {

@@ -178,7 +178,9 @@ void CppCodeGenerator::DeclarePrivateFields(Message* message) {
     }
     printer.Print(declearation_line, matches);
     // add default value if exists.
-    printer.Print(" = ${default_value}", matches);
+    if (!field->IsRepeatedType()) {
+      printer.Print(" = ${default_value}", matches);
+    }
     printer.Print(";\n");
   }
 

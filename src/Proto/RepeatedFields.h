@@ -392,14 +392,14 @@ void RepeatedPtrField<T>::Clear() {
 template <typename T>
 inline typename RepeatedPtrField<T>::iterator
 RepeatedPtrField<T>::begin() {
-  std::cout << "begin called" << std::endl;
+  // std::cout << "begin called" << std::endl;
   return iterator(&elements);
 }
 
 template <typename T>
 inline typename RepeatedPtrField<T>::const_iterator
 RepeatedPtrField<T>::begin() const {
-  std::cout << "const begin" << std::endl;
+  // std::cout << "const begin" << std::endl;
   return const_iterator(&elements);
 }
 

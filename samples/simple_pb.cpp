@@ -42,7 +42,7 @@ void static_init_samples_simple() {
 
   int i = 0;
   // static init for class Student
-  static const int Student_offsets_[8] = {
+  static const int Student_offsets_[10] = {
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, name_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, age_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, xyz_),
@@ -50,6 +50,8 @@ void static_init_samples_simple() {
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, ghi_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, graduated_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, weight_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, scores_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, alias_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::Student, sex_),
   };
   i = 0;
@@ -113,6 +115,10 @@ Student::Student(const Student& other) {
   ghi_ = other.ghi();
   graduated_ = other.graduated();
   weight_ = other.weight();
+  scores_ = other.scores();
+  for (const std::string* p: other.alias().GetElements()) {
+    alias_.AddAllocated(new std::string(*p));
+  }
   sex_ = other.sex();
 }
 
@@ -131,6 +137,8 @@ Student::Student(Student&& other) {
   other.clear_graduated();
   weight_ = other.weight();
   other.clear_weight();
+  scores_ = std::move(other.mutable_scores());
+  alias_ = std::move(other.mutable_alias());
   sex_ = other.sex();
   other.clear_sex();
 }
@@ -144,6 +152,10 @@ Student& Student::operator=(const Student& other) {
   ghi_ = other.ghi();
   graduated_ = other.graduated();
   weight_ = other.weight();
+  scores_ = other.scores();
+  for (const std::string* p: other.alias().GetElements()) {
+    alias_.AddAllocated(new std::string(*p));
+  }
   sex_ = other.sex();
   return *this;
 }
@@ -163,6 +175,8 @@ Student& Student::operator=(Student&& other) {
   other.clear_graduated();
   weight_ = other.weight();
   other.clear_weight();
+  scores_ = std::move(other.mutable_scores());
+  alias_ = std::move(other.mutable_alias());
   sex_ = other.sex();
   other.clear_sex();
   return *this;
@@ -216,6 +230,14 @@ void Student::Swap(Student* other) {
   double weight_tmp__ = other->weight();
   other->set_weight(weight_);
   set_weight(weight_tmp__);
+
+  ::proto::RepeatedField<int> scores_tmp__ = std::move(other->mutable_scores());
+  other->mutable_scores() = std::move(scores_);
+  scores_ = std::move(scores_tmp__);
+
+  ::proto::RepeatedPtrField<std::string> alias_tmp__ = std::move(other->mutable_alias());
+  other->mutable_alias() = std::move(alias_);
+  alias_ = std::move(alias_tmp__);
 
   Student::Sex sex_tmp__ = other->sex();
   other->set_sex(sex_);
@@ -381,6 +403,96 @@ void Student::set_weight(double weight) {
 void Student::clear_weight() {
   weight_ = 0;
   has_bits_[0] &= (~0x80);
+}
+
+// "scores" = 11
+int Student::scores_size() const {
+  return scores_.size();
+}
+
+int Student::scores(int index) {
+  return scores_.Get(index);
+}
+
+void Student::set_scores(int index, int value) {
+  if ((int)scores_.size() > index) {
+    scores_.Set(index, value);
+  }
+}
+
+void Student::add_scores(int value) {
+   scores_.Add(value);
+}
+
+void Student::clear_scores() {
+  scores_ .Clear();
+}
+
+const ::proto::RepeatedField<int>& Student::scores() const {
+  return scores_;
+}
+
+::proto::RepeatedField<int>& Student::mutable_scores() {
+  return scores_;
+}
+
+// "alias" = 15
+int Student::alias_size() const {
+  return alias_.size();
+}
+
+const std::string& Student::alias(int index) {
+  return alias_.Get(index);
+}
+
+void Student::set_alias(int index, const std::string& value) {
+  if (index < (int)alias_.size()) {
+    alias_.Set(index, value);
+  }
+}
+
+void Student::set_alias(int index, const char* value) {
+  if (index < (int)alias_.size()) {
+    alias_.Set(index, std::string(value));
+  }
+}
+
+void Student::set_alias(int index, const char* value, int size) {
+  if (index < (int)alias_.size()) {
+    alias_.Set(index, std::string(value, size));
+  }
+}
+
+std::string* Student::add_alias() {
+  return alias_.Add();
+}
+
+void Student::add_alias(const std::string& value) {
+  alias_.AddAllocated(new std::string(value));
+}
+
+void Student::add_alias(const char* value) {
+  alias_.AddAllocated(new std::string(value));
+}
+
+void Student::add_alias(const char* value, int size) {
+  alias_.AddAllocated(new std::string(value, size));
+}
+
+std::string* Student::mutable_alias(int index) {
+  return alias_.GetMutable(index);
+}
+
+void Student::clear_alias() {
+  alias_.Clear();
+}
+
+const ::proto::RepeatedPtrField<std::string>& Student::alias() const {
+  return alias_;
+}
+
+::proto::RepeatedPtrField<std::string>& Student::mutable_alias() {
+  return alias_;
 }
 
 // "sex" = 25

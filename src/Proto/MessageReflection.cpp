@@ -27,11 +27,20 @@ const Message* MessageReflection::defatult_instance() {
 // -------------------------------------------------------------------------- //
 // ---------------------------- Serialize routines -------------------------- //
 // -------------------------------------------------------------------------- //
+bool MessageReflection::RepeatedFieldEmpty(
+    const Message* message,
+    const ProtoParser::MessageField* field) const {
+  const char* ptr =
+      reinterpret_cast<const char*>(message) + field->field_offset();
+  return reinterpret_cast<const RepeatedFieldBase*>(ptr) -> size() == 0;
+}
+
 SerializedMessage* MessageReflection::Serialize(const Message* message) const {
   SerializedMessage* sdmsg = new SerializedMessage();
   // Begin serializing a message
   for (const auto& field: message_descirptor_->fields_list()) {
-    if (!HasField(message, field->tag())) {
+    if ((field->IsSingularType() && !HasField(message, field->tag())) ||
+        (field->IsRepeatedType() && RepeatedFieldEmpty(message, field.get()))) {
       continue;
     }
     // Message Type
@@ -232,17 +241,27 @@ MessageReflection::CreateSerializedRepeatedPrimitive(
       break;
     }
     case ProtoParser::STRING: {
-      ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_LENGTH_DELIMITED,
-                                std::string, String)
+      // String is special because it's stored in RepeatedPtrField.
+      WireFormat::EncodeTag(field->tag(), WireFormat::WIRETYPE_LENGTH_DELIMITED,
+                            sdprim->mutable_ostream());
+      const auto& repeated_field =
+          *reinterpret_cast<const RepeatedPtrField<std::string>*>(field_addr);
+      WireFormat::WriteUInt32(repeated_field.size(), sdprim->mutable_ostream());
+      for (const auto& value: repeated_field) {
+        WireFormat::WriteString(value, sdprim->mutable_ostream());
+      }
       break;
     }
     case ProtoParser::ENUMTYPE: {
-      // Cast enum value to uint32 by manipulating the underlying pointer.
+      // Enum is speical because we can't cast field_field_addr raw pointer to
+      // the templated RepeatedField. So instead we directly cast enum value to
+      // uint32 by manipulating the underlying pointer.
       WireFormat::EncodeTag(
         field->tag(), WireFormat::WIRETYPE_VARIANT, sdprim->mutable_ostream());
       const auto repeated_field =
           reinterpret_cast<const RepeatedFieldBase*>(field_addr);
-      WireFormat::WriteUInt32(repeated_field->size(), sdprim->mutable_ostream());
+      WireFormat::WriteUInt32(repeated_field->size(),
+                              sdprim->mutable_ostream());
       for (uint32 i = 0; i < repeated_field->size(); i++) {
         uint32 value =
             *reinterpret_cast<const uint32*>(repeated_field->GetElementPtr(i));
@@ -278,10 +297,17 @@ inline T* MessageReflection::Mutable_Raw(
 }
 
 template <typename T>
-inline void MessageReflection::SetType(
+inline void MessageReflection::SetField(
     Message* message,
     const ProtoParser::MessageField* field, T value) const {
   *Mutable_Raw<T>(message, field) = value;
+}
+
+template <typename T>
+inline void MessageReflection::AddField(
+    Message* message,
+    const ProtoParser::MessageField* field, T value) const {
+  Mutable_Raw<RepeatedField<T>>(message, field) -> Add(value);
 }
 
 #define DEFINE_PRIMITIVE_ACCESSORS(CPP_TYPE, WIRE_TYPENAME)                \
@@ -291,10 +317,20 @@ inline void MessageReflection::SetType(
       const char* buf) const {                                             \
     uint32 parsed_size;                                                    \
     CPP_TYPE value = WireFormat::Decode##WIRE_TYPENAME(buf, &parsed_size); \
-    SetType<CPP_TYPE>(message, field, value);                              \
+    SetField<CPP_TYPE>(message, field, value);                             \
     SetHasBit(message, field->tag());                                      \
     return parsed_size;                                                    \
-  }
+  }                                                                        \
+                                                                           \
+  inline uint32 MessageReflection::Add##WIRE_TYPENAME(                     \
+      Message* message,                                                    \
+      const ProtoParser::MessageField* field,                              \
+      const char* buf) const {                                             \
+    uint32 parsed_size;                                                    \
+    CPP_TYPE value = WireFormat::Decode##WIRE_TYPENAME(buf, &parsed_size); \
+    AddField<CPP_TYPE>(message, field, value);                             \
+    return parsed_size;                                                    \
+  }                                                                        \
 
 
 DEFINE_PRIMITIVE_ACCESSORS(uint32, UInt32)
@@ -303,7 +339,29 @@ DEFINE_PRIMITIVE_ACCESSORS(int32, SInt32)
 DEFINE_PRIMITIVE_ACCESSORS(int64, SInt64)
 DEFINE_PRIMITIVE_ACCESSORS(bool, Bool)
 DEFINE_PRIMITIVE_ACCESSORS(double, Double)
-DEFINE_PRIMITIVE_ACCESSORS(std::string, String)
+
+// String is special. Singular string type is nested while repeated string
+// is allocated in RepeatedPtrField rather than RepeatedField.
+inline uint32 MessageReflection::SetString(
+    Message* message,
+    const ProtoParser::MessageField* field,
+    const char* buf) const {
+  uint32 parsed_size;
+  std::string value = WireFormat::DecodeString(buf, &parsed_size);
+  SetField<std::string>(message, field, value);
+  SetHasBit(message, field->tag());
+  return parsed_size;
+}
+
+inline uint32 MessageReflection::AddString(
+    Message* message,
+    const ProtoParser::MessageField* field,
+    const char* buf) const {
+  uint32 parsed_size;
+  std::string value = WireFormat::DecodeString(buf, &parsed_size);
+  *(Mutable_Raw<RepeatedPtrField<std::string>>(message, field)->Add()) = value;
+  return parsed_size;
+}
 
 
 void MessageReflection::SetHasBit(Message* message, const uint32 tag) const {
@@ -316,12 +374,6 @@ void MessageReflection::CheckWireType(
     WireFormat::WireType wire_type,
     ProtoParser::FIELD_TYPE type,
     ProtoParser::MessageField::FIELD_MODIFIER modifier) const {
-  if (modifier == ProtoParser::MessageField::REPEATED) {
-    if (wire_type == WireFormat::WIRETYPE_LENGTH_DELIMITED) {
-      return;
-    }
-  }
-
   if (type == ProtoParser::UINT32 || type == ProtoParser::UINT64 ||
       type == ProtoParser::INT32  || type == ProtoParser::INT64  ||
       type == ProtoParser::BOOL   || type == ProtoParser::ENUMTYPE) {
@@ -369,51 +421,141 @@ void MessageReflection::DeSerialize(
 
     CheckWireType(wire_type, field->type(), field->modifier());
 
-    switch (field->type()) {
-      case ProtoParser::UINT32: {
-        offset += SetUInt32(message, field, buf + offset);
-        break;
+    if (field->IsMessageType()) {
+      if (field->IsSingularType()) {
+        
       }
-      case ProtoParser::UINT64: {
-        offset += SetUInt64(message, field, buf + offset);
-        break;
+      else {
+
       }
-      case ProtoParser::INT32: {
-        offset += SetSInt32(message, field, buf + offset);
-        break;
+    }
+    // Primitive Type and String type
+    else {
+      if (field->IsSingularType()) {
+        offset += DeSerializeSingularPrimitive(message, field, buf + offset);
       }
-      case ProtoParser::INT64: {
-        offset += SetSInt64(message, field, buf + offset);
-        break;
+      else {
+        offset += DeSerializeRepeatedPrimitive(message, field, buf + offset);
       }
-      case ProtoParser::BOOL:{
-        offset += SetBool(message, field, buf + offset);
-        break;
-      }
-      case ProtoParser::DOUBLE: {
-        offset += SetDouble(message, field, buf + offset);
-        break;
-      }
-      case ProtoParser::ENUMTYPE: {
-        offset += SetUInt32(message, field, buf + offset);
-        break;
-      }
-      case ProtoParser::STRING: {
-        offset += SetString(message, field, buf + offset);
-        break;
-      }
-      default:
-        throw std::runtime_error(
-                  "type " +
-                  ProtoParser::PbCommon::GetTypeAsString(field->type()) +
-                  " is not primitive");
-        break;
     }
   }
   if (offset != size) {
     throw std::runtime_error(
         "parsed size exceeds for message " + message_descirptor_->name());
   }
+}
+
+uint32 MessageReflection::DeSerializeSingularPrimitive(
+    Message* message,
+    const ProtoParser::MessageField* field,
+    const char* buf) const {
+  int offset = 0;
+  switch (field->type()) {
+    case ProtoParser::UINT32: {
+      offset = SetUInt32(message, field, buf);
+      break;
+    }
+    case ProtoParser::UINT64: {
+      offset = SetUInt64(message, field, buf);
+      break;
+    }
+    case ProtoParser::INT32: {
+      offset = SetSInt32(message, field, buf);
+      break;
+    }
+    case ProtoParser::INT64: {
+      offset = SetSInt64(message, field, buf);
+      break;
+    }
+    case ProtoParser::BOOL:{
+      offset = SetBool(message, field, buf);
+      break;
+    }
+    case ProtoParser::DOUBLE: {
+      offset = SetDouble(message, field, buf);
+      break;
+    }
+    case ProtoParser::ENUMTYPE: {
+      offset = SetUInt32(message, field, buf);
+      break;
+    }
+    case ProtoParser::STRING: {
+      offset = SetString(message, field, buf);
+      break;
+    }
+    default:
+      throw std::runtime_error(
+                "type " +
+                ProtoParser::PbCommon::GetTypeAsString(field->type()) +
+                " is not primitive");
+      break;
+  }
+  return offset;
+}
+
+uint32 MessageReflection::DeSerializeRepeatedPrimitive(
+    Message* message,
+    const ProtoParser::MessageField* field,
+    const char* buf) const {
+  uint32 offset = 0;
+  uint32 list_size = WireFormat::DecodeUInt32(buf, &offset);
+  switch (field->type()) {
+    case ProtoParser::UINT32: {
+      for (uint32 i = 0; i < list_size; i++) {
+        offset += AddUInt32(message, field, buf + offset);
+      }
+      break;
+    }
+    case ProtoParser::UINT64: {
+      for (uint32 i = 0; i < list_size; i++) {
+        offset += AddUInt64(message, field, buf + offset);
+      }
+      break;
+    }
+    case ProtoParser::INT32: {
+      for (uint32 i = 0; i < list_size; i++) {
+        offset += AddSInt32(message, field, buf + offset);
+      }
+      break;
+    }
+    case ProtoParser::INT64: {
+      for (uint32 i = 0; i < list_size; i++) {
+        offset += AddSInt64(message, field, buf + offset);
+      }
+      break;
+    }
+    case ProtoParser::BOOL:{
+      for (uint32 i = 0; i < list_size; i++) {
+        offset += AddBool(message, field, buf + offset);
+      }
+      break;
+    }
+    case ProtoParser::DOUBLE: {
+      for (uint32 i = 0; i < list_size; i++) {
+        offset += AddDouble(message, field, buf + offset);
+      }
+      break;
+    }
+    case ProtoParser::ENUMTYPE: {
+      for (uint32 i = 0; i < list_size; i++) {
+        offset += AddUInt32(message, field, buf + offset);
+      }
+      break;
+    }
+    case ProtoParser::STRING: {
+      for (uint32 i = 0; i < list_size; i++) {
+        offset += AddString(message, field, buf + offset);
+      }
+      break;
+    }
+    default:
+      throw std::runtime_error(
+                "type " +
+                ProtoParser::PbCommon::GetTypeAsString(field->type()) +
+                " is not primitive");
+      break;
+  }
+  return offset;
 }
 
 }  // namespace proto

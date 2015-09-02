@@ -101,6 +101,11 @@ void test_Serialize() {
   stu1.set_graduated(true);
   stu1.set_weight(70.5);
   stu1.set_sex(::HaiZhong::Student::FEMALE);
+  stu1.add_scores(10);
+  stu1.add_scores(20);
+  stu1.add_scores(30);
+  stu1.add_alias("chicken");
+  stu1.add_alias("xiaoji");
 
   ::proto::SerializedMessage* sdmsg = stu1.Serialize();
   const char* obj_data = sdmsg->GetBytes();
@@ -118,6 +123,16 @@ void test_Serialize() {
   std::cout << "stu2.graduated() = " << stu2.graduated() << std::endl;
   std::cout << "stu2.weight() = " << stu2.weight() << std::endl;
   std::cout << "stu2.sex() = " << stu2.sex() << std::endl;
+  std::cout << "stu2.scores(): [ ";
+  for (const auto& score: stu2.scores()) {
+    std::cout << score << " ";
+  }
+  std::cout << "]" << std::endl;
+  std::cout << "stu2.alias(): [ ";
+  for (const auto& alias: stu2.alias()) {
+    std::cout << alias << " ";
+  }
+  std::cout << "]" << std::endl;
   PRINT_HAS(stu2, name, "stu2", "name")
   PRINT_HAS(stu2, age, "stu2", "age")
   PRINT_HAS(stu2, xyz, "stu2", "xyz")

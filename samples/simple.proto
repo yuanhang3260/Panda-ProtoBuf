@@ -15,6 +15,8 @@ message Student {
   optional bool graduated = 6;
   optional double weight = 7;
   optional Sex sex = 25;
+  repeated int32 scores = 11;
+  repeated string alias = 15;
 }
 
 message SchoolClass {
