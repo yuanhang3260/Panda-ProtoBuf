@@ -139,7 +139,7 @@ class Student: public ::proto::Message {
 
   // "pets" = 9
   int pets_size() const;
-  const Pet& pets(int index);
+  const Pet& pets(int index) const;
   Pet* add_pets();
   Pet* mutable_pets(int index);
   void clear_pets();
@@ -148,7 +148,7 @@ class Student: public ::proto::Message {
 
   // "scores" = 11
   int scores_size() const;
-  int scores(int index);
+  int scores(int index) const;
   void set_scores(int index, int value);
   void add_scores(int value);
   void clear_scores();
@@ -165,7 +165,7 @@ class Student: public ::proto::Message {
 
   // "alias" = 15
   int alias_size() const;
-  const std::string& alias(int index);
+  const std::string& alias(int index) const;
   void set_alias(int index, const std::string& value);
   void set_alias(int index, const char* value);
   void set_alias(int index, const char* value, int size);
@@ -253,12 +253,31 @@ class SchoolClass: public ::proto::Message {
   std::string mutable_alias();
   void clear_alias();
 
+  // "captain" = 3
+  bool has_captain() const;
+  const Student& captain() const;
+  Student* mutable_captain();
+  void set_allocated_captain(Student* captain);
+  Student* release_captain();
+  void clear_captain();
+
+  // "students" = 5
+  int students_size() const;
+  const Student& students(int index) const;
+  Student* add_students();
+  Student* mutable_students(int index);
+  void clear_students();
+  const ::proto::RepeatedPtrField<Student>& students() const;
+  ::proto::RepeatedPtrField<Student>& mutable_students();
+
  private:
   // has bits
   char has_bits_[1];
   // message fields
   int number_ = 0;
   std::string alias_ = "";
+  Student* captain_ = nullptr;
+  ::proto::RepeatedPtrField<Student> students_;
 
   // InitAsDefaultInstance()
   void InitAsDefaultInstance() override;

@@ -106,7 +106,7 @@ class DogInfo: public ::proto::Message {
 
   // "sex" = 4
   int sex_size() const;
-  DogInfo::Sex sex(int index);
+  DogInfo::Sex sex(int index) const;
   void set_sex(int index, DogInfo::Sex value);
   void add_sex(DogInfo::Sex value);
   void clear_sex();
@@ -115,7 +115,7 @@ class DogInfo: public ::proto::Message {
 
   // "weights" = 5
   int weights_size() const;
-  double weights(int index);
+  double weights(int index) const;
   void set_weights(int index, double value);
   void add_weights(double value);
   void clear_weights();
@@ -132,7 +132,7 @@ class DogInfo: public ::proto::Message {
 
   // "alias" = 18
   int alias_size() const;
-  const std::string& alias(int index);
+  const std::string& alias(int index) const;
   void set_alias(int index, const std::string& value);
   void set_alias(int index, const char* value);
   void set_alias(int index, const char* value, int size);
@@ -147,7 +147,7 @@ class DogInfo: public ::proto::Message {
 
   // "neighbors" = 25
   int neighbors_size() const;
-  const ::AA::FamilyInfo& neighbors(int index);
+  const ::AA::FamilyInfo& neighbors(int index) const;
   ::AA::FamilyInfo* add_neighbors();
   ::AA::FamilyInfo* mutable_neighbors(int index);
   void clear_neighbors();

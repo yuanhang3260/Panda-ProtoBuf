@@ -95,9 +95,11 @@ void static_init_samples_simple() {
   ::proto::MessageFactory::RegisterGeneratedMessage(Student_reflection_);
 
   // static init for class SchoolClass
-  static const int SchoolClass_offsets_[2] = {
+  static const int SchoolClass_offsets_[4] = {
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::SchoolClass, number_),
     PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::SchoolClass, alias_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::SchoolClass, captain_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::SchoolClass, students_),
   };
   i = 0;
   for (auto& field: parser.mutable_messages_list()[2]->mutable_fields_list()) {
@@ -137,10 +139,16 @@ Pet::Pet() {
 Pet::Pet(const Pet& other) {
   name_ = other.name();
   type_ = other.type();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
 }
 
 // move constructor
 Pet::Pet(Pet&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   name_ = std::move(other.mutable_name());
   type_ = other.type();
   other.clear_type();
@@ -150,11 +158,17 @@ Pet::Pet(Pet&& other) {
 Pet& Pet::operator=(const Pet& other) {
   name_ = other.name();
   type_ = other.type();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   return *this;
 }
 
 // move assignment
 Pet& Pet::operator=(Pet&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   name_ = std::move(other.mutable_name());
   type_ = other.type();
   other.clear_type();
@@ -182,6 +196,13 @@ void Pet::InitAsDefaultInstance() {
 
 // swapper
 void Pet::Swap(Pet* other) {
+  // store has_bits
+  char* buf = new char[2 * sizeof(has_bits_)];
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    buf[i] = has_bits_[i];
+    buf[i + sizeof(has_bits_)] = other->has_bits_[i];
+  }
+
   std::string name_tmp__ = std::move(other->mutable_name());
   other->mutable_name() = std::move(name_);
   name_ = std::move(name_tmp__);
@@ -189,6 +210,13 @@ void Pet::Swap(Pet* other) {
   Pet::PetType type_tmp__ = other->type();
   other->set_type(type_);
   set_type(type_tmp__);
+
+  // swap has_bits
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = buf[i + sizeof(has_bits_)];
+    other->has_bits_[i] = buf[i];
+  }
+  delete buf;
 }
 
 // default_instance()
@@ -279,22 +307,32 @@ Student::Student(const Student& other) {
     pets_.AddAllocated(new Pet(*p));
   }
   scores_ = other.scores();
-  if (!first_pet_) {
-    first_pet_ = new Pet();
+  if (other.first_pet_) {
+    if (!first_pet_) {
+      first_pet_ = new Pet();
+    }
+    *first_pet_ = other.first_pet();
   }
-  *first_pet_ = other.first_pet();
   for (const std::string* p: other.alias().GetElements()) {
     alias_.AddAllocated(new std::string(*p));
   }
-  if (!partner_) {
-    partner_ = new Student();
+  if (other.partner_) {
+    if (!partner_) {
+      partner_ = new Student();
+    }
+    *partner_ = other.partner();
   }
-  *partner_ = other.partner();
   sex_ = other.sex();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
 }
 
 // move constructor
 Student::Student(Student&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   name_ = std::move(other.mutable_name());
   age_ = other.age();
   other.clear_age();
@@ -310,15 +348,19 @@ Student::Student(Student&& other) {
   other.clear_weight();
   pets_ = std::move(other.mutable_pets());
   scores_ = std::move(other.mutable_scores());
-  if (first_pet_ ) {
-    delete first_pet_;
+  if (other.first_pet_) {
+    if (!first_pet_) {
+      first_pet_ = new Pet();
+    }
+    *first_pet_ = other.first_pet();
   }
-  first_pet_ = other.release_first_pet();
   alias_ = std::move(other.mutable_alias());
-  if (partner_ ) {
-    delete partner_;
+  if (other.partner_) {
+    if (!partner_) {
+      partner_ = new Student();
+    }
+    *partner_ = other.partner();
   }
-  partner_ = other.release_partner();
   sex_ = other.sex();
   other.clear_sex();
 }
@@ -336,23 +378,33 @@ Student& Student::operator=(const Student& other) {
     pets_.AddAllocated(new Pet(*p));
   }
   scores_ = other.scores();
-  if (!first_pet_) {
-    first_pet_ = new Pet();
+  if (other.first_pet_) {
+    if (!first_pet_) {
+      first_pet_ = new Pet();
+    }
+    *first_pet_ = other.first_pet();
   }
-  *first_pet_ = other.first_pet();
   for (const std::string* p: other.alias().GetElements()) {
     alias_.AddAllocated(new std::string(*p));
   }
-  if (!partner_) {
-    partner_ = new Student();
+  if (other.partner_) {
+    if (!partner_) {
+      partner_ = new Student();
+    }
+    *partner_ = other.partner();
   }
-  *partner_ = other.partner();
   sex_ = other.sex();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   return *this;
 }
 
 // move assignment
 Student& Student::operator=(Student&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   name_ = std::move(other.mutable_name());
   age_ = other.age();
   other.clear_age();
@@ -368,15 +420,19 @@ Student& Student::operator=(Student&& other) {
   other.clear_weight();
   pets_ = std::move(other.mutable_pets());
   scores_ = std::move(other.mutable_scores());
-  if (first_pet_ ) {
-    delete first_pet_;
+  if (other.first_pet_) {
+    if (!first_pet_) {
+      first_pet_ = new Pet();
+    }
+    *first_pet_ = other.first_pet();
   }
-  first_pet_ = other.release_first_pet();
   alias_ = std::move(other.mutable_alias());
-  if (partner_ ) {
-    delete partner_;
+  if (other.partner_) {
+    if (!partner_) {
+      partner_ = new Student();
+    }
+    *partner_ = other.partner();
   }
-  partner_ = other.release_partner();
   sex_ = other.sex();
   other.clear_sex();
   return *this;
@@ -405,6 +461,13 @@ void Student::InitAsDefaultInstance() {
 
 // swapper
 void Student::Swap(Student* other) {
+  // store has_bits
+  char* buf = new char[2 * sizeof(has_bits_)];
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    buf[i] = has_bits_[i];
+    buf[i + sizeof(has_bits_)] = other->has_bits_[i];
+  }
+
   std::string name_tmp__ = std::move(other->mutable_name());
   other->mutable_name() = std::move(name_);
   name_ = std::move(name_tmp__);
@@ -456,6 +519,13 @@ void Student::Swap(Student* other) {
   Student::Sex sex_tmp__ = other->sex();
   other->set_sex(sex_);
   set_sex(sex_tmp__);
+
+  // swap has_bits
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = buf[i + sizeof(has_bits_)];
+    other->has_bits_[i] = buf[i];
+  }
+  delete buf;
 }
 
 // default_instance()
@@ -626,7 +696,7 @@ int Student::pets_size() const {
   return pets_.size();
 }
 
-const Pet& Student::pets(int index) {
+const Pet& Student::pets(int index) const {
   return pets_.Get(index);
 }
 
@@ -655,7 +725,7 @@ int Student::scores_size() const {
   return scores_.size();
 }
 
-int Student::scores(int index) {
+int Student::scores(int index) const {
   return scores_.Get(index);
 }
 
@@ -739,7 +809,7 @@ int Student::alias_size() const {
   return alias_.size();
 }
 
-const std::string& Student::alias(int index) {
+const std::string& Student::alias(int index) const {
   return alias_.Get(index);
 }
 
@@ -878,27 +948,71 @@ SchoolClass::SchoolClass() {
 SchoolClass::SchoolClass(const SchoolClass& other) {
   number_ = other.number();
   alias_ = other.alias();
+  if (other.captain_) {
+    if (!captain_) {
+      captain_ = new Student();
+    }
+    *captain_ = other.captain();
+  }
+  for (const Student* p: other.students().GetElements()) {
+    students_.AddAllocated(new Student(*p));
+  }
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
 }
 
 // move constructor
 SchoolClass::SchoolClass(SchoolClass&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   number_ = other.number();
   other.clear_number();
   alias_ = std::move(other.mutable_alias());
+  if (other.captain_) {
+    if (!captain_) {
+      captain_ = new Student();
+    }
+    *captain_ = other.captain();
+  }
+  students_ = std::move(other.mutable_students());
 }
 
 // copy assignment
 SchoolClass& SchoolClass::operator=(const SchoolClass& other) {
   number_ = other.number();
   alias_ = other.alias();
+  if (other.captain_) {
+    if (!captain_) {
+      captain_ = new Student();
+    }
+    *captain_ = other.captain();
+  }
+  for (const Student* p: other.students().GetElements()) {
+    students_.AddAllocated(new Student(*p));
+  }
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   return *this;
 }
 
 // move assignment
 SchoolClass& SchoolClass::operator=(SchoolClass&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   number_ = other.number();
   other.clear_number();
   alias_ = std::move(other.mutable_alias());
+  if (other.captain_) {
+    if (!captain_) {
+      captain_ = new Student();
+    }
+    *captain_ = other.captain();
+  }
+  students_ = std::move(other.mutable_students());
   return *this;
 }
 
@@ -919,10 +1033,18 @@ void SchoolClass::DeSerialize(const char* buf, unsigned int size) {
 
 // InitAsDefaultInstance()
 void SchoolClass::InitAsDefaultInstance() {
+  captain_ = const_cast<Student*>(&Student::default_instance());
 }
 
 // swapper
 void SchoolClass::Swap(SchoolClass* other) {
+  // store has_bits
+  char* buf = new char[2 * sizeof(has_bits_)];
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    buf[i] = has_bits_[i];
+    buf[i + sizeof(has_bits_)] = other->has_bits_[i];
+  }
+
   int number_tmp__ = other->number();
   other->set_number(number_);
   set_number(number_tmp__);
@@ -930,6 +1052,21 @@ void SchoolClass::Swap(SchoolClass* other) {
   std::string alias_tmp__ = std::move(other->mutable_alias());
   other->mutable_alias() = std::move(alias_);
   alias_ = std::move(alias_tmp__);
+
+  Student* captain_tmp__ = other->release_captain();
+  other->set_allocated_captain(this->release_captain());
+  set_allocated_captain(captain_tmp__);
+
+  ::proto::RepeatedPtrField<Student> students_tmp__ = std::move(other->mutable_students());
+  other->mutable_students() = std::move(students_);
+  students_ = std::move(students_tmp__);
+
+  // swap has_bits
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = buf[i + sizeof(has_bits_)];
+    other->has_bits_[i] = buf[i];
+  }
+  delete buf;
 }
 
 // default_instance()
@@ -944,6 +1081,7 @@ SchoolClass* SchoolClass::default_instance_ = NULL;
 
 // destructor
 SchoolClass::~SchoolClass() {
+  delete captain_;
 }
 
 // "number" = 1
@@ -996,6 +1134,88 @@ std::string SchoolClass::mutable_alias() {
 void SchoolClass::clear_alias() {
   alias_ = "";
   has_bits_[0] &= (~0x4);
+}
+
+// "captain" = 3
+bool SchoolClass::has_captain() const {
+  return (has_bits_[0] & 0x8) != 0;
+}
+
+const Student& SchoolClass::captain() const {
+  if (has_captain() && captain_) {
+    return *captain_;
+  }
+  else {
+    return Student::default_instance();
+  }
+}
+
+Student* SchoolClass::mutable_captain() {
+  if (has_captain() && captain_) {
+    return captain_;
+  }
+  else {
+    captain_ = new Student();
+    has_bits_[0] |= 0x8;
+    return captain_;
+  }
+}
+
+void SchoolClass::set_allocated_captain(Student* captain) {
+  if (captain_) {
+    delete captain_;
+  }
+  captain_ = captain;
+  if (captain_) {
+    has_bits_[0] |= 0x8;
+  }
+  else {
+    has_bits_[0] &= (~0x8);
+  }
+}
+
+Student* SchoolClass::release_captain() {
+  Student* captain_tmp__ = captain_;
+  captain_ = nullptr;
+  has_bits_[0] &= (~0x8);
+  return captain_tmp__;
+}
+
+void SchoolClass::clear_captain() {
+  if (captain_) {
+    delete captain_;
+  }
+  captain_ = nullptr;
+  has_bits_[0] &= (~0x8);
+}
+
+// "students" = 5
+int SchoolClass::students_size() const {
+  return students_.size();
+}
+
+const Student& SchoolClass::students(int index) const {
+  return students_.Get(index);
+}
+
+Student* SchoolClass::add_students() {
+  return students_.Add();
+}
+
+Student* SchoolClass::mutable_students(int index) {
+  return students_.GetMutable(index);
+}
+
+void SchoolClass::clear_students() {
+  students_.Clear();
+}
+
+const ::proto::RepeatedPtrField<Student>& SchoolClass::students() const {
+  return students_;
+}
+
+::proto::RepeatedPtrField<Student>& SchoolClass::mutable_students() {
+  return students_;
 }
 
 }  // namespace HaiZhong

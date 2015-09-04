@@ -386,10 +386,12 @@ void CppCodeGenerator::PrintCopyClassCode(Message* message) {
 
     if (field->IsSingularMessageType()) {
       printer.Print(
-        "  if (!${field_name}_) {\n"
-        "    ${field_name}_ = new ${type_name}();\n"
-        "  }\n"
-        "  *${field_name}_ = other.${field_name}();\n", matches);
+        "  if (other.${field_name}_) {\n"
+        "    if (!${field_name}_) {\n"
+        "      ${field_name}_ = new ${type_name}();\n"
+        "    }\n"
+        "    *${field_name}_ = other.${field_name}();\n"
+        "  }\n", matches);
     }
     else if (field->IsRepeatedStringType() || field->IsRepeatedMessageType()) {
       printer.Print(
@@ -402,6 +404,9 @@ void CppCodeGenerator::PrintCopyClassCode(Message* message) {
       printer.Print("  ${field_name}_ = other.${field_name}();\n", matches);
     }
   }
+  printer.Print("  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {\n"
+                "    has_bits_[i] = other.has_bits_[i];\n"
+                "  }\n");
 }
 
 void CppCodeGenerator::DefineConstructor(Message* message) {
@@ -447,6 +452,10 @@ void CppCodeGenerator::DefineCopyAssigner(Message* message) {
 }
 
 void CppCodeGenerator::PrintMoveClassCode(Message* message) {
+  printer.Print("  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {\n"
+                "    has_bits_[i] = other.has_bits_[i];\n"
+                "  }\n");
+
   std::map<std::string, std::string> msg_match{
      {"msg_name", message->name()},
   };
@@ -463,11 +472,12 @@ void CppCodeGenerator::PrintMoveClassCode(Message* message) {
     }
     else if (field->type() == MESSAGETYPE) {
       printer.Print(
-        "  if (${field_name}_ ) {\n"
-        "    delete ${field_name}_;\n"
-        "  }\n"
-        "  ${field_name}_ = other.release_${field_name}();\n",
-        matches);
+        "  if (other.${field_name}_) {\n"
+        "    if (!${field_name}_) {\n"
+        "      ${field_name}_ = new ${type_name}();\n"
+        "    }\n"
+        "    *${field_name}_ = other.${field_name}();\n"
+        "  }\n", matches);
     }
     else {
       printer.Print("  ${field_name}_ = other.${field_name}();\n", matches);
@@ -579,7 +589,14 @@ void CppCodeGenerator::DefineSwapper(Message* message) {
   };
 
   printer.Print("// swapper\n");
-  printer.Print("void ${msg_name}::Swap(${msg_name}* other) {", msg_match);
+  printer.Print("void ${msg_name}::Swap(${msg_name}* other) {\n", msg_match);
+  // swap has bits first
+  printer.Print("  // store has_bits\n"
+                "  char* buf = new char[2 * sizeof(has_bits_)];\n"
+                "  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {\n"
+                "    buf[i] = has_bits_[i];\n"
+                "    buf[i + sizeof(has_bits_)] = other->has_bits_[i];\n"
+                "  }\n");
   for (auto& field : message->fields_list()) {
     printer.Print("\n");
 
@@ -620,6 +637,12 @@ void CppCodeGenerator::DefineSwapper(Message* message) {
           matches);
     }
   }
+  printer.Print("\n  // swap has_bits\n"
+                "  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {\n"
+                "    has_bits_[i] = buf[i + sizeof(has_bits_)];\n"
+                "    other->has_bits_[i] = buf[i];\n"
+                "  }\n"
+                "  delete buf;\n");
   printer.Print("}\n\n");
 }
 
@@ -753,7 +776,7 @@ void CppCodeGenerator::DeclareRepeatedNumericTypeAccessors(
                 matches);
 
   // Declare - Bar foo(int index) const;
-  printer.Print("  ${type_name} ${field_name}(int index);\n",
+  printer.Print("  ${type_name} ${field_name}(int index) const;\n",
                 matches);
 
   // Declare - void set_foo(int index, Bar& value);
@@ -791,7 +814,7 @@ void CppCodeGenerator::DeclareRepeatedNonNumericTypeAccessors(
   printer.Print("  int ${field_name}_size() const;\n", matches);
 
   // Declare - const ${type_name}& foo(int index) const;
-  printer.Print("  const ${type_name}& ${field_name}(int index);\n", matches);
+  printer.Print("  const ${type_name}& ${field_name}(int index) const;\n", matches);
 
   // String type can also have value passed by const char*
   if (field->IsRepeatedStringType()) {
@@ -1043,7 +1066,7 @@ void CppCodeGenerator::DefineRepeatedNumericTypeAccessors(
                 matches);
 
   // Implement - Bar foo(int index) const;
-  printer.Print("${type_name} ${msg_name}::${field_name}(int index) {\n"
+  printer.Print("${type_name} ${msg_name}::${field_name}(int index) const {\n"
                 "  return ${field_name}_.Get(index);\n"
                 "}\n\n",
                 matches);
@@ -1096,7 +1119,7 @@ void CppCodeGenerator::DefineRepeatedNonNumericTypeAccessors(
                 matches);
 
   // Implement - const ${type_name}& foo(int index) const;
-  printer.Print("const ${type_name}& ${msg_name}::${field_name}(int index) {\n"
+  printer.Print("const ${type_name}& ${msg_name}::${field_name}(int index) const {\n"
                 "  return ${field_name}_.Get(index);\n"
                 "}\n\n",
                 matches);

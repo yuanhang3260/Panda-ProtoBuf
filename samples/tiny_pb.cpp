@@ -429,7 +429,7 @@ int DogInfo::sex_size() const {
   return sex_.size();
 }
 
-DogInfo::Sex DogInfo::sex(int index) {
+DogInfo::Sex DogInfo::sex(int index) const {
   return sex_.Get(index);
 }
 
@@ -460,7 +460,7 @@ int DogInfo::weights_size() const {
   return weights_.size();
 }
 
-double DogInfo::weights(int index) {
+double DogInfo::weights(int index) const {
   return weights_.Get(index);
 }
 
@@ -544,7 +544,7 @@ int DogInfo::alias_size() const {
   return alias_.size();
 }
 
-const std::string& DogInfo::alias(int index) {
+const std::string& DogInfo::alias(int index) const {
   return alias_.Get(index);
 }
 
@@ -603,7 +603,7 @@ int DogInfo::neighbors_size() const {
   return neighbors_.size();
 }
 
-const ::AA::FamilyInfo& DogInfo::neighbors(int index) {
+const ::AA::FamilyInfo& DogInfo::neighbors(int index) const {
   return neighbors_.Get(index);
 }
 
