@@ -46,7 +46,7 @@ class RepeatedField: public RepeatedFieldBase {
   RepeatedField<T>(RepeatedField<T>&& other) {
     elements = std::move(other.Mutable_Elements());
   };
-  RepeatedField<T>& operator=(RepeatedField<T>& other) {
+  RepeatedField<T>& operator=(RepeatedField<T>&& other) {
     elements = std::move(other.Mutable_Elements());
     return *this;
   }

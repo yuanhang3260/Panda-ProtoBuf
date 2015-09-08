@@ -202,7 +202,7 @@ void test_Serialize() {
   //::HaiZhong::Student* stu3 = new ::HaiZhong::Student();
   stu3->set_def(17375839784);
   PRINT_HAS((*stu3), def, "stu3", "def")
-  *stu3 = std::move(stu2);
+  *stu3 = (stu2);
   PRINT_HAS((*stu3), name, "stu3", "name")
   PRINT_HAS((*stu3), age, "stu3", "age")
   PRINT_HAS((*stu3), xyz, "stu3", "xyz")
@@ -253,20 +253,20 @@ void test_Serialize() {
             << stu3->partner().partner().alias(0) << std::endl;
   std::cout << "stu3.partner.partner.alias[1] = "
             << stu3->partner().partner().alias(1) << std::endl;
-  
+
   ::HaiZhong::Student* stu4 = class1.add_students();
   stu4->set_name("rjj");
   stu4->set_age(25);
   stu4->add_alias("biao");
   stu4->add_alias("zhazi");
-  
+
   ::HaiZhong::Student* stu5 = class1.add_students();
   stu5->set_name("zq");
   stu5->set_age(25);
   stu5->add_alias("xiaonn");
 
   class1.set_number(16);
-  
+
   ::HaiZhong::Student* stu6 = new ::HaiZhong::Student();
   stu6->set_name("wty");
   stu6->add_alias("fayu");
@@ -283,11 +283,11 @@ void test_Serialize() {
     printf("0x%x ", obj_data2[i] & 0xff);
   }
   printf("\n");
-  
-  // Single student serialization
+
+  // Whole class de-serialization
   ::HaiZhong::SchoolClass class2;
   class2.DeSerialize(obj_data2, sdmsg2->size());
-  
+
   std::cout << "class2.captain.name() = "
             << class2.captain().name() << std::endl;
   std::cout << "class2.captain.alias(0) = "

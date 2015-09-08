@@ -30,6 +30,8 @@ class Pet: public ::proto::Message {
   void Swap(Pet* other);
 
   ::proto::Message* New() const override;  // New()
+  void CopyFrom(const Pet& other);  // CopyFrom()
+  void MoveFrom(Pet&& other);  // MoveFrom()
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -85,6 +87,8 @@ class Student: public ::proto::Message {
   void Swap(Student* other);
 
   ::proto::Message* New() const override;  // New()
+  void CopyFrom(const Student& other);  // CopyFrom()
+  void MoveFrom(Student&& other);  // MoveFrom()
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -231,6 +235,8 @@ class SchoolClass: public ::proto::Message {
   void Swap(SchoolClass* other);
 
   ::proto::Message* New() const override;  // New()
+  void CopyFrom(const SchoolClass& other);  // CopyFrom()
+  void MoveFrom(SchoolClass&& other);  // MoveFrom()
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;

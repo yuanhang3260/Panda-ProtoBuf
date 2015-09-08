@@ -77,6 +77,12 @@ class CppCodeGenerator : public ProtoParser {
   // Define New()
   void DefineNew(Message* message);
 
+  // Define CopyFrom()
+  void DefineCopyFrom(Message* message);
+
+  // Define MoveFrom()
+  void DefineMoveFrom(Message* message);
+
   // Define Serialize()
   void DefineSerialize(Message* message);
 

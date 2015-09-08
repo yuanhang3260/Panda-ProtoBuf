@@ -139,6 +139,12 @@ void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
       "  ::proto::Message* New() const override;  // New()\n",
       msg_match);
   printer.Print(
+      "  void CopyFrom(const ${msg_name}& other);  // CopyFrom()\n",
+      msg_match);
+  printer.Print(
+      "  void MoveFrom(${msg_name}&& other);  // MoveFrom()\n",
+      msg_match);
+  printer.Print(
       "  // Serialize() and DeSerialize().\n"
       "  ::proto::SerializedMessage* Serialize() const override;\n",
       msg_match);
@@ -345,6 +351,8 @@ void CppCodeGenerator::DefineClassMethods(Message* message) {
   DefineCopyAssigner(message);
   DefineMoveAssigner(message);
   DefineNew(message);
+  DefineCopyFrom(message);
+  DefineMoveFrom(message);
   DefineSerialize(message);
   DefineDeSerialize(message);
   DefineInitAsDefaultInstance(message);
@@ -430,11 +438,10 @@ void CppCodeGenerator::DefineCopyConstructor(Message* message) {
      {"msg_name", message->name()},
   };
   printer.Print(
-      "${msg_name}::${msg_name}(const ${msg_name}& other) {\n",
+      "${msg_name}::${msg_name}(const ${msg_name}& other) {\n"
+      "  CopyFrom(other);\n"
+      "}\n\n",
       msg_match);
-  
-  PrintCopyClassCode(message);
-  printer.Print("}\n\n");
 }
 
 void CppCodeGenerator::DefineCopyAssigner(Message* message) {
@@ -443,12 +450,11 @@ void CppCodeGenerator::DefineCopyAssigner(Message* message) {
      {"msg_name", message->name()},
   };
   printer.Print(
-      "${msg_name}& ${msg_name}::operator=(const ${msg_name}& other) {\n",
+      "${msg_name}& ${msg_name}::operator=(const ${msg_name}& other) {\n"
+      "  CopyFrom(other);\n"
+      "  return *this;\n"
+      "}\n",
       msg_match);
-  
-  PrintCopyClassCode(message);
-  printer.Print("  return *this;\n"
-                "}\n\n");
 }
 
 void CppCodeGenerator::PrintMoveClassCode(Message* message) {
@@ -473,17 +479,20 @@ void CppCodeGenerator::PrintMoveClassCode(Message* message) {
     else if (field->type() == MESSAGETYPE) {
       printer.Print(
         "  if (other.${field_name}_) {\n"
-        "    if (!${field_name}_) {\n"
-        "      ${field_name}_ = new ${type_name}();\n"
+        "    if (${field_name}_) {\n"
+        "      delete ${field_name}_;\n"
         "    }\n"
-        "    *${field_name}_ = other.${field_name}();\n"
+        "    ${field_name}_ = other.${field_name}_;\n"
+        "    other.${field_name}_ = nullptr;\n"
         "  }\n", matches);
     }
     else {
       printer.Print("  ${field_name}_ = other.${field_name}();\n", matches);
-      printer.Print("  other.clear_${field_name}();\n", matches);
     }
   }
+  printer.Print("  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {\n"
+                "    other.has_bits_[i] = 0;\n"
+                "  }\n");
 }
 
 void CppCodeGenerator::DefineMoveConstructor(Message* message) {
@@ -492,10 +501,10 @@ void CppCodeGenerator::DefineMoveConstructor(Message* message) {
   std::map<std::string, std::string> msg_match{
      {"msg_name", message->name()},
   };
-  printer.Print("${msg_name}::${msg_name}(${msg_name}&& other) {\n", msg_match);
-
-  PrintMoveClassCode(message);
-  printer.Print("}\n\n");
+  printer.Print("${msg_name}::${msg_name}(${msg_name}&& other) {\n"
+                "  MoveFrom(std::move(other));\n"
+                "}\n\n",
+                msg_match);
 }
 
 void CppCodeGenerator::DefineMoveAssigner(Message* message) {
@@ -504,12 +513,11 @@ void CppCodeGenerator::DefineMoveAssigner(Message* message) {
   std::map<std::string, std::string> msg_match{
      {"msg_name", message->name()},
   };
-  printer.Print("${msg_name}& ${msg_name}::operator=(${msg_name}&& other) {\n",
+  printer.Print("${msg_name}& ${msg_name}::operator=(${msg_name}&& other) {\n"
+                "  MoveFrom(std::move(other));\n"
+                "  return *this;\n"
+                "}\n\n",
                 msg_match);
-
-  PrintMoveClassCode(message);
-  printer.Print("  return *this;\n"
-                "}\n\n");
 }
 
 void CppCodeGenerator::DefineNew(Message* message) {
@@ -522,6 +530,30 @@ void CppCodeGenerator::DefineNew(Message* message) {
                 "  return reinterpret_cast<::proto::Message*>(new ${msg_name}());\n"
                 "}\n\n",
                 msg_match);
+}
+
+void CppCodeGenerator::DefineCopyFrom(Message* message) {
+  printer.Print("// CopyFrom()\n");
+
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+  printer.Print("void ${msg_name}::CopyFrom(const ${msg_name}& other) {\n",
+                msg_match);
+  PrintCopyClassCode(message);
+  printer.Print("}\n\n");
+}
+
+void CppCodeGenerator::DefineMoveFrom(Message* message) {
+  printer.Print("// MoveFrom()\n");
+
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+  printer.Print("void ${msg_name}::MoveFrom(${msg_name}&& other) {\n",
+                msg_match);
+  PrintMoveClassCode(message);
+  printer.Print("}\n\n");
 }
 
 void CppCodeGenerator::DefineSerialize(Message* message) {

@@ -137,47 +137,49 @@ Pet::Pet() {
 
 // copy constructor
 Pet::Pet(const Pet& other) {
-  name_ = other.name();
-  type_ = other.type();
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
 }
 
 // move constructor
 Pet::Pet(Pet&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  name_ = std::move(other.mutable_name());
-  type_ = other.type();
-  other.clear_type();
+  MoveFrom(std::move(other));
 }
 
 // copy assignment
 Pet& Pet::operator=(const Pet& other) {
-  name_ = other.name();
-  type_ = other.type();
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
   return *this;
 }
-
 // move assignment
 Pet& Pet::operator=(Pet&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  name_ = std::move(other.mutable_name());
-  type_ = other.type();
-  other.clear_type();
+  MoveFrom(std::move(other));
   return *this;
 }
 
 // New()
 ::proto::Message* Pet::New() const {
   return reinterpret_cast<::proto::Message*>(new Pet());
+}
+
+// CopyFrom()
+void Pet::CopyFrom(const Pet& other) {
+  name_ = other.name();
+  type_ = other.type();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+}
+
+// MoveFrom()
+void Pet::MoveFrom(Pet&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+  name_ = std::move(other.mutable_name());
+  type_ = other.type();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    other.has_bits_[i] = 0;
+  }
 }
 
 // Serialize()
@@ -296,151 +298,97 @@ Student::Student() {
 
 // copy constructor
 Student::Student(const Student& other) {
-  name_ = other.name();
-  age_ = other.age();
-  xyz_ = other.xyz();
-  def_ = other.def();
-  ghi_ = other.ghi();
-  graduated_ = other.graduated();
-  weight_ = other.weight();
-  for (const Pet* p: other.pets().GetElements()) {
-    pets_.AddAllocated(new Pet(*p));
-  }
-  scores_ = other.scores();
-  if (other.first_pet_) {
-    if (!first_pet_) {
-      first_pet_ = new Pet();
-    }
-    *first_pet_ = other.first_pet();
-  }
-  for (const std::string* p: other.alias().GetElements()) {
-    alias_.AddAllocated(new std::string(*p));
-  }
-  if (other.partner_) {
-    if (!partner_) {
-      partner_ = new Student();
-    }
-    *partner_ = other.partner();
-  }
-  sex_ = other.sex();
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
 }
 
 // move constructor
 Student::Student(Student&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  name_ = std::move(other.mutable_name());
-  age_ = other.age();
-  other.clear_age();
-  xyz_ = other.xyz();
-  other.clear_xyz();
-  def_ = other.def();
-  other.clear_def();
-  ghi_ = other.ghi();
-  other.clear_ghi();
-  graduated_ = other.graduated();
-  other.clear_graduated();
-  weight_ = other.weight();
-  other.clear_weight();
-  pets_ = std::move(other.mutable_pets());
-  scores_ = std::move(other.mutable_scores());
-  if (other.first_pet_) {
-    if (!first_pet_) {
-      first_pet_ = new Pet();
-    }
-    *first_pet_ = other.first_pet();
-  }
-  alias_ = std::move(other.mutable_alias());
-  if (other.partner_) {
-    if (!partner_) {
-      partner_ = new Student();
-    }
-    *partner_ = other.partner();
-  }
-  sex_ = other.sex();
-  other.clear_sex();
+  MoveFrom(std::move(other));
 }
 
 // copy assignment
 Student& Student::operator=(const Student& other) {
-  name_ = other.name();
-  age_ = other.age();
-  xyz_ = other.xyz();
-  def_ = other.def();
-  ghi_ = other.ghi();
-  graduated_ = other.graduated();
-  weight_ = other.weight();
-  for (const Pet* p: other.pets().GetElements()) {
-    pets_.AddAllocated(new Pet(*p));
-  }
-  scores_ = other.scores();
-  if (other.first_pet_) {
-    if (!first_pet_) {
-      first_pet_ = new Pet();
-    }
-    *first_pet_ = other.first_pet();
-  }
-  for (const std::string* p: other.alias().GetElements()) {
-    alias_.AddAllocated(new std::string(*p));
-  }
-  if (other.partner_) {
-    if (!partner_) {
-      partner_ = new Student();
-    }
-    *partner_ = other.partner();
-  }
-  sex_ = other.sex();
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
   return *this;
 }
-
 // move assignment
 Student& Student::operator=(Student&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  name_ = std::move(other.mutable_name());
-  age_ = other.age();
-  other.clear_age();
-  xyz_ = other.xyz();
-  other.clear_xyz();
-  def_ = other.def();
-  other.clear_def();
-  ghi_ = other.ghi();
-  other.clear_ghi();
-  graduated_ = other.graduated();
-  other.clear_graduated();
-  weight_ = other.weight();
-  other.clear_weight();
-  pets_ = std::move(other.mutable_pets());
-  scores_ = std::move(other.mutable_scores());
-  if (other.first_pet_) {
-    if (!first_pet_) {
-      first_pet_ = new Pet();
-    }
-    *first_pet_ = other.first_pet();
-  }
-  alias_ = std::move(other.mutable_alias());
-  if (other.partner_) {
-    if (!partner_) {
-      partner_ = new Student();
-    }
-    *partner_ = other.partner();
-  }
-  sex_ = other.sex();
-  other.clear_sex();
+  MoveFrom(std::move(other));
   return *this;
 }
 
 // New()
 ::proto::Message* Student::New() const {
   return reinterpret_cast<::proto::Message*>(new Student());
+}
+
+// CopyFrom()
+void Student::CopyFrom(const Student& other) {
+  name_ = other.name();
+  age_ = other.age();
+  xyz_ = other.xyz();
+  def_ = other.def();
+  ghi_ = other.ghi();
+  graduated_ = other.graduated();
+  weight_ = other.weight();
+  for (const Pet* p: other.pets().GetElements()) {
+    pets_.AddAllocated(new Pet(*p));
+  }
+  scores_ = other.scores();
+  if (other.first_pet_) {
+    if (!first_pet_) {
+      first_pet_ = new Pet();
+    }
+    *first_pet_ = other.first_pet();
+  }
+  for (const std::string* p: other.alias().GetElements()) {
+    alias_.AddAllocated(new std::string(*p));
+  }
+  if (other.partner_) {
+    if (!partner_) {
+      partner_ = new Student();
+    }
+    *partner_ = other.partner();
+  }
+  sex_ = other.sex();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+}
+
+// MoveFrom()
+void Student::MoveFrom(Student&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+  name_ = std::move(other.mutable_name());
+  age_ = other.age();
+  xyz_ = other.xyz();
+  def_ = other.def();
+  ghi_ = other.ghi();
+  graduated_ = other.graduated();
+  weight_ = other.weight();
+  pets_ = std::move(other.mutable_pets());
+  scores_ = std::move(other.mutable_scores());
+  if (other.first_pet_) {
+    if (first_pet_) {
+      delete first_pet_;
+    }
+    first_pet_ = other.first_pet_;
+    other.first_pet_ = nullptr;
+  }
+  alias_ = std::move(other.mutable_alias());
+  if (other.partner_) {
+    if (partner_) {
+      delete partner_;
+    }
+    partner_ = other.partner_;
+    other.partner_ = nullptr;
+  }
+  sex_ = other.sex();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    other.has_bits_[i] = 0;
+  }
 }
 
 // Serialize()
@@ -946,79 +894,66 @@ SchoolClass::SchoolClass() {
 
 // copy constructor
 SchoolClass::SchoolClass(const SchoolClass& other) {
-  number_ = other.number();
-  alias_ = other.alias();
-  if (other.captain_) {
-    if (!captain_) {
-      captain_ = new Student();
-    }
-    *captain_ = other.captain();
-  }
-  for (const Student* p: other.students().GetElements()) {
-    students_.AddAllocated(new Student(*p));
-  }
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
 }
 
 // move constructor
 SchoolClass::SchoolClass(SchoolClass&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  number_ = other.number();
-  other.clear_number();
-  alias_ = std::move(other.mutable_alias());
-  if (other.captain_) {
-    if (!captain_) {
-      captain_ = new Student();
-    }
-    *captain_ = other.captain();
-  }
-  students_ = std::move(other.mutable_students());
+  MoveFrom(std::move(other));
 }
 
 // copy assignment
 SchoolClass& SchoolClass::operator=(const SchoolClass& other) {
-  number_ = other.number();
-  alias_ = other.alias();
-  if (other.captain_) {
-    if (!captain_) {
-      captain_ = new Student();
-    }
-    *captain_ = other.captain();
-  }
-  for (const Student* p: other.students().GetElements()) {
-    students_.AddAllocated(new Student(*p));
-  }
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
   return *this;
 }
-
 // move assignment
 SchoolClass& SchoolClass::operator=(SchoolClass&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  number_ = other.number();
-  other.clear_number();
-  alias_ = std::move(other.mutable_alias());
-  if (other.captain_) {
-    if (!captain_) {
-      captain_ = new Student();
-    }
-    *captain_ = other.captain();
-  }
-  students_ = std::move(other.mutable_students());
+  MoveFrom(std::move(other));
   return *this;
 }
 
 // New()
 ::proto::Message* SchoolClass::New() const {
   return reinterpret_cast<::proto::Message*>(new SchoolClass());
+}
+
+// CopyFrom()
+void SchoolClass::CopyFrom(const SchoolClass& other) {
+  number_ = other.number();
+  alias_ = other.alias();
+  if (other.captain_) {
+    if (!captain_) {
+      captain_ = new Student();
+    }
+    *captain_ = other.captain();
+  }
+  for (const Student* p: other.students().GetElements()) {
+    students_.AddAllocated(new Student(*p));
+  }
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+}
+
+// MoveFrom()
+void SchoolClass::MoveFrom(SchoolClass&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+  number_ = other.number();
+  alias_ = std::move(other.mutable_alias());
+  if (other.captain_) {
+    if (captain_) {
+      delete captain_;
+    }
+    captain_ = other.captain_;
+    other.captain_ = nullptr;
+  }
+  students_ = std::move(other.mutable_students());
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    other.has_bits_[i] = 0;
+  }
 }
 
 // Serialize()

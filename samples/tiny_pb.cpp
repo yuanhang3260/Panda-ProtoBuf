@@ -107,10 +107,16 @@ FamilyInfo::FamilyInfo() {
 FamilyInfo::FamilyInfo(const FamilyInfo& other) {
   address_ = other.address();
   numberdogs_ = other.numberdogs();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
 }
 
 // move constructor
 FamilyInfo::FamilyInfo(FamilyInfo&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   address_ = std::move(other.mutable_address());
   numberdogs_ = other.numberdogs();
   other.clear_numberdogs();
@@ -120,11 +126,17 @@ FamilyInfo::FamilyInfo(FamilyInfo&& other) {
 FamilyInfo& FamilyInfo::operator=(const FamilyInfo& other) {
   address_ = other.address();
   numberdogs_ = other.numberdogs();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   return *this;
 }
 
 // move assignment
 FamilyInfo& FamilyInfo::operator=(FamilyInfo&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   address_ = std::move(other.mutable_address());
   numberdogs_ = other.numberdogs();
   other.clear_numberdogs();
@@ -152,6 +164,13 @@ void FamilyInfo::InitAsDefaultInstance() {
 
 // swapper
 void FamilyInfo::Swap(FamilyInfo* other) {
+  // store has_bits
+  char* buf = new char[2 * sizeof(has_bits_)];
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    buf[i] = has_bits_[i];
+    buf[i + sizeof(has_bits_)] = other->has_bits_[i];
+  }
+
   std::string address_tmp__ = std::move(other->mutable_address());
   other->mutable_address() = std::move(address_);
   address_ = std::move(address_tmp__);
@@ -159,6 +178,13 @@ void FamilyInfo::Swap(FamilyInfo* other) {
   int numberdogs_tmp__ = other->numberdogs();
   other->set_numberdogs(numberdogs_);
   set_numberdogs(numberdogs_tmp__);
+
+  // swap has_bits
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = buf[i + sizeof(has_bits_)];
+    other->has_bits_[i] = buf[i];
+  }
+  delete buf;
 }
 
 // default_instance()
@@ -244,29 +270,39 @@ DogInfo::DogInfo(const DogInfo& other) {
   name_ = other.name();
   sex_ = other.sex();
   weights_ = other.weights();
-  if (!family_) {
-    family_ = new ::AA::FamilyInfo();
+  if (other.family_) {
+    if (!family_) {
+      family_ = new ::AA::FamilyInfo();
+    }
+    *family_ = other.family();
   }
-  *family_ = other.family();
   for (const std::string* p: other.alias().GetElements()) {
     alias_.AddAllocated(new std::string(*p));
   }
   for (const ::AA::FamilyInfo* p: other.neighbors().GetElements()) {
     neighbors_.AddAllocated(new ::AA::FamilyInfo(*p));
   }
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
 }
 
 // move constructor
 DogInfo::DogInfo(DogInfo&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   age_ = other.age();
   other.clear_age();
   name_ = std::move(other.mutable_name());
   sex_ = std::move(other.mutable_sex());
   weights_ = std::move(other.mutable_weights());
-  if (family_ ) {
-    delete family_;
+  if (other.family_) {
+    if (!family_) {
+      family_ = new ::AA::FamilyInfo();
+    }
+    *family_ = other.family();
   }
-  family_ = other.release_family();
   alias_ = std::move(other.mutable_alias());
   neighbors_ = std::move(other.mutable_neighbors());
 }
@@ -277,30 +313,40 @@ DogInfo& DogInfo::operator=(const DogInfo& other) {
   name_ = other.name();
   sex_ = other.sex();
   weights_ = other.weights();
-  if (!family_) {
-    family_ = new ::AA::FamilyInfo();
+  if (other.family_) {
+    if (!family_) {
+      family_ = new ::AA::FamilyInfo();
+    }
+    *family_ = other.family();
   }
-  *family_ = other.family();
   for (const std::string* p: other.alias().GetElements()) {
     alias_.AddAllocated(new std::string(*p));
   }
   for (const ::AA::FamilyInfo* p: other.neighbors().GetElements()) {
     neighbors_.AddAllocated(new ::AA::FamilyInfo(*p));
   }
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   return *this;
 }
 
 // move assignment
 DogInfo& DogInfo::operator=(DogInfo&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
   age_ = other.age();
   other.clear_age();
   name_ = std::move(other.mutable_name());
   sex_ = std::move(other.mutable_sex());
   weights_ = std::move(other.mutable_weights());
-  if (family_ ) {
-    delete family_;
+  if (other.family_) {
+    if (!family_) {
+      family_ = new ::AA::FamilyInfo();
+    }
+    *family_ = other.family();
   }
-  family_ = other.release_family();
   alias_ = std::move(other.mutable_alias());
   neighbors_ = std::move(other.mutable_neighbors());
   return *this;
@@ -328,6 +374,13 @@ void DogInfo::InitAsDefaultInstance() {
 
 // swapper
 void DogInfo::Swap(DogInfo* other) {
+  // store has_bits
+  char* buf = new char[2 * sizeof(has_bits_)];
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    buf[i] = has_bits_[i];
+    buf[i + sizeof(has_bits_)] = other->has_bits_[i];
+  }
+
   int age_tmp__ = other->age();
   other->set_age(age_);
   set_age(age_tmp__);
@@ -355,6 +408,13 @@ void DogInfo::Swap(DogInfo* other) {
   ::proto::RepeatedPtrField<::AA::FamilyInfo> neighbors_tmp__ = std::move(other->mutable_neighbors());
   other->mutable_neighbors() = std::move(neighbors_);
   neighbors_ = std::move(neighbors_tmp__);
+
+  // swap has_bits
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = buf[i + sizeof(has_bits_)];
+    other->has_bits_[i] = buf[i];
+  }
+  delete buf;
 }
 
 // default_instance()
