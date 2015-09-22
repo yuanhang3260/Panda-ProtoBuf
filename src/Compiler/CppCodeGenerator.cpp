@@ -17,6 +17,7 @@ std::map<FIELD_TYPE, std::string> pbCppTypeMap{
 };
 
 void CppCodeGenerator::GenerateCode() {
+  pkg_stack_.clear();
   GenerateHeader();
   GenerateCC();
 }
@@ -1269,6 +1270,18 @@ CppCodeGenerator::GetFieldMatchMap(Message* message, MessageField* field) {
 void CppCodeGenerator::CheckoutNameSpace(
     std::vector<std::string>& context_stk,
     const std::vector<std::string>& target_stk) {
+  // std::cout << "context_stk package: ";
+  // for (const auto& str: context_stk) {
+  //   std::cout << str << ".";
+  // }
+  // std::cout << std::endl;
+  // std::cout << "target package: ";
+  // for (const auto& str: context_stk) {
+  //   std::cout << str << ".";
+  // }
+  // std::cout << std::endl;
+
+
   int len = Utils::Min(context_stk.size(), target_stk.size());
   int i, index = len;
   for (i = 0; i < len; i++) {
@@ -1286,7 +1299,7 @@ void CppCodeGenerator::CheckoutNameSpace(
   if (printed) {
     printer.Print("\n");
   }
-  
+
   printed = false;
   for (i = index; i < (int)target_stk.size(); i++) {
     printer.Print("namespace " + target_stk[i] + " {\n");

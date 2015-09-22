@@ -1,7 +1,8 @@
 #include <sstream>
 
 #include "Strings.h"
-#include "../Utility/Utils.h"
+#include "Utils.h"
+#include "StringBuilder.h"
 
 std::string StringUtils::Strip(std::string str) {
   if (str.length() <= 1) {
@@ -188,10 +189,24 @@ int StringUtils::findLastMatch(std::string str, std::string match) {
 }
 
 void StringUtils::replaceWith(
-    std::string& str, const char old, const char match) {
+    std::string& str, const char old, const char rep) {
   for (unsigned int i = 0; i < str.length(); i++) {
     if (str[i] == old) {
-      str[i] = match;
+      str[i] = rep;
     }
   }
+}
+
+const std::string StringUtils::replaceWith(
+    std::string& str, const std::string& old, const std::string& rep) {
+  Utility::StringBuilder str_builder;
+  for (unsigned int i = 0; i <= str.length() - old.length(); i++) {
+    if (str.substr(i, old.length()) == old) {
+      str_builder.Append(rep);
+    }
+    else {
+      str_builder.Append(str[i]);
+    }
+  }
+  return str_builder.ToString();
 }

@@ -99,6 +99,11 @@ bool ProtoParser::ReadProtoFile() {
                    current_message_->name().c_str());
           return false;
         }
+        // Check out namespace.
+        pkg_stack_.pop_back();
+        current_package_ =
+            current_package_.substr(
+                0, StringUtils::findLastMatch(current_package_, "."));
         state_ = GLOBAL;
       }
       else if (IsMessageFiledLine(line)) {
@@ -179,6 +184,7 @@ bool ProtoParser::ParsePackageName(std::string line) {
                pkg.c_str(), current_package_.c_str());
       return false;
     }
+    pkg_stack_.push_back(pkg);
   }
   return true;
 }
@@ -212,12 +218,10 @@ bool ProtoParser::ParseMessageName(std::string line) {
     return false;
   }
   // Check name duplication.
-  if (messages_map_.find(message_name) != messages_map_.end()) {
-    LogError("message name \"%s\" already exists", message_name.c_str());
-    return false;
-  }
-  if (enums_map_.find(message_name) != enums_map_.end()) {
-    LogError("name \"%s\" already exists as a enum type", message_name.c_str());
+  const std::string& full_msg_name =
+      PbType::GeneratePackagePrefix(CPP, pkg_stack_) + message_name;
+  if (messages_map_.find(full_msg_name) != messages_map_.end()) {
+    LogError("message name \"%s\" already exists", full_msg_name.c_str());
     return false;
   }
 
@@ -225,8 +229,13 @@ bool ProtoParser::ParseMessageName(std::string line) {
   std::shared_ptr<Message> new_message(new Message(message_name,
                                                    current_package_));
   messages_list_.push_back(new_message);
-  messages_map_[message_name] = new_message;
+  messages_map_[full_msg_name] = new_message;
   current_message_ = new_message.get();
+
+  // update current namepsace
+  pkg_stack_.push_back(message_name);
+  const std::string& dot = current_package_.empty()? "" : ".";
+  current_package_ += (dot + message_name);
   return true;
 }
 
@@ -254,19 +263,63 @@ bool ProtoParser::ParseMessageField(std::string line) {
   FIELD_TYPE type;
   PbType* type_class = NULL;
   if ((type = PbCommon::GetMessageFieldType(type_name)) == UNDETERMINED) {
-    if (current_message_->FindEnumType(type_name)) {
+    const std::string& name = StringUtils::replaceWith(type_name, ".", "::");
+    const std::string& as_global_name = "::" + name;
+    const std::string& as_nested_name =
+        "::" + StringUtils::replaceWith(current_package_, ".", "::") +
+        as_global_name;
+    const std::string& as_parallel_name =
+        current_message_->PackagePrefix(CPP) + name;
+
+    std::cout << as_nested_name << std::endl;
+    std::cout << as_parallel_name << std::endl;
+    std::cout << as_global_name << std::endl;
+    // Search name as a nested type
+    if (current_message_->FindEnumType(as_nested_name)) {
       type = ENUMTYPE;
-      type_class =
-          static_cast<PbType*>(current_message_->FindEnumType(type_name));
+      type_class = static_cast<PbType*>(
+          current_message_->FindEnumType(as_nested_name));
     }
-    else if (enums_map_.find(type_name) != enums_map_.end()) {
+    else if (current_message_->FindEnumType(as_parallel_name)) {
       type = ENUMTYPE;
-      type_class = static_cast<PbType*>(enums_map_.at(type_name).get());
+      type_class = static_cast<PbType*>(
+          current_message_->FindEnumType(as_parallel_name));
     }
-    else if (messages_map_.find(type_name) != messages_map_.end()) {
+    else if (current_message_->FindEnumType(as_global_name)) {
+      type = ENUMTYPE;
+      type_class = static_cast<PbType*>(
+          current_message_->FindEnumType(as_global_name));
+    }
+    // Search name in the same package this message belongs to.
+    else if (enums_map_.find(as_nested_name) != enums_map_.end()) {
+      type = ENUMTYPE;
+      type_class = static_cast<PbType*>(enums_map_.at(as_nested_name).get());
+    }
+    else if (enums_map_.find(as_parallel_name) != enums_map_.end()) {
+      type = ENUMTYPE;
+      type_class = static_cast<PbType*>(enums_map_.at(as_parallel_name).get());
+    }
+    else if (enums_map_.find(as_global_name) != enums_map_.end()) {
+      type = ENUMTYPE;
+      type_class = static_cast<PbType*>(enums_map_.at(as_global_name).get());
+    }
+    // Search in global namespace.
+    else if (messages_map_.find(as_nested_name) != messages_map_.end()) {
       type = MESSAGETYPE;
-      type_class = static_cast<PbType*>(messages_map_.at(type_name).get());
+      type_class = static_cast<PbType*>(
+          messages_map_.at(as_nested_name).get());
     }
+    else if (messages_map_.find(as_parallel_name) != messages_map_.end()) {
+      type = MESSAGETYPE;
+      type_class = static_cast<PbType*>(
+          messages_map_.at(as_parallel_name).get());
+    }
+    else if (messages_map_.find(as_global_name) != messages_map_.end()) {
+      type = MESSAGETYPE;
+      type_class = static_cast<PbType*>(
+          messages_map_.at(as_global_name).get());
+    }
+
     else {
       LogError("Unknown field type \"%s\"", type_name.c_str());
       return false;
@@ -330,6 +383,7 @@ bool ProtoParser::ParseMessageField(std::string line) {
              name.c_str(), current_message_->name().c_str());
     return false;
   }
+
   return true;
 }
 
@@ -362,16 +416,18 @@ bool ProtoParser::ParseEnumName(std::string line) {
     return false;
   }
   // Check name duplication
+  const std::string& full_enum_name =
+      PbType::GeneratePackagePrefix(CPP, pkg_stack_) + enum_name;
   if (state_ == PARSINGMSG && 
-      current_message_->enums_map().find(enum_name) !=
+      current_message_->enums_map().find(full_enum_name) !=
           current_message_->enums_map().end()) {
     LogError("enum name \"%s\" already exists in message \"%s\"",
-             enum_name.c_str(), current_message_->name().c_str());
+             full_enum_name.c_str(), current_message_->name().c_str());
     return false;
   }
   if (state_ == GLOBAL && 
-      enums_map_.find(enum_name) != enums_map_.end()) {
-    LogError("enum name \"%s\" already exists", enum_name.c_str());
+      enums_map_.find(full_enum_name) != enums_map_.end()) {
+    LogError("enum name \"%s\" already exists", full_enum_name.c_str());
     return false;
   }
 
@@ -380,7 +436,7 @@ bool ProtoParser::ParseEnumName(std::string line) {
   std::shared_ptr<EnumType> new_enum;
   if (state_ == GLOBAL) {
     new_enum.reset(new EnumType(enum_name, current_package_));
-    enums_map_[enum_name] = new_enum;
+    enums_map_[full_enum_name] = new_enum;
     current_enum_ = new_enum.get();
   }
   else if (state_ == PARSINGMSG) {

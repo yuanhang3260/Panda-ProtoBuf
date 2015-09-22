@@ -11,6 +11,9 @@ namespace ProtoParser {
 
 Message::Message(std::string name, std::string package) :
     PbType(name, package) {
+  for (auto& str: pkg_stack_) {
+    std::cout << str << std::endl;
+  }
 }
 
 Message::~Message() {}
@@ -56,7 +59,7 @@ bool Message::AddEnum(std::shared_ptr<EnumType> newenum) {
             newenum->name().c_str(), name_.c_str());
     return false;
   }
-  enums_map_[newenum->name()] = newenum;
+  enums_map_[newenum->FullNameWithPackagePrefix(CPP)] = newenum;
   return true;
 }
 

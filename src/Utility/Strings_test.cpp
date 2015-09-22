@@ -282,10 +282,55 @@ void test_Split() {
   std::cout << "Passed ^_^" << std::endl;
 }
 
+void test_ReplaceWith() {
+  std::cout << __FUNCTION__ << "()..." << std::endl;
+  rd = 0;
+  std::string str;
+
+  // Round 0
+  {
+    str = "ab.cd.efg";
+    std::string result = StringUtils::replaceWith(str, ".", "::");
+    if ("ab::cd::efg" != result) {
+      fprintf(stderr,
+              "ERROR Round %d ReplaceWith(\"ab.cd.efg \", \".\", \"::\")\n", rd);
+      fprintf(stderr, "returns: %s\n", result.c_str());
+      exit(-1);
+    }
+  }
+
+  // Round 1
+  {
+    str = "ab.cd.efg.";
+    std::string result = StringUtils::replaceWith(str, ".", "::");
+    if ("ab::cd::efg::" != result) {
+      fprintf(stderr,
+              "ERROR Round %d ReplaceWith(\"ab.cd.efg. \", \".\", \"::\")\n", rd);
+      fprintf(stderr, "returns: %s\n", result.c_str());
+      exit(-1);
+    }
+  }
+
+  // Round 2
+  {
+    str = ".ab.cd.efg";
+    std::string result = StringUtils::replaceWith(str, ".", "::");
+    if ("::ab::cd::efg" != result) {
+      fprintf(stderr,
+              "ERROR Round %d ReplaceWith(\".ab.cd.efg \", \".\", \"::\")\n", rd);
+      fprintf(stderr, "returns: %s\n", result.c_str());
+      exit(-1);
+    }
+  }
+
+  std::cout << "Passed ^_^" << std::endl;
+}
+
 int main(int argc, char** argv) {
   test_Strip();
   test_StartWith();
   test_EndWith();
   test_Split();
+  test_ReplaceWith();
   return 0;
 }

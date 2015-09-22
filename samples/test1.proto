@@ -27,13 +27,13 @@ package AA.BB.CC;
 message DogFriendInfo {
   required string name = 1;
   optional int32 years = 2 [ default= 3] ;  	
-  optional FriendType  friend_type = 4;
+  optional AA.BB.FriendType  friend_type = 4;
 }
 
 package AA;
 
 message DogFriends {
-	repeated DogFriendInfo friends = 1;
+	repeated AA.BB.CC.DogFriendInfo friends = 1;
 	optional DogInfo bestDogFriend = 2;
 }
 
@@ -41,6 +41,6 @@ message DogFriends {
 package AA.DD;
 
 message DogFamily {
-	repeated DogInfo dogs = 1;
+	repeated AA.DogInfo dogs = 1;
 }
 

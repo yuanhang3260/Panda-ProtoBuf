@@ -74,6 +74,9 @@ class StringUtils {
   static int findLastMatch(std::string str, std::string match);
   
   static void replaceWith(std::string& str, const char old, const char match);
+  static const std::string replaceWith(std::string& str,
+                                        const std::string& old,
+                                        const std::string& match);
 };
 
 #endif /* __STRINGS_H_ */

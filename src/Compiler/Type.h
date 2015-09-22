@@ -22,6 +22,9 @@ class PbType {
   std::string message() const { return message_; }
   const std::vector<std::string>& pkg_stack() const { return pkg_stack_; }
 
+  static const std::string GeneratePackagePrefix(
+      LANGUAGE lang, const std::vector<std::string>& pkg_stack);
+
   std::string PackagePrefix(LANGUAGE lang) const;
   std::string FullNameWithPackagePrefix(LANGUAGE lang) const;
 

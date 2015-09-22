@@ -152,69 +152,57 @@ DogInfo::DogInfo() {
 
 // copy constructor
 DogInfo::DogInfo(const DogInfo& other) {
-  age_ = other.age();
-  name_ = other.name();
-  height_ = other.height();
-  like_ = other.like();
-  luckynumber_ = other.luckynumber();
-  sex_ = other.sex();
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
 }
 
 // move constructor
 DogInfo::DogInfo(DogInfo&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  age_ = other.age();
-  other.clear_age();
-  name_ = std::move(other.mutable_name());
-  height_ = other.height();
-  other.clear_height();
-  like_ = other.like();
-  other.clear_like();
-  luckynumber_ = std::move(other.mutable_luckynumber());
-  sex_ = other.sex();
-  other.clear_sex();
+  MoveFrom(std::move(other));
 }
 
 // copy assignment
 DogInfo& DogInfo::operator=(const DogInfo& other) {
-  age_ = other.age();
-  name_ = other.name();
-  height_ = other.height();
-  like_ = other.like();
-  luckynumber_ = other.luckynumber();
-  sex_ = other.sex();
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
   return *this;
 }
-
 // move assignment
 DogInfo& DogInfo::operator=(DogInfo&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  age_ = other.age();
-  other.clear_age();
-  name_ = std::move(other.mutable_name());
-  height_ = other.height();
-  other.clear_height();
-  like_ = other.like();
-  other.clear_like();
-  luckynumber_ = std::move(other.mutable_luckynumber());
-  sex_ = other.sex();
-  other.clear_sex();
+  MoveFrom(std::move(other));
   return *this;
 }
 
 // New()
 ::proto::Message* DogInfo::New() const {
   return reinterpret_cast<::proto::Message*>(new DogInfo());
+}
+
+// CopyFrom()
+void DogInfo::CopyFrom(const DogInfo& other) {
+  age_ = other.age();
+  name_ = other.name();
+  height_ = other.height();
+  like_ = other.like();
+  luckynumber_ = other.luckynumber();
+  sex_ = other.sex();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+}
+
+// MoveFrom()
+void DogInfo::MoveFrom(DogInfo&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+  age_ = other.age();
+  name_ = std::move(other.mutable_name());
+  height_ = other.height();
+  like_ = other.like();
+  luckynumber_ = std::move(other.mutable_luckynumber());
+  sex_ = other.sex();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    other.has_bits_[i] = 0;
+  }
 }
 
 // Serialize()
@@ -440,53 +428,51 @@ DogFriendInfo::DogFriendInfo() {
 
 // copy constructor
 DogFriendInfo::DogFriendInfo(const DogFriendInfo& other) {
-  name_ = other.name();
-  years_ = other.years();
-  friend_type_ = other.friend_type();
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
 }
 
 // move constructor
 DogFriendInfo::DogFriendInfo(DogFriendInfo&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  name_ = std::move(other.mutable_name());
-  years_ = other.years();
-  other.clear_years();
-  friend_type_ = other.friend_type();
-  other.clear_friend_type();
+  MoveFrom(std::move(other));
 }
 
 // copy assignment
 DogFriendInfo& DogFriendInfo::operator=(const DogFriendInfo& other) {
-  name_ = other.name();
-  years_ = other.years();
-  friend_type_ = other.friend_type();
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
   return *this;
 }
-
 // move assignment
 DogFriendInfo& DogFriendInfo::operator=(DogFriendInfo&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  name_ = std::move(other.mutable_name());
-  years_ = other.years();
-  other.clear_years();
-  friend_type_ = other.friend_type();
-  other.clear_friend_type();
+  MoveFrom(std::move(other));
   return *this;
 }
 
 // New()
 ::proto::Message* DogFriendInfo::New() const {
   return reinterpret_cast<::proto::Message*>(new DogFriendInfo());
+}
+
+// CopyFrom()
+void DogFriendInfo::CopyFrom(const DogFriendInfo& other) {
+  name_ = other.name();
+  years_ = other.years();
+  friend_type_ = other.friend_type();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+}
+
+// MoveFrom()
+void DogFriendInfo::MoveFrom(DogFriendInfo&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+  name_ = std::move(other.mutable_name());
+  years_ = other.years();
+  friend_type_ = other.friend_type();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    other.has_bits_[i] = 0;
+  }
 }
 
 // Serialize()
@@ -631,69 +617,62 @@ DogFriends::DogFriends() {
 
 // copy constructor
 DogFriends::DogFriends(const DogFriends& other) {
-  for (const BB::CC::DogFriendInfo* p: other.friends().GetElements()) {
-    friends_.AddAllocated(new BB::CC::DogFriendInfo(*p));
-  }
-  if (other.bestDogFriend_) {
-    if (!bestDogFriend_) {
-      bestDogFriend_ = new DogInfo();
-    }
-    *bestDogFriend_ = other.bestDogFriend();
-  }
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
 }
 
 // move constructor
 DogFriends::DogFriends(DogFriends&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  friends_ = std::move(other.mutable_friends());
-  if (other.bestDogFriend_) {
-    if (!bestDogFriend_) {
-      bestDogFriend_ = new DogInfo();
-    }
-    *bestDogFriend_ = other.bestDogFriend();
-  }
+  MoveFrom(std::move(other));
 }
 
 // copy assignment
 DogFriends& DogFriends::operator=(const DogFriends& other) {
-  for (const BB::CC::DogFriendInfo* p: other.friends().GetElements()) {
-    friends_.AddAllocated(new BB::CC::DogFriendInfo(*p));
-  }
-  if (other.bestDogFriend_) {
-    if (!bestDogFriend_) {
-      bestDogFriend_ = new DogInfo();
-    }
-    *bestDogFriend_ = other.bestDogFriend();
-  }
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
   return *this;
 }
-
 // move assignment
 DogFriends& DogFriends::operator=(DogFriends&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  friends_ = std::move(other.mutable_friends());
-  if (other.bestDogFriend_) {
-    if (!bestDogFriend_) {
-      bestDogFriend_ = new DogInfo();
-    }
-    *bestDogFriend_ = other.bestDogFriend();
-  }
+  MoveFrom(std::move(other));
   return *this;
 }
 
 // New()
 ::proto::Message* DogFriends::New() const {
   return reinterpret_cast<::proto::Message*>(new DogFriends());
+}
+
+// CopyFrom()
+void DogFriends::CopyFrom(const DogFriends& other) {
+  for (const BB::CC::DogFriendInfo* p: other.friends().GetElements()) {
+    friends_.AddAllocated(new BB::CC::DogFriendInfo(*p));
+  }
+  if (other.bestDogFriend_) {
+    if (!bestDogFriend_) {
+      bestDogFriend_ = new DogInfo();
+    }
+    *bestDogFriend_ = other.bestDogFriend();
+  }
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+}
+
+// MoveFrom()
+void DogFriends::MoveFrom(DogFriends&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+  friends_ = std::move(other.mutable_friends());
+  if (other.bestDogFriend_) {
+    if (bestDogFriend_) {
+      delete bestDogFriend_;
+    }
+    bestDogFriend_ = other.bestDogFriend_;
+    other.bestDogFriend_ = nullptr;
+  }
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    other.has_bits_[i] = 0;
+  }
 }
 
 // Serialize()
@@ -846,45 +825,49 @@ DogFamily::DogFamily() {
 
 // copy constructor
 DogFamily::DogFamily(const DogFamily& other) {
-  for (const ::AA::DogInfo* p: other.dogs().GetElements()) {
-    dogs_.AddAllocated(new ::AA::DogInfo(*p));
-  }
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
 }
 
 // move constructor
 DogFamily::DogFamily(DogFamily&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  dogs_ = std::move(other.mutable_dogs());
+  MoveFrom(std::move(other));
 }
 
 // copy assignment
 DogFamily& DogFamily::operator=(const DogFamily& other) {
-  for (const ::AA::DogInfo* p: other.dogs().GetElements()) {
-    dogs_.AddAllocated(new ::AA::DogInfo(*p));
-  }
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
+  CopyFrom(other);
   return *this;
 }
-
 // move assignment
 DogFamily& DogFamily::operator=(DogFamily&& other) {
-  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
-    has_bits_[i] = other.has_bits_[i];
-  }
-  dogs_ = std::move(other.mutable_dogs());
+  MoveFrom(std::move(other));
   return *this;
 }
 
 // New()
 ::proto::Message* DogFamily::New() const {
   return reinterpret_cast<::proto::Message*>(new DogFamily());
+}
+
+// CopyFrom()
+void DogFamily::CopyFrom(const DogFamily& other) {
+  for (const ::AA::DogInfo* p: other.dogs().GetElements()) {
+    dogs_.AddAllocated(new ::AA::DogInfo(*p));
+  }
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+}
+
+// MoveFrom()
+void DogFamily::MoveFrom(DogFamily&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+  dogs_ = std::move(other.mutable_dogs());
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    other.has_bits_[i] = 0;
+  }
 }
 
 // Serialize()

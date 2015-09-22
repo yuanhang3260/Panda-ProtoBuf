@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Type.h"
 #include "../Utility/Strings.h"
 
@@ -23,7 +24,8 @@ PbType::PbType(std::string name, std::string package, std::string message) :
   }
 }
 
-std::string PbType::PackagePrefix(LANGUAGE lang) const {
+const std::string PbType::GeneratePackagePrefix(
+    LANGUAGE lang, const std::vector<std::string>& pkg_stack) {
   std::string prefix = "", seprator = ".";
   switch (lang) {
     case CPP:
@@ -34,7 +36,7 @@ std::string PbType::PackagePrefix(LANGUAGE lang) const {
     default:
       break;
   }
-  for (const auto& package: pkg_stack_) {
+  for (const auto& package: pkg_stack) {
     prefix += (package + seprator);
   }
   if (lang == CPP) {
@@ -43,6 +45,9 @@ std::string PbType::PackagePrefix(LANGUAGE lang) const {
   return prefix;
 }
 
+std::string PbType::PackagePrefix(LANGUAGE lang) const {
+  return GeneratePackagePrefix(lang, pkg_stack_);
+}
 
 std::string PbType::FullNameWithPackagePrefix(LANGUAGE lang) const {
   return PackagePrefix(lang) + name_;

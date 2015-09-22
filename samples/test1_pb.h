@@ -38,6 +38,8 @@ class DogInfo: public ::proto::Message {
   void Swap(DogInfo* other);
 
   ::proto::Message* New() const override;  // New()
+  void CopyFrom(const DogInfo& other);  // CopyFrom()
+  void MoveFrom(DogInfo&& other);  // MoveFrom()
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -122,6 +124,8 @@ class DogFriendInfo: public ::proto::Message {
   void Swap(DogFriendInfo* other);
 
   ::proto::Message* New() const override;  // New()
+  void CopyFrom(const DogFriendInfo& other);  // CopyFrom()
+  void MoveFrom(DogFriendInfo&& other);  // MoveFrom()
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -182,6 +186,8 @@ class DogFriends: public ::proto::Message {
   void Swap(DogFriends* other);
 
   ::proto::Message* New() const override;  // New()
+  void CopyFrom(const DogFriends& other);  // CopyFrom()
+  void MoveFrom(DogFriends&& other);  // MoveFrom()
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -236,6 +242,8 @@ class DogFamily: public ::proto::Message {
   void Swap(DogFamily* other);
 
   ::proto::Message* New() const override;  // New()
+  void CopyFrom(const DogFamily& other);  // CopyFrom()
+  void MoveFrom(DogFamily&& other);  // MoveFrom()
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
