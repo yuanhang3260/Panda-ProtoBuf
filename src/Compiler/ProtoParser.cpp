@@ -219,7 +219,7 @@ bool ProtoParser::ParseMessageName(std::string line) {
   }
   // Check name duplication.
   const std::string& full_msg_name =
-      PbType::GeneratePackagePrefix(CPP, pkg_stack_) + message_name;
+      PbType::GeneratePackagePrefix(PYTHON, pkg_stack_) + message_name;
   if (messages_map_.find(full_msg_name) != messages_map_.end()) {
     LogError("message name \"%s\" already exists", full_msg_name.c_str());
     return false;
@@ -263,17 +263,15 @@ bool ProtoParser::ParseMessageField(std::string line) {
   FIELD_TYPE type;
   PbType* type_class = NULL;
   if ((type = PbCommon::GetMessageFieldType(type_name)) == UNDETERMINED) {
-    const std::string& name = StringUtils::replaceWith(type_name, ".", "::");
-    const std::string& as_global_name = "::" + name;
+    const std::string& as_global_name = type_name;
     const std::string& as_nested_name =
-        "::" + StringUtils::replaceWith(current_package_, ".", "::") +
-        as_global_name;
+        current_package_ + "." + type_name;
     const std::string& as_parallel_name =
-        current_message_->PackagePrefix(CPP) + name;
+        current_message_->PackagePrefix(PYTHON) + type_name;
 
-    std::cout << as_nested_name << std::endl;
-    std::cout << as_parallel_name << std::endl;
-    std::cout << as_global_name << std::endl;
+    // std::cout << as_nested_name << std::endl;
+    // std::cout << as_parallel_name << std::endl;
+    // std::cout << as_global_name << std::endl;
     // Search name as a nested type
     if (current_message_->FindEnumType(as_nested_name)) {
       type = ENUMTYPE;
@@ -417,7 +415,7 @@ bool ProtoParser::ParseEnumName(std::string line) {
   }
   // Check name duplication
   const std::string& full_enum_name =
-      PbType::GeneratePackagePrefix(CPP, pkg_stack_) + enum_name;
+      PbType::GeneratePackagePrefix(PYTHON, pkg_stack_) + enum_name;
   if (state_ == PARSINGMSG && 
       current_message_->enums_map().find(full_enum_name) !=
           current_message_->enums_map().end()) {
