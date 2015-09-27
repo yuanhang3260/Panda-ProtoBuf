@@ -326,11 +326,47 @@ void test_ReplaceWith() {
   std::cout << "Passed ^_^" << std::endl;
 }
 
+void test_GetToken() {
+  std::cout << __FUNCTION__ << "()..." << std::endl;
+  rd = 0;
+  std::string str;
+
+  // Round 0
+  {
+    str = "rpc AddStudent(StudentRequest) returns (StudentResponse) {";
+    std::vector<std::string> result = StringUtils::ExtractTokens(&str, '(', ')');
+    if ("rpc AddStudent returns  {" != str) {
+      fprintf(stderr,
+              "ERROR Round %d ReplaceWith(rpc AddStudent(StudentRequest) returns (StudentResponse) {", rd);
+      fprintf(stderr, "str changed to: %s\n", str.c_str());
+      exit(-1);
+    }
+    if (result.size() != 2) {
+      fprintf(stderr,
+              "ERROR Round %d ReplaceWith(rpc AddStudent(StudentRequest) returns (StudentResponse) {", rd);
+      fprintf(stderr, "expect result.size() = 2, actual: %d\n", result.size());
+      exit(-1);
+    }
+    std::vector<std::string> expect{"(StudentRequest)", "(StudentResponse)"};
+    if (result != expect) {
+      fprintf(stderr,
+              "ERROR Round %d ReplaceWith(rpc AddStudent(StudentRequest) returns (StudentResponse) {", rd);
+      fprintf(stderr, "result unmatch\n");
+      exit(-1);
+    }
+    rd++;
+  }
+
+
+  std::cout << "Passed ^_^" << std::endl;
+}
+
 int main(int argc, char** argv) {
   test_Strip();
   test_StartWith();
   test_EndWith();
   test_Split();
   test_ReplaceWith();
+  test_GetToken();
   return 0;
 }

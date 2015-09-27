@@ -27,6 +27,7 @@ COMPILER_OBJ = \
       $(OBJ_DIR)/Compiler/CppCodeGenerator.o \
       $(OBJ_DIR)/Compiler/PbCommon.o \
       $(OBJ_DIR)/Compiler/Message.o  \
+      $(OBJ_DIR)/Compiler/ServiceType.o  \
       $(OBJ_DIR)/Compiler/MessageField.o \
       $(OBJ_DIR)/Compiler/EnumType.o \
       $(OBJ_DIR)/Compiler/Type.o \

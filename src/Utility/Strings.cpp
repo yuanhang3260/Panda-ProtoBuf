@@ -71,7 +71,7 @@ bool StringUtils::EndWith(std::string& str, std::string match) {
   return true;
 }
 
-std::vector<std::string> StringUtils::Split(std::string& str, const char c) {
+std::vector<std::string> StringUtils::Split(const std::string& str, const char c) {
   std::vector<std::string> result;
   unsigned int start = 0;
   for (unsigned int i = 0; i < str.length(); i++) {
@@ -84,8 +84,8 @@ std::vector<std::string> StringUtils::Split(std::string& str, const char c) {
   return result;
 }
 
-std::vector<std::string> StringUtils::Split(std::string& str,
-                                            std::string match) {
+std::vector<std::string> StringUtils::Split(const std::string& str,
+                                            const std::string& match) {
   std::vector<std::string> result;
   if (match.length() == 0 || str.length() <= match.length()) {
     return result;
@@ -102,7 +102,7 @@ std::vector<std::string> StringUtils::Split(std::string& str,
   return result;
 }
 
-std::vector<std::string> StringUtils::SplitGreedy(std::string& str,
+std::vector<std::string> StringUtils::SplitGreedy(const std::string& str,
                                                   const char c) {
   std::vector<std::string> result;
   unsigned int start = 0;
@@ -121,8 +121,8 @@ std::vector<std::string> StringUtils::SplitGreedy(std::string& str,
   return result;
 }
 
-std::vector<std::string> StringUtils::SplitGreedy(std::string& str,
-                                                  std::string match) {
+std::vector<std::string> StringUtils::SplitGreedy(const std::string& str,
+                                                  const std::string& match) {
   std::vector<std::string> result;
   if (match.length() == 0 || str.length() <= match.length()) {
     return result;
@@ -144,7 +144,7 @@ std::vector<std::string> StringUtils::SplitGreedy(std::string& str,
   return result;
 }
 
-bool StringUtils::IsSingleWord(std::string str) {
+bool StringUtils::IsSingleWord(const std::string& str) {
   return SplitGreedy(str, ' ').size() == 0;
 }
 
@@ -169,6 +169,19 @@ int StringUtils::findFirstMatch(std::string str, std::string match) {
     return -1;
   }
   for (unsigned int i = 0; i <= str.length() - match.length(); i++) {
+    if (str.substr(i, match.length()) == match) {
+      return i;
+    }
+  }
+  return -1;
+}
+
+int StringUtils::findFirstMatch(
+    std::string str, std::string match, int offset) {
+  if (match.length() - offset > str.length()) {
+    return -1;
+  }
+  for (unsigned int i = offset; i <= str.length() - match.length(); i++) {
     if (str.substr(i, match.length()) == match) {
       return i;
     }
@@ -209,4 +222,31 @@ const std::string StringUtils::replaceWith(
     }
   }
   return str_builder.ToString();
+}
+
+std::vector<std::string> StringUtils::ExtractTokens(
+    std::string* str, char start, char end) {
+  Utility::StringBuilder str_builder;
+  std::vector<std::string> result;
+  bool matching = false;
+  int matching_start = 0;
+  for (unsigned int i = 0; i < str->length(); i++) {
+    if (!matching) {
+      if ((*str)[i] == start) {
+        matching = true;
+        matching_start = i;
+      }
+      else {
+        str_builder.Append((*str)[i]);
+      }
+    }
+    else {
+      if ((*str)[i] == end) {
+        result.push_back(str->substr(matching_start, i + 1 - matching_start));
+        matching = false;
+      }
+    }
+  }
+  *str = str_builder.ToString();
+  return result;
 }

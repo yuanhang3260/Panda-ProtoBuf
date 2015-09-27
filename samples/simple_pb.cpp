@@ -15,6 +15,10 @@ std::shared_ptr<::proto::ProtoParser::Message> Student_descriptor_;
 std::shared_ptr<::proto::MessageReflection> Student_reflection_;
 std::shared_ptr<::proto::ProtoParser::Message> SchoolClass_descriptor_;
 std::shared_ptr<::proto::MessageReflection> SchoolClass_reflection_;
+std::shared_ptr<::proto::ProtoParser::Message> StudentRequest_descriptor_;
+std::shared_ptr<::proto::MessageReflection> StudentRequest_reflection_;
+std::shared_ptr<::proto::ProtoParser::Message> StudentResponse_descriptor_;
+std::shared_ptr<::proto::MessageReflection> StudentResponse_reflection_;
 
 }  // namepsace
 
@@ -34,6 +38,14 @@ void static_init_default_instances_samples_simple() {
   if (HaiZhong::SchoolClass::default_instance_ == NULL) {
     HaiZhong::SchoolClass::default_instance_ = new HaiZhong::SchoolClass();
     HaiZhong::SchoolClass::default_instance_->InitAsDefaultInstance();
+  }
+  if (HaiZhong::StudentRequest::default_instance_ == NULL) {
+    HaiZhong::StudentRequest::default_instance_ = new HaiZhong::StudentRequest();
+    HaiZhong::StudentRequest::default_instance_->InitAsDefaultInstance();
+  }
+  if (HaiZhong::StudentResponse::default_instance_ == NULL) {
+    HaiZhong::StudentResponse::default_instance_ = new HaiZhong::StudentResponse();
+    HaiZhong::StudentResponse::default_instance_->InitAsDefaultInstance();
   }
 }
 
@@ -113,6 +125,44 @@ void static_init_samples_simple() {
           PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::SchoolClass, has_bits_))
   );
   ::proto::MessageFactory::RegisterGeneratedMessage(SchoolClass_reflection_);
+
+  // static init for class StudentRequest
+  static const int StudentRequest_offsets_[4] = {
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::StudentRequest, op_type_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::StudentRequest, class_number_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::StudentRequest, student_name_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::StudentRequest, student_),
+  };
+  i = 0;
+  for (auto& field: parser.mutable_messages_list()[3]->mutable_fields_list()) {
+    field->set_field_offset(StudentRequest_offsets_[i++]);
+  }
+  StudentRequest_descriptor_ = parser.mutable_messages_list()[3];
+  StudentRequest_reflection_.reset(
+      new ::proto::MessageReflection(
+          StudentRequest_descriptor_,
+          HaiZhong::StudentRequest::default_instance_,
+          PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::StudentRequest, has_bits_))
+  );
+  ::proto::MessageFactory::RegisterGeneratedMessage(StudentRequest_reflection_);
+
+  // static init for class StudentResponse
+  static const int StudentResponse_offsets_[2] = {
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::StudentResponse, return_code_),
+    PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::StudentResponse, error_message_),
+  };
+  i = 0;
+  for (auto& field: parser.mutable_messages_list()[4]->mutable_fields_list()) {
+    field->set_field_offset(StudentResponse_offsets_[i++]);
+  }
+  StudentResponse_descriptor_ = parser.mutable_messages_list()[4];
+  StudentResponse_reflection_.reset(
+      new ::proto::MessageReflection(
+          StudentResponse_descriptor_,
+          HaiZhong::StudentResponse::default_instance_,
+          PROTO_MESSAGE_FIELD_OFFSET(HaiZhong::StudentResponse, has_bits_))
+  );
+  ::proto::MessageFactory::RegisterGeneratedMessage(StudentResponse_reflection_);
 
 }
 
@@ -1151,6 +1201,425 @@ const ::proto::RepeatedPtrField<Student>& SchoolClass::students() const {
 
 ::proto::RepeatedPtrField<Student>& SchoolClass::mutable_students() {
   return students_;
+}
+
+// -------------------- StudentRequest --------------------- //
+// constructor
+StudentRequest::StudentRequest() {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = 0;
+  }
+  default_instance_ = nullptr;
+}
+
+// copy constructor
+StudentRequest::StudentRequest(const StudentRequest& other) {
+  CopyFrom(other);
+}
+
+// move constructor
+StudentRequest::StudentRequest(StudentRequest&& other) {
+  MoveFrom(std::move(other));
+}
+
+// copy assignment
+StudentRequest& StudentRequest::operator=(const StudentRequest& other) {
+  CopyFrom(other);
+  return *this;
+}
+// move assignment
+StudentRequest& StudentRequest::operator=(StudentRequest&& other) {
+  MoveFrom(std::move(other));
+  return *this;
+}
+
+// New()
+::proto::Message* StudentRequest::New() const {
+  return reinterpret_cast<::proto::Message*>(new StudentRequest());
+}
+
+// CopyFrom()
+void StudentRequest::CopyFrom(const StudentRequest& other) {
+  op_type_ = other.op_type();
+  class_number_ = other.class_number();
+  student_name_ = other.student_name();
+  if (other.student_) {
+    if (!student_) {
+      student_ = new Student();
+    }
+    *student_ = other.student();
+  }
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+}
+
+// MoveFrom()
+void StudentRequest::MoveFrom(StudentRequest&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+  op_type_ = other.op_type();
+  class_number_ = other.class_number();
+  student_name_ = std::move(other.mutable_student_name());
+  if (other.student_) {
+    if (student_) {
+      delete student_;
+    }
+    student_ = other.student_;
+    other.student_ = nullptr;
+  }
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    other.has_bits_[i] = 0;
+  }
+}
+
+// Serialize()
+::proto::SerializedMessage* StudentRequest::Serialize() const {
+  return StudentRequest_reflection_->Serialize(this);
+}
+
+// DeSerialize()
+void StudentRequest::DeSerialize(const char* buf, unsigned int size) {
+  StudentRequest_reflection_->DeSerialize(this, buf, size);
+}
+
+// InitAsDefaultInstance()
+void StudentRequest::InitAsDefaultInstance() {
+  student_ = const_cast<Student*>(&Student::default_instance());
+}
+
+// swapper
+void StudentRequest::Swap(StudentRequest* other) {
+  // store has_bits
+  char* buf = new char[2 * sizeof(has_bits_)];
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    buf[i] = has_bits_[i];
+    buf[i + sizeof(has_bits_)] = other->has_bits_[i];
+  }
+
+  StudentRequest::OpType op_type_tmp__ = other->op_type();
+  other->set_op_type(op_type_);
+  set_op_type(op_type_tmp__);
+
+  int class_number_tmp__ = other->class_number();
+  other->set_class_number(class_number_);
+  set_class_number(class_number_tmp__);
+
+  std::string student_name_tmp__ = std::move(other->mutable_student_name());
+  other->mutable_student_name() = std::move(student_name_);
+  student_name_ = std::move(student_name_tmp__);
+
+  Student* student_tmp__ = other->release_student();
+  other->set_allocated_student(this->release_student());
+  set_allocated_student(student_tmp__);
+
+  // swap has_bits
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = buf[i + sizeof(has_bits_)];
+    other->has_bits_[i] = buf[i];
+  }
+  delete buf;
+}
+
+// default_instance()
+const StudentRequest& StudentRequest::default_instance() {
+  if (default_instance_ == NULL) {
+    static_init_default_instances_samples_simple();
+  }
+  return *default_instance_;
+}
+
+StudentRequest* StudentRequest::default_instance_ = NULL;
+
+// destructor
+StudentRequest::~StudentRequest() {
+  delete student_;
+}
+
+// "op_type" = 1
+bool StudentRequest::has_op_type() const {
+  return (has_bits_[0] & 0x2) != 0;
+}
+
+StudentRequest::OpType StudentRequest::op_type() const {
+  return op_type_;
+}
+
+void StudentRequest::set_op_type(StudentRequest::OpType op_type) {
+  op_type_ = op_type;
+  has_bits_[0] |= 0x2;
+}
+
+void StudentRequest::clear_op_type() {
+  op_type_ = StudentRequest::ADD;
+  has_bits_[0] &= (~0x2);
+}
+
+// "class_number" = 2
+bool StudentRequest::has_class_number() const {
+  return (has_bits_[0] & 0x4) != 0;
+}
+
+int StudentRequest::class_number() const {
+  return class_number_;
+}
+
+void StudentRequest::set_class_number(int class_number) {
+  class_number_ = class_number;
+  has_bits_[0] |= 0x4;
+}
+
+void StudentRequest::clear_class_number() {
+  class_number_ = 0;
+  has_bits_[0] &= (~0x4);
+}
+
+// "student_name" = 3
+bool StudentRequest::has_student_name() const {
+  return (has_bits_[0] & 0x8) != 0;
+}
+
+const std::string& StudentRequest::student_name() const {
+  return student_name_;
+}
+
+void StudentRequest::set_student_name(const std::string& student_name) {
+  student_name_ = student_name;
+  has_bits_[0] |= 0x8;
+}
+
+void StudentRequest::set_student_name(const char* student_name) {
+  student_name_ = std::string(student_name);
+  has_bits_[0] |= 0x8;
+}
+
+void StudentRequest::set_student_name(const char* student_name, int size) {
+  student_name_ = std::string(student_name, size);
+  has_bits_[0] |= 0x8;
+}
+
+std::string StudentRequest::mutable_student_name() {
+  return student_name_;
+}
+
+void StudentRequest::clear_student_name() {
+  student_name_ = "";
+  has_bits_[0] &= (~0x8);
+}
+
+// "student" = 4
+bool StudentRequest::has_student() const {
+  return (has_bits_[0] & 0x10) != 0;
+}
+
+const Student& StudentRequest::student() const {
+  if (has_student() && student_) {
+    return *student_;
+  }
+  else {
+    return Student::default_instance();
+  }
+}
+
+Student* StudentRequest::mutable_student() {
+  if (has_student() && student_) {
+    return student_;
+  }
+  else {
+    student_ = new Student();
+    has_bits_[0] |= 0x10;
+    return student_;
+  }
+}
+
+void StudentRequest::set_allocated_student(Student* student) {
+  if (student_) {
+    delete student_;
+  }
+  student_ = student;
+  if (student_) {
+    has_bits_[0] |= 0x10;
+  }
+  else {
+    has_bits_[0] &= (~0x10);
+  }
+}
+
+Student* StudentRequest::release_student() {
+  Student* student_tmp__ = student_;
+  student_ = nullptr;
+  has_bits_[0] &= (~0x10);
+  return student_tmp__;
+}
+
+void StudentRequest::clear_student() {
+  if (student_) {
+    delete student_;
+  }
+  student_ = nullptr;
+  has_bits_[0] &= (~0x10);
+}
+
+// -------------------- StudentResponse --------------------- //
+// constructor
+StudentResponse::StudentResponse() {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = 0;
+  }
+  default_instance_ = nullptr;
+}
+
+// copy constructor
+StudentResponse::StudentResponse(const StudentResponse& other) {
+  CopyFrom(other);
+}
+
+// move constructor
+StudentResponse::StudentResponse(StudentResponse&& other) {
+  MoveFrom(std::move(other));
+}
+
+// copy assignment
+StudentResponse& StudentResponse::operator=(const StudentResponse& other) {
+  CopyFrom(other);
+  return *this;
+}
+// move assignment
+StudentResponse& StudentResponse::operator=(StudentResponse&& other) {
+  MoveFrom(std::move(other));
+  return *this;
+}
+
+// New()
+::proto::Message* StudentResponse::New() const {
+  return reinterpret_cast<::proto::Message*>(new StudentResponse());
+}
+
+// CopyFrom()
+void StudentResponse::CopyFrom(const StudentResponse& other) {
+  return_code_ = other.return_code();
+  error_message_ = other.error_message();
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+}
+
+// MoveFrom()
+void StudentResponse::MoveFrom(StudentResponse&& other) {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = other.has_bits_[i];
+  }
+  return_code_ = other.return_code();
+  error_message_ = std::move(other.mutable_error_message());
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    other.has_bits_[i] = 0;
+  }
+}
+
+// Serialize()
+::proto::SerializedMessage* StudentResponse::Serialize() const {
+  return StudentResponse_reflection_->Serialize(this);
+}
+
+// DeSerialize()
+void StudentResponse::DeSerialize(const char* buf, unsigned int size) {
+  StudentResponse_reflection_->DeSerialize(this, buf, size);
+}
+
+// InitAsDefaultInstance()
+void StudentResponse::InitAsDefaultInstance() {
+}
+
+// swapper
+void StudentResponse::Swap(StudentResponse* other) {
+  // store has_bits
+  char* buf = new char[2 * sizeof(has_bits_)];
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    buf[i] = has_bits_[i];
+    buf[i + sizeof(has_bits_)] = other->has_bits_[i];
+  }
+
+  int return_code_tmp__ = other->return_code();
+  other->set_return_code(return_code_);
+  set_return_code(return_code_tmp__);
+
+  std::string error_message_tmp__ = std::move(other->mutable_error_message());
+  other->mutable_error_message() = std::move(error_message_);
+  error_message_ = std::move(error_message_tmp__);
+
+  // swap has_bits
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    has_bits_[i] = buf[i + sizeof(has_bits_)];
+    other->has_bits_[i] = buf[i];
+  }
+  delete buf;
+}
+
+// default_instance()
+const StudentResponse& StudentResponse::default_instance() {
+  if (default_instance_ == NULL) {
+    static_init_default_instances_samples_simple();
+  }
+  return *default_instance_;
+}
+
+StudentResponse* StudentResponse::default_instance_ = NULL;
+
+// destructor
+StudentResponse::~StudentResponse() {
+}
+
+// "return_code" = 1
+bool StudentResponse::has_return_code() const {
+  return (has_bits_[0] & 0x2) != 0;
+}
+
+int StudentResponse::return_code() const {
+  return return_code_;
+}
+
+void StudentResponse::set_return_code(int return_code) {
+  return_code_ = return_code;
+  has_bits_[0] |= 0x2;
+}
+
+void StudentResponse::clear_return_code() {
+  return_code_ = 0;
+  has_bits_[0] &= (~0x2);
+}
+
+// "error_message" = 2
+bool StudentResponse::has_error_message() const {
+  return (has_bits_[0] & 0x4) != 0;
+}
+
+const std::string& StudentResponse::error_message() const {
+  return error_message_;
+}
+
+void StudentResponse::set_error_message(const std::string& error_message) {
+  error_message_ = error_message;
+  has_bits_[0] |= 0x4;
+}
+
+void StudentResponse::set_error_message(const char* error_message) {
+  error_message_ = std::string(error_message);
+  has_bits_[0] |= 0x4;
+}
+
+void StudentResponse::set_error_message(const char* error_message, int size) {
+  error_message_ = std::string(error_message, size);
+  has_bits_[0] |= 0x4;
+}
+
+std::string StudentResponse::mutable_error_message() {
+  return error_message_;
+}
+
+void StudentResponse::clear_error_message() {
+  error_message_ = "";
+  has_bits_[0] &= (~0x4);
 }
 
 }  // namespace HaiZhong

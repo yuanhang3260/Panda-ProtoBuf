@@ -10,8 +10,9 @@ namespace ProtoParser {
 
 class PbType {
   public:
-  PbType(std::string name, std::string package);
-  PbType(std::string name, std::string package, std::string message_);
+  PbType(const std::string& name, const std::string& package);
+  PbType(const std::string& name, const std::string& package,
+         const std::string& message_);
   virtual ~PbType() {}
 
   virtual void Print() {}

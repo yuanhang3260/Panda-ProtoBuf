@@ -27,7 +27,7 @@ class MessageField {
 
   FIELD_MODIFIER modifier() const { return modifier_; }
   FIELD_TYPE type() const { return type_; }
-  PbType* type_class() const { return type_class_; }
+  const PbType* type_class() const { return type_class_; }
   std::string name() const { return name_; }
   unsigned int tag() const { return tag_; }
   std::string default_value() const { return default_value_; }
@@ -52,7 +52,7 @@ class MessageField {
  private:
   FIELD_MODIFIER modifier_;
   FIELD_TYPE type_;
-  PbType* type_class_;
+  const PbType* type_class_;
   std::string name_;
   unsigned int tag_;
   std::string default_value_;

@@ -38,3 +38,31 @@ message SchoolClass {
 	repeated Student students = 5;
 }
 
+message StudentRequest {
+	enum OpType {
+		ADD,
+		REMOVE,
+		UPDATE,
+	}
+	required OpType op_type = 1;
+	required int32 class_number = 2;
+	optional string student_name = 3;
+	optional Student student = 4;
+}
+
+message StudentResponse {
+	required int32 return_code = 1;
+	optional string error_message = 2;
+}
+
+service StudentManagement {
+	rpc AddStudent(StudentRequest) returns (StudentResponse) {
+		option deadline = 5;
+		option security_level = NONE;
+	}
+	rpc DeleteStudent(StudentRequest, bool) returns (StudentResponse) {
+		option deadline = 3;
+	}
+}
+
+

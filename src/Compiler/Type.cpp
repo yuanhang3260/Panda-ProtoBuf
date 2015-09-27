@@ -5,7 +5,7 @@
 namespace proto {
 namespace ProtoParser {
 
-PbType::PbType(std::string name, std::string package) :
+PbType::PbType(const std::string& name, const std::string& package) :
     name_(name),
     package_(package) {
   std::vector<std::string> result = StringUtils::Split(package_, '.');
@@ -14,7 +14,8 @@ PbType::PbType(std::string name, std::string package) :
   }
 }
 
-PbType::PbType(std::string name, std::string package, std::string message) :
+PbType::PbType(const std::string& name, const std::string& package,
+               const std::string& message) :
     name_(name),
     package_(package),
     message_(message) {

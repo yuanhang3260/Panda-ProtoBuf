@@ -1,5 +1,5 @@
-#ifndef _ENUM_TYPE
-#define _ENUM_TYPE
+#ifndef ENUM_TYPE_
+#define ENUM_TYPE_
 
 #include <string>
 #include <vector>
@@ -33,4 +33,4 @@ class EnumType : public PbType {
 }  // namespace ProtoParser
 }  // namespace Proto
 
-#endif  /* _ENUM_TYPE */
+#endif  /* ENUM_TYPE_ */

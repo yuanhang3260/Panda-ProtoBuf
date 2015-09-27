@@ -294,6 +294,132 @@ class SchoolClass: public ::proto::Message {
   friend void ::static_init_default_instances_samples_simple();
 };
 
+class StudentRequest: public ::proto::Message {
+ public:
+  enum OpType {
+    ADD,
+    REMOVE,
+    UPDATE,
+  };
+
+  // constructors and destructor //
+  StudentRequest();
+  ~StudentRequest();
+  StudentRequest(const StudentRequest& other);  // copy constructor
+  StudentRequest(StudentRequest&& other);  // move constructor
+  StudentRequest& operator=(const StudentRequest& other);  // copy assignment
+  StudentRequest& operator=(StudentRequest&& other);  // move assignment
+  void Swap(StudentRequest* other);
+
+  ::proto::Message* New() const override;  // New()
+  void CopyFrom(const StudentRequest& other);  // CopyFrom()
+  void MoveFrom(StudentRequest&& other);  // MoveFrom()
+  // Serialize() and DeSerialize().
+  ::proto::SerializedMessage* Serialize() const override;
+  void DeSerialize(const char* buf, unsigned int size) override;
+  static const StudentRequest& default_instance();
+
+  // --- Field accessors --- //
+
+  // "op_type" = 1
+  bool has_op_type() const;
+  StudentRequest::OpType op_type() const;
+  void set_op_type(StudentRequest::OpType op_type);
+  void clear_op_type();
+
+  // "class_number" = 2
+  bool has_class_number() const;
+  int class_number() const;
+  void set_class_number(int class_number);
+  void clear_class_number();
+
+  // "student_name" = 3
+  bool has_student_name() const;
+  const std::string& student_name() const;
+  void set_student_name(const std::string& student_name);
+  void set_student_name(const char* student_name);
+  void set_student_name(const char* student_name, int size);
+  std::string mutable_student_name();
+  void clear_student_name();
+
+  // "student" = 4
+  bool has_student() const;
+  const Student& student() const;
+  Student* mutable_student();
+  void set_allocated_student(Student* student);
+  Student* release_student();
+  void clear_student();
+
+ private:
+  // has bits
+  char has_bits_[1];
+  // message fields
+  StudentRequest::OpType op_type_ = StudentRequest::ADD;
+  int class_number_ = 0;
+  std::string student_name_ = "";
+  Student* student_ = nullptr;
+
+  // InitAsDefaultInstance()
+  void InitAsDefaultInstance() override;
+  // default instance
+  static StudentRequest* default_instance_;
+
+  friend void ::static_init_samples_simple();
+  friend void ::static_init_default_instances_samples_simple();
+};
+
+class StudentResponse: public ::proto::Message {
+ public:
+  // constructors and destructor //
+  StudentResponse();
+  ~StudentResponse();
+  StudentResponse(const StudentResponse& other);  // copy constructor
+  StudentResponse(StudentResponse&& other);  // move constructor
+  StudentResponse& operator=(const StudentResponse& other);  // copy assignment
+  StudentResponse& operator=(StudentResponse&& other);  // move assignment
+  void Swap(StudentResponse* other);
+
+  ::proto::Message* New() const override;  // New()
+  void CopyFrom(const StudentResponse& other);  // CopyFrom()
+  void MoveFrom(StudentResponse&& other);  // MoveFrom()
+  // Serialize() and DeSerialize().
+  ::proto::SerializedMessage* Serialize() const override;
+  void DeSerialize(const char* buf, unsigned int size) override;
+  static const StudentResponse& default_instance();
+
+  // --- Field accessors --- //
+
+  // "return_code" = 1
+  bool has_return_code() const;
+  int return_code() const;
+  void set_return_code(int return_code);
+  void clear_return_code();
+
+  // "error_message" = 2
+  bool has_error_message() const;
+  const std::string& error_message() const;
+  void set_error_message(const std::string& error_message);
+  void set_error_message(const char* error_message);
+  void set_error_message(const char* error_message, int size);
+  std::string mutable_error_message();
+  void clear_error_message();
+
+ private:
+  // has bits
+  char has_bits_[1];
+  // message fields
+  int return_code_ = 0;
+  std::string error_message_ = "";
+
+  // InitAsDefaultInstance()
+  void InitAsDefaultInstance() override;
+  // default instance
+  static StudentResponse* default_instance_;
+
+  friend void ::static_init_samples_simple();
+  friend void ::static_init_default_instances_samples_simple();
+};
+
 }  // namespace HaiZhong
 
 

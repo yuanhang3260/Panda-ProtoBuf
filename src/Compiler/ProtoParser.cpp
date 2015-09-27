@@ -57,7 +57,7 @@ bool ProtoParser::ReadProtoFile() {
     }
 
     // Parse in Global state: Only accept line start with "package ",
-    // "message ", "enum ".
+    // "message ", "enum ", "service".
     if (state_ == GLOBAL) {
       if (StringUtils::StartWith(line, "package ")) {
         if (!ParsePackageName(line)) {
@@ -76,6 +76,12 @@ bool ProtoParser::ReadProtoFile() {
           return false;
         }
         state_ = PARSINGENUM;
+      }
+      else if (StringUtils::StartWith(line, "service ")) {
+        if (!ParseServiceName(line)) {
+          return false;
+        }
+        state_ = PARSESERVICE;
       }
       else {
         LogError("Illegal line in global");
@@ -147,9 +153,52 @@ bool ProtoParser::ReadProtoFile() {
       }
     }
 
+    // Parse a service
+    else if (state_ == PARSESERVICE) {
+      if (StringUtils::StartWith(line, "rpc ")) {
+        if (!ParseRpcName(line)) {
+          return false;
+        }
+        state_ = PARSERPC;
+      }
+      else if (StringUtils::StartWith(line, "option ")) {
+        if (!ParseRpcOption(line)) {
+          return false;
+        }
+      }
+      else if (line == "}") {
+        if (current_service_->RpcServices().empty()) {
+          LogError("service %s contains nothing",
+                   current_service_->name().c_str());
+          return false;
+        }
+        state_ = GLOBAL;
+      }
+      else {
+        LogError("Illegal line in parsing a service");
+        return false;
+      }
+    }
+
+    // Parse a nested rpc in service
+    else if (state_ == PARSERPC) {
+      if (StringUtils::StartWith(line, "option ")) {
+        if (!ParseRpcOption(line)) {
+          return false;
+        }
+      }
+      else if (line == "}") {
+        state_ = PARSESERVICE;
+      }
+      else {
+        LogError("Illegal line in parsing a rpc");
+        return false;
+      }
+    }
+
     // Syntax Error
     else {
-      LogError("Illegal line, can't parse");
+      LogError("Illegal global line, can't parse");
       return false;
     }
   }
@@ -263,65 +312,12 @@ bool ProtoParser::ParseMessageField(std::string line) {
   FIELD_TYPE type;
   PbType* type_class = NULL;
   if ((type = PbCommon::GetMessageFieldType(type_name)) == UNDETERMINED) {
-    const std::string& as_global_name = type_name;
-    const std::string& as_nested_name =
-        current_package_ + "." + type_name;
-    const std::string& as_parallel_name =
-        current_message_->PackagePrefix(PYTHON) + type_name;
-
-    // std::cout << as_nested_name << std::endl;
-    // std::cout << as_parallel_name << std::endl;
-    // std::cout << as_global_name << std::endl;
-    // Search name as a nested type
-    if (current_message_->FindEnumType(as_nested_name)) {
-      type = ENUMTYPE;
-      type_class = static_cast<PbType*>(
-          current_message_->FindEnumType(as_nested_name));
-    }
-    else if (current_message_->FindEnumType(as_parallel_name)) {
-      type = ENUMTYPE;
-      type_class = static_cast<PbType*>(
-          current_message_->FindEnumType(as_parallel_name));
-    }
-    else if (current_message_->FindEnumType(as_global_name)) {
-      type = ENUMTYPE;
-      type_class = static_cast<PbType*>(
-          current_message_->FindEnumType(as_global_name));
-    }
-    // Search name in the same package this message belongs to.
-    else if (enums_map_.find(as_nested_name) != enums_map_.end()) {
-      type = ENUMTYPE;
-      type_class = static_cast<PbType*>(enums_map_.at(as_nested_name).get());
-    }
-    else if (enums_map_.find(as_parallel_name) != enums_map_.end()) {
-      type = ENUMTYPE;
-      type_class = static_cast<PbType*>(enums_map_.at(as_parallel_name).get());
-    }
-    else if (enums_map_.find(as_global_name) != enums_map_.end()) {
-      type = ENUMTYPE;
-      type_class = static_cast<PbType*>(enums_map_.at(as_global_name).get());
-    }
-    // Search in global namespace.
-    else if (messages_map_.find(as_nested_name) != messages_map_.end()) {
-      type = MESSAGETYPE;
-      type_class = static_cast<PbType*>(
-          messages_map_.at(as_nested_name).get());
-    }
-    else if (messages_map_.find(as_parallel_name) != messages_map_.end()) {
-      type = MESSAGETYPE;
-      type_class = static_cast<PbType*>(
-          messages_map_.at(as_parallel_name).get());
-    }
-    else if (messages_map_.find(as_global_name) != messages_map_.end()) {
-      type = MESSAGETYPE;
-      type_class = static_cast<PbType*>(
-          messages_map_.at(as_global_name).get());
-    }
-
-    else {
+    type_class = FindParsedMessageOrEnumType(type_name);
+    if (!type_class) {
       LogError("Unknown field type \"%s\"", type_name.c_str());
       return false;
     }
+    type = type_class->type();
   }
 
   // Parse name and tag.
@@ -429,7 +425,6 @@ bool ProtoParser::ParseEnumName(std::string line) {
     return false;
   }
 
-
   // Add new enum to the enum map
   std::shared_ptr<EnumType> new_enum;
   if (state_ == GLOBAL) {
@@ -444,6 +439,133 @@ bool ProtoParser::ParseEnumName(std::string line) {
     current_enum_ = new_enum.get();
   }
 
+  return true;
+}
+
+bool ProtoParser::ParseServiceName(std::string line) {
+  std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
+  if (result.size() != 2 && result.size() != 3) {
+    LogError("Expect 2 or 3 least tokens, actual %d", result.size());
+    return false;
+  }
+  if (result[0] != "service") {
+    LogError("Unknown keyword \"%s\"\n", result[0].c_str());
+    return false;
+  }
+  if (result.size() > 2 && result[2] != "{") {
+    LogError("Syntax error, expect \"{\" at line end\n");
+    return false;
+  }
+  if (result.size() == 2 && result[1][result[1].length()-1] != '{') {
+    LogError("Syntax error, expect \"{\" at line end\n");
+    return false;
+  }
+
+  // Get service name.
+  std::string service_name = result[1];
+  if (result.size() == 2) {
+    service_name = service_name.substr(0, service_name.length() - 1);
+  }
+  if (!IsValidVariableName(service_name)) {
+    LogError("invalid enum name \"%s\"", service_name.c_str());
+    return false;
+  }
+  // Check name duplication
+  const std::string& full_service_name =
+      PbType::GeneratePackagePrefix(PYTHON, pkg_stack_) + service_name;
+  if (services_map_.find(full_service_name) != services_map_.end()) {
+    LogError("service name \"%s\" already exists", full_service_name.c_str());
+    return false;
+  }
+
+  // Add new service to the services map.
+  std::shared_ptr<ServiceType> new_service;
+  new_service.reset(new ServiceType(service_name, current_package_));
+  services_map_[full_service_name] = new_service;
+  current_service_ = new_service.get();
+  return true;
+}
+
+bool ProtoParser::ParseRpcName(std::string line) {
+  std::vector<std::string> rpc_params =
+      StringUtils::ExtractTokens(&line, '(', ')');
+  if (rpc_params.size() != 2) {
+    LogError("Expect (rpc arg) and (rpc return) to be defined");
+    return false;
+  }
+
+  std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
+  if (result.size() != 4) {
+    LogError("Expect 4 least tokens, actual %d", result.size());
+    return false;
+  }
+  if (result[2] != "returns") {
+    LogError("Unknown keyword \"%s\"\n", result[0].c_str());
+    return false;
+  }
+  if (result[3] != "{") {
+    LogError("Syntax error, expect \"{\" at line end\n");
+    return false;
+  }
+  const std::string& rpc_name = result[1];
+  std::shared_ptr<RpcService> new_rpc(new RpcService(rpc_name));
+  // Parse and check all rpc arg type.
+  std::vector<std::string> args =
+      StringUtils::SplitGreedy(StringUtils::Strip(rpc_params[0], "()"), ',');
+  for (auto& token: args) {
+    token = StringUtils::Strip(token);
+    if (IsValidPrimitiveTypeName(token)) {
+      new_rpc->AddArg(token, false);
+    }
+    else if (FindParsedMessageOrEnumType(token)) {
+      new_rpc->AddArg(token, true);
+    }
+    else {
+      LogError("Unknown rpc arg type %s\n", token.c_str());
+      return false;
+    }
+  }
+
+  // Parse and check all rpc return type.
+  std::vector<std::string> returns =
+      StringUtils::SplitGreedy(StringUtils::Strip(rpc_params[1], "()"), ',');
+  for (auto& token: returns) {
+    token = StringUtils::Strip(token);
+    if (IsValidPrimitiveTypeName(token)) {
+      new_rpc->AddReturn(token, false);
+    }
+    else if (FindParsedMessageOrEnumType(token)) {
+      new_rpc->AddReturn(token, true);
+    }
+    else {
+      LogError("Unknown rpc return type %s\n", token.c_str());
+      return false;
+    }
+  }
+
+  // Add new rpc to current service class.
+  current_rpc_ = new_rpc.get();
+  current_service_->AddRpcService(new_rpc);
+
+  return true;
+}
+
+bool ProtoParser::ParseRpcOption(std::string line) {
+  if (line[line.length()-1] != ';') {
+    LogError("Expect \";\" at line end");
+    return false;
+  }
+  line = StringUtils::Strip(line, "option ;");
+  int index = StringUtils::findFirstMatch(line, "=");
+  if (index < 0) {
+    LogError("Invalid rpc option %s, expect assignement with \'=\'",
+             line.c_str());
+    return false;
+  }
+  std::string key = StringUtils::Strip(line.substr(0, index));
+  std::string value = StringUtils::Strip(line.substr(index + 1));
+  current_rpc_->AddOption(key, value);
+  
   return true;
 }
 
@@ -583,6 +705,10 @@ void ProtoParser::PrintParsedProto() const {
     e.second->Print();
     std::cout << std::endl << std::endl;
   }
+  for (auto& e : services_map_) {
+    e.second->Print();
+    std::cout << std::endl << std::endl;
+  }
 }
 
 bool ProtoParser::IsValidVariableName(std::string str) {
@@ -595,6 +721,71 @@ bool ProtoParser::IsValidVariableName(std::string str) {
     }
   }
   return true;
+}
+
+bool ProtoParser::IsValidPrimitiveTypeName(std::string str) {
+  if (str.length() == 0) {
+    return false;
+  }
+  return str == "int32" || str == "int64" ||
+         str == "uint32" || str == "uint64" ||
+         str == "bool" || str == "double" ||
+         str == "string";
+}
+
+PbType* ProtoParser::FindParsedMessageOrEnumType(std::string type_name) const {
+  const std::string& as_global_name = type_name;
+  const std::string& as_nested_name =
+      current_package_ + "." + type_name;
+  const std::string& as_parallel_name =
+      current_message_->PackagePrefix(PYTHON) + type_name;
+
+  // std::cout << as_nested_name << std::endl;
+  // std::cout << as_parallel_name << std::endl;
+  // std::cout << as_global_name << std::endl;
+  // Search name as a nested type
+
+  PbType* type_class = nullptr;
+  if (current_message_->FindEnumType(as_nested_name)) {
+    type_class = static_cast<PbType*>(
+        current_message_->FindEnumType(as_nested_name));
+  }
+  else if (current_message_->FindEnumType(as_parallel_name)) {
+    type_class = static_cast<PbType*>(
+        current_message_->FindEnumType(as_parallel_name));
+  }
+  else if (current_message_->FindEnumType(as_global_name)) {
+    type_class = static_cast<PbType*>(
+        current_message_->FindEnumType(as_global_name));
+  }
+  // Search name in the same package this message belongs to.
+  else if (enums_map_.find(as_nested_name) != enums_map_.end()) {
+    type_class = static_cast<PbType*>(enums_map_.at(as_nested_name).get());
+  }
+  else if (enums_map_.find(as_parallel_name) != enums_map_.end()) {
+    type_class = static_cast<PbType*>(enums_map_.at(as_parallel_name).get());
+  }
+  else if (enums_map_.find(as_global_name) != enums_map_.end()) {
+    type_class = static_cast<PbType*>(enums_map_.at(as_global_name).get());
+  }
+  // Search in global namespace.
+  else if (messages_map_.find(as_nested_name) != messages_map_.end()) {
+    type_class = static_cast<PbType*>(
+        messages_map_.at(as_nested_name).get());
+  }
+  else if (messages_map_.find(as_parallel_name) != messages_map_.end()) {
+    type_class = static_cast<PbType*>(
+        messages_map_.at(as_parallel_name).get());
+  }
+  else if (messages_map_.find(as_global_name) != messages_map_.end()) {
+    type_class = static_cast<PbType*>(
+        messages_map_.at(as_global_name).get());
+  }
+
+  else {
+    return nullptr;
+  }
+  return type_class;
 }
 
 LANGUAGE ProtoParser::GetLanguageFromString(std::string lang) {
