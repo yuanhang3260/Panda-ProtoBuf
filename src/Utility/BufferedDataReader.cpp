@@ -8,7 +8,6 @@
 #include <sstream>
 
 #include "BufferedDataReader.h"
-#include "../IO/FileDescriptor.h"
 
 namespace Utility {
 
@@ -52,7 +51,7 @@ int BufferedDataReader::Read(char* buf, int off, const int len) {
   }
 
   if (len == 0) {
-      return 0;
+    return 0;
   }
   
   int readnLeft = len;
@@ -66,8 +65,12 @@ int BufferedDataReader::Read(char* buf, int off, const int len) {
       }
       else {
         // Re-fill the internal buffer.
-        if (refill() <= 0) {
-            return readnLeft == len? 0 : len - readnLeft;
+        int nread;
+        if ((nread = refill()) <= 0) {
+          if (len == readnLeft) {
+            return nread;
+          }
+          return len - readnLeft;
         }
       }
     }
@@ -136,7 +139,11 @@ int BufferedDataReader::refill() {
   tail = 0;
   dataLen = 0;
   int readn = fdscrpt_->Read(buffer, bufSize);
-  //printf("%s\n", buffer);
+  // printf("buffer read %d bytes\n", readn);
+  // for (int i = 0; i < readn; i++) {
+  //   printf("%c", buffer[i]);
+  // }
+  // printf("\n");
   if (readn <= 0) {
     dataLen = 0;
   }
@@ -149,7 +156,7 @@ int BufferedDataReader::refill() {
 
 // Close the pipe
 int BufferedDataReader::Close() {
-  delete buffer;
+  delete[] buffer;
   head = tail = 0;
   dataLen = 0;
   return 0;

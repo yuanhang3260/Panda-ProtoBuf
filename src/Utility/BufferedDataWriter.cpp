@@ -93,7 +93,7 @@ int BufferedDataWriter::Flush() {
 
 int BufferedDataWriter::Close() {
   Flush();
-  delete buffer;
+  delete[] buffer;
   head = tail = 0;
   dataLen = 0;
   return 0;

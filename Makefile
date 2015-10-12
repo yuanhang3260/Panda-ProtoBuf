@@ -40,6 +40,12 @@ PROTO_OBJ = \
 			$(OBJ_DIR)/Proto/SerializedMessage.o \
 			$(OBJ_DIR)/Proto/WireFormat.o \
 
+RPC_OBJ = \
+      $(OBJ_DIR)/RPC/Rpc.o \
+      $(OBJ_DIR)/RPC/RpcService.o \
+      $(OBJ_DIR)/RPC/RpcServer.o \
+
+
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
           $(OBJ_DIR)/Utility/StringBuilder_test.o \
           $(OBJ_DIR)/Utility/Strings_test.o \
@@ -56,8 +62,8 @@ default: library compiler
 
 test: $(TESTEXE) library
 
-library: $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ)
-	ar cr libsnp.a $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ)
+library: $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
+	ar cr libsnp.a $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
 
 compiler: $(SRC_DIR)/Compiler/Compiler_main.cpp library
 	$(CC) $(CFLAGS) $(LFLAGS) -c $(SRC_DIR)/Compiler/Compiler_main.cpp -o $(COMPILEROBJ)
@@ -87,6 +93,9 @@ $(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cpp $(SRC_DIR)/Proto/%.h
 $(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cpp
 	$(CC) $(CFLAGS) -c $< -o $@
 
+$(OBJ_DIR)/RPC/%.o: $(SRC_DIR)/RPC/%.cpp $(SRC_DIR)/RPC/%.h
+	$(CC) $(CFLAGS) -c $< -o $@
+
 test/%.out: $(OBJ_DIR)/Utility/%.o library
 	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -o $@
 
@@ -112,6 +121,7 @@ clean:
 	rm -rf $(OBJ_DIR)/Compiler/*.o
 	rm -rf $(OBJ_DIR)/Log/*.o
 	rm -rf $(OBJ_DIR)/Proto/*.o
+	rm -rf $(OBJ_DIR)/RPC/*.o
 	rm -rf test/*.out
 	rm -rf samples/*.o
 	rm -rf *.output

@@ -19,7 +19,7 @@ StringBuilder::StringBuilder(const int size) :
 
 StringBuilder::~StringBuilder() {
   if (buf_) {
-    delete buf_;
+    delete[] buf_;
   }
 }
 

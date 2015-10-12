@@ -1,21 +1,22 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <strings.h>
+#include <fcntl.h>
 #include <sys/socket.h>
 
 #include "Socket.h"
 
-
 namespace Network {
 
-Socket* Socket::CreateClientSocket(const std::string hostname, const int port) {
+Socket* Socket::CreateClientSocket(
+    const std::string hostname, const int port, bool block) {
   struct sockaddr_in server_addr;
   struct hostent *server;
 
   // Create socket
   int fd_ = socket(AF_INET, SOCK_STREAM, 0); 
   if (fd_ < 0) {
-    fprintf(stderr, "ERROR: opening socket");
+    fprintf(stderr, "ERROR: opening socket\n");
     return NULL;
   }
 
@@ -34,8 +35,13 @@ Socket* Socket::CreateClientSocket(const std::string hostname, const int port) {
 
   /* Now connect to the server */
   if (connect(fd_, (struct sockaddr*)&server_addr, sizeof(server_addr)) < 0) {
-    fprintf(stderr, "ERROR connecting");
+    fprintf(stderr, "ERROR connecting\n");
     return NULL;
+  }
+
+  if (!block) {
+    int x = fcntl(fd_, F_GETFL, 0);
+    fcntl(fd_, F_SETFL, x | O_NONBLOCK);
   }
 
   Socket *new_socket = new Socket(hostname);
@@ -43,15 +49,20 @@ Socket* Socket::CreateClientSocket(const std::string hostname, const int port) {
   return new_socket;
 }
 
-Socket* Socket::CreateServerSocket(const int port) {
+Socket* Socket::CreateServerSocket(const int port, bool block) {
   struct sockaddr_in serv_addr;
 
   // Create socket
   int fd_ = socket(AF_INET, SOCK_STREAM, 0);
  
   if (fd_ < 0) {
-    fprintf(stderr, "ERROR: opening socket");
+    fprintf(stderr, "ERROR: opening socket\n");
     return NULL;
+  }
+
+  if (!block) {
+    int x = fcntl(fd_, F_GETFL, 0);
+    fcntl(fd_, F_SETFL, x | O_NONBLOCK);
   }
 
   // Set server addr
