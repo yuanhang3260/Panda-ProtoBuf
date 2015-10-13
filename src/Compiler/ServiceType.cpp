@@ -47,11 +47,11 @@ void RpcService::Print() const {
   std::cout << "  rpc " << name_ << "(";
   std::string args, rets;
   for (const auto& arg: args_list_) {
-    args += (arg.name() + ", ");
+    args += (arg.type() + ", ");
   }
   std::cout << args.substr(0, args.length() - 2) << ") returns (";
   for (const auto& ret: returns_list_) {
-    rets += (ret.name() + ", ");
+    rets += (ret.type() + ", ");
   }
   std::cout << rets.substr(0, rets.length() - 2) << ") {" << std::endl;
   for (const auto& op: options_map_) {

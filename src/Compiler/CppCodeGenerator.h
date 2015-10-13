@@ -26,7 +26,10 @@ class CppCodeGenerator : public ProtoParser {
   void DeclareGlobalEnum(EnumType* enum_p);
 
   // Declare a message class.
-  void DeclareMessageClass(Message* message); 
+  void DeclareMessageClass(Message* message);
+
+  // Declare an rpc service class.
+  void DeclareRpcServiceClass(ServiceType* service);
 
   // Declare nested enums.
   void DeclareNestedEnums(Message* message);

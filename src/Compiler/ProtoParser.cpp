@@ -514,11 +514,18 @@ bool ProtoParser::ParseRpcName(std::string line) {
       StringUtils::SplitGreedy(StringUtils::Strip(rpc_params[0], "()"), ',');
   for (auto& token: args) {
     token = StringUtils::Strip(token);
-    if (IsValidPrimitiveTypeName(token)) {
-      new_rpc->AddArg(token, false);
+    PbType* type_class = nullptr;
+    FIELD_TYPE type;
+    if ((type = PbCommon::GetMessageFieldType(token)) == UNDETERMINED) {
+      type_class = FindParsedMessageOrEnumType(token);
+      if (!type_class) {
+        LogError("Unknown field type \"%s\"", token.c_str());
+        return false;
+      }
+      new_rpc->AddArg(token, type_class);
     }
-    else if (FindParsedMessageOrEnumType(token)) {
-      new_rpc->AddArg(token, true);
+    else if (IsValidPrimitiveTypeName(token)) {
+      new_rpc->AddArg(token);
     }
     else {
       LogError("Unknown rpc arg type %s\n", token.c_str());
@@ -531,14 +538,21 @@ bool ProtoParser::ParseRpcName(std::string line) {
       StringUtils::SplitGreedy(StringUtils::Strip(rpc_params[1], "()"), ',');
   for (auto& token: returns) {
     token = StringUtils::Strip(token);
-    if (IsValidPrimitiveTypeName(token)) {
-      new_rpc->AddReturn(token, false);
+    PbType* type_class = nullptr;
+    FIELD_TYPE type;
+    if ((type = PbCommon::GetMessageFieldType(token)) == UNDETERMINED) {
+      type_class = FindParsedMessageOrEnumType(token);
+      if (!type_class) {
+        LogError("Unknown field type \"%s\"", token.c_str());
+        return false;
+      }
+      new_rpc->AddReturn(token, type_class);
     }
-    else if (FindParsedMessageOrEnumType(token)) {
-      new_rpc->AddReturn(token, true);
+    else if (IsValidPrimitiveTypeName(token)) {
+      new_rpc->AddReturn(token);
     }
     else {
-      LogError("Unknown rpc return type %s\n", token.c_str());
+      LogError("Unknown rpc arg type %s\n", token.c_str());
       return false;
     }
   }

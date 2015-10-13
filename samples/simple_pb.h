@@ -7,6 +7,10 @@
 #include "Proto/Message.h"
 #include "Proto/RepeatedFields.h"
 #include "Proto/SerializedMessage.h"
+#include "RPC/Rpc.h"
+#include "RPC/RpcService.h"
+#include "RPC/RpcServer.h"
+#include "Utility/CallBack.h"
 
 void static_init_samples_simple();
 void static_init_default_instances_samples_simple();
@@ -418,6 +422,39 @@ class StudentResponse: public ::proto::Message {
 
   friend void ::static_init_samples_simple();
   friend void ::static_init_default_instances_samples_simple();
+};
+
+class StudentManagement: public ::RPC::RpcService {
+ public:
+  static StudentManagement* NewStub();
+  virtual ~StudentManagement();
+
+  virtual void RegisterToServer(::RPC::RpcServer* server);
+  virtual void DeRegisterFromServer(::RPC::RpcServer* server);
+
+  virtual void InternalRegisterHandlers(::RPC::RpcHandlerMap* handler_map);
+
+  // AddStudent() to be Implemented by user.
+  virtual void AddStudent(
+      ::RPC::Rpc* rpc,
+      const ::HaiZhong::StudentRequest* arg,
+      ::HaiZhong::StudentResponse* result,
+      ::Base::CallBack cb);
+
+  // DeleteStudent() to be Implemented by user.
+  virtual void DeleteStudent(
+      ::RPC::Rpc* rpc,
+      const ::HaiZhong::StudentRequest* arg,
+      ::HaiZhong::StudentResponse* result,
+      ::Base::CallBack cb);
+
+ protected:
+  StudentManagement();
+  class Stub;
+
+ private:
+ void internal_AddStudent(::RPC::Rpc* rpc);
+ void internal_DeleteStudent(::RPC::Rpc* rpc);
 };
 
 }  // namespace HaiZhong

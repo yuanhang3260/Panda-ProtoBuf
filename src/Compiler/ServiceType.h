@@ -31,13 +31,17 @@ class ServiceType : public PbType {
 
 class RpcParam {
  public:
-  RpcParam(const std::string& name, bool is_message) :
-      name_(name), is_message_(is_message) {}
-  std::string name() const { return name_; }
+  RpcParam(const std::string& type) :
+      type_(type), is_message_(false) {}
+  RpcParam(const std::string& type, const PbType* type_class) :
+      type_(type), is_message_(true), type_class_(type_class) {}
+  std::string type() const { return type_; }
+  const PbType* type_class() { return type_class_; }
   bool IsMessage() const { return is_message_; }
  private:
-  std::string name_;
+  std::string type_;
   bool is_message_;
+  const PbType* type_class_ = nullptr;
 };
 
 class RpcService {
@@ -46,15 +50,26 @@ class RpcService {
   virtual ~RpcService() {}
 
   std::string name() { return name_; }
-  
-  void AddArg(const std::string& arg_type, bool is_message) {
-    args_list_.push_back(RpcParam(arg_type, is_message));
+
+  std::vector<RpcParam>& args_list() { return args_list_; }
+  std::vector<RpcParam>& returns_list() { return returns_list_; }
+
+  void AddArg(const std::string& arg_type, PbType* type_class) {
+    args_list_.push_back(RpcParam(arg_type, type_class));
+  }
+
+  void AddArg(const std::string& arg_type) {
+    args_list_.push_back(RpcParam(arg_type));
   }
   
-  void AddReturn(const std::string& return_type, bool is_message) {
-    returns_list_.push_back(RpcParam(return_type, is_message));
+  void AddReturn(const std::string& return_type, PbType* type_class) {
+    returns_list_.push_back(RpcParam(return_type, type_class));
   }
-  
+
+  void AddReturn(const std::string& return_type) {
+    returns_list_.push_back(RpcParam(return_type));
+  }
+
   void AddOption(const std::string& key, const std::string& value) {
     options_map_[key] = value;
   }

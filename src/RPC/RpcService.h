@@ -13,12 +13,22 @@ class RpcService {
   RpcService(const std::string& name);
   virtual ~RpcService();
 
+  // Get rpc service name.
   std::string name() const { return name_; }
 
+  // rpc server accessor
   const RpcServer* rpc_server() const { return rpc_server_; }
   void set_rpc_server(RpcServer* rpc_server) { rpc_server_ = rpc_server; }
 
- private:
+  // Register and de-register this rpc service to a rpc server.
+  virtual void RegisterToServer() {}
+  virtual void DeRegisterFromServer() {}
+
+  // Register rpc handlers to a rpc server's handler map.
+  virtual void InternalRegisterHandlers(RpcHandlerMap* handler_map) {}
+
+ protected:
+
   std::string name_;
   RpcServer* rpc_server_;
 };

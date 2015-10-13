@@ -40,7 +40,14 @@ void CppCodeGenerator::GenerateHeader() {
   printer.Print("#include <vector>\n\n");
   printer.Print("#include \"Proto/Message.h\"\n");
   printer.Print("#include \"Proto/RepeatedFields.h\"\n");
-  printer.Print("#include \"Proto/SerializedMessage.h\"\n\n");
+  printer.Print("#include \"Proto/SerializedMessage.h\"\n");
+  if (!services_map_.empty()) {
+    printer.Print("#include \"RPC/Rpc.h\"\n");
+    printer.Print("#include \"RPC/RpcService.h\"\n");
+    printer.Print("#include \"RPC/RpcServer.h\"\n");
+    printer.Print("#include \"Utility/CallBack.h\"\n");
+  }
+  printer.Print("\n");
 
   GenerateProtoPathName();
   printer.Print("void static_init" + proto_path_name_ + "();\n");
@@ -55,6 +62,11 @@ void CppCodeGenerator::GenerateHeader() {
   // Declare classes.
   for (auto& message: messages_list_) {
     DeclareMessageClass(message.get());
+  }
+
+  // Declare rpc service classes
+  for (auto& service: services_map_) {
+    DeclareRpcServiceClass(service.second.get());
   }
 
   CheckoutNameSpace(pkg_stack_, std::vector<std::string>());
@@ -101,6 +113,54 @@ void CppCodeGenerator::DeclareMessageClass(Message* message) {
 
   // Declare private fields.
   DeclarePrivateFields(message);
+  printer.Print("};\n\n");
+}
+
+void CppCodeGenerator::DeclareRpcServiceClass(ServiceType* service) {
+  CheckoutNameSpace(pkg_stack_, service->pkg_stack());
+  printer.Print("class " + service->name() + ": public ::RPC::RpcService {\n");
+
+  // Public:
+  std::map<std::string, std::string> matches{
+    {"service_name", service->name()},
+  };
+  printer.Print(" public:\n"
+                "  static ${service_name}* NewStub();\n"
+                "  virtual ~${service_name}();\n"
+                "\n"
+                "  virtual void RegisterToServer(::RPC::RpcServer* server);\n"
+                "  virtual void DeRegisterFromServer(::RPC::RpcServer* server);\n"
+                "\n"
+                "  virtual void InternalRegisterHandlers(::RPC::RpcHandlerMap* handler_map);\n"
+                "\n", matches);
+  for (const auto& rpc_service: service->RpcServices()) {
+    matches["rpc_name"] = rpc_service->name();
+    matches["arg_type"] =
+        (rpc_service->args_list())[0].type_class()->FullNameWithPackagePrefix(CPP);
+    matches["return_type"] =
+        (rpc_service->returns_list())[0].type_class()->FullNameWithPackagePrefix(CPP);
+    printer.Print("  // ${rpc_name}() to be Implemented by user.\n"
+                  "  virtual void ${rpc_name}(\n"
+                  "      ::RPC::Rpc* rpc,\n"
+                  "      const ${arg_type}* arg,\n"
+                  "      ${return_type}* result,\n"
+                  "      ::Base::CallBack cb);\n\n",
+                  matches);
+  }
+
+  // Protected:
+  printer.Print(" protected:\n"
+                "  ${service_name}();\n"
+                "  class Stub;\n\n",
+                matches);
+
+  // Private:
+  printer.Print(" private:\n");
+  for (const auto& rpc_service: service->RpcServices()) {
+    matches["rpc_name"] = rpc_service->name();
+    printer.Print(" void internal_${rpc_name}(::RPC::Rpc* rpc);\n", matches);
+  }
+
   printer.Print("};\n\n");
 }
 
