@@ -1622,5 +1622,60 @@ void StudentResponse::clear_error_message() {
   has_bits_[0] &= (~0x4);
 }
 
+StudentManagement::StudentManagement() : ::RPC::RpcService(HaiZhong.StudentManagement) {
+}
+
+StudentManagement* StudentManagement::NewStub() {
+}
+
+void StudentManagement::RegisterToServer(::RPC::RpcServer* server) {
+  InternalRegisterHandlers(server->handler_map());
+}
+
+void StudentManagement::DeregisterFromServer(::RPC::RpcServer* server) {
+  InternalDeRegisterHandlers(server->handler_map());
+}
+
+void StudentManagement::InternalRegisterHandlers(::RPC::RpcHandlerMap* handler_map) {
+  (*handler_map)["HaiZhong.StudentManagement.AddStudent"] = std::shared_ptr<RpcHandler>(
+      new RpcHandler(
+        "HaiZhong.StudentManagement.AddStudent",  // full rpc name
+        "AddStudent",  // method name
+        new ::HaiZhong::StudentRequest(),  // request proto type
+        new ::HaiZhong::StudentResponse(),  // response proto type
+        nullptr,  // TODO: stream prototype
+        new RPC::InternalRpcMethod(StudentManagement::&internal_AddStudent, this, std::placeholders::_1),
+      ));
+  (*handler_map)["HaiZhong.StudentManagement.DeleteStudent"] = std::shared_ptr<RpcHandler>(
+      new RpcHandler(
+        "HaiZhong.StudentManagement.DeleteStudent",  // full rpc name
+        "DeleteStudent",  // method name
+        new ::HaiZhong::StudentRequest(),  // request proto type
+        new ::HaiZhong::StudentResponse(),  // response proto type
+        nullptr,  // TODO: stream prototype
+        new RPC::InternalRpcMethod(StudentManagement::&internal_DeleteStudent, this, std::placeholders::_1),
+      ));
+}
+
+void internal_AddStudent(::RPC::Rpc* rpc) {
+  AddStudent(rpc, rpc->_request_prototype, rpc->_response_prototype, rpc->_rpc_method);
+}
+
+void internal_DeleteStudent(::RPC::Rpc* rpc) {
+  DeleteStudent(rpc, rpc->_request_prototype, rpc->_response_prototype, rpc->_rpc_method);
+}
+
+void AddStudent(
+    ::RPC::Rpc rpc*, const ::HaiZhong::StudentRequest*,
+    ::HaiZhong::StudentResponse*, ::Base::Closure* done) {
+  UnInplemented(rpc, done);
+}
+
+void DeleteStudent(
+    ::RPC::Rpc rpc*, const ::HaiZhong::StudentRequest*,
+    ::HaiZhong::StudentResponse*, ::Base::Closure* done) {
+  UnInplemented(rpc, done);
+}
+
 }  // namespace HaiZhong
 

@@ -4,6 +4,7 @@
 #include <vector>
 #include <map>
 
+#include "../Utility/CallBack.h"
 #include "RpcServer.h"
 
 namespace RPC {
@@ -28,6 +29,7 @@ class RpcService {
   virtual void InternalRegisterHandlers(RpcHandlerMap* handler_map) {}
 
  protected:
+  void UnInplemented(Rpc* rpc, Base::Closure* done);
 
   std::string name_;
   RpcServer* rpc_server_;

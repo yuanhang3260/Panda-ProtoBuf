@@ -50,6 +50,10 @@ std::string PbType::PackagePrefix(LANGUAGE lang) const {
   return GeneratePackagePrefix(lang, pkg_stack_);
 }
 
+std::string PbType::FullNameWithPackagePrefix() const {
+  return FullNameWithPackagePrefix(PYTHON);
+}
+
 std::string PbType::FullNameWithPackagePrefix(LANGUAGE lang) const {
   return PackagePrefix(lang) + name_;
 }

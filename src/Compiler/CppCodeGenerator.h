@@ -117,6 +117,11 @@ class CppCodeGenerator : public ProtoParser {
   void DefineRepeatedNonNumericTypeAccessors(Message* message,
                                              MessageField* field);
 
+  // Define service class.
+  void DefineServiceClassMethods(ServiceType* service);
+  void DefineClassMethods(ServiceType* service);
+  void DefineStubClass(ServiceType* service);
+
   // -------------------------- Helpers methods ----------------------------- //
   std::map<std::string, std::string>
   GetFieldMatchMap(Message* message, MessageField* field);

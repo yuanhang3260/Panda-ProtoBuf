@@ -433,28 +433,29 @@ class StudentManagement: public ::RPC::RpcService {
   virtual void DeRegisterFromServer(::RPC::RpcServer* server);
 
   virtual void InternalRegisterHandlers(::RPC::RpcHandlerMap* handler_map);
+  virtual void InternalDeRegisterHandlers(::RPC::RpcHandlerMap* handler_map);
 
   // AddStudent() to be Implemented by user.
   virtual void AddStudent(
       ::RPC::Rpc* rpc,
       const ::HaiZhong::StudentRequest* arg,
       ::HaiZhong::StudentResponse* result,
-      ::Base::CallBack cb);
+      ::Base::Closure cb);
 
   // DeleteStudent() to be Implemented by user.
   virtual void DeleteStudent(
       ::RPC::Rpc* rpc,
       const ::HaiZhong::StudentRequest* arg,
       ::HaiZhong::StudentResponse* result,
-      ::Base::CallBack cb);
+      ::Base::Closure cb);
 
  protected:
   StudentManagement();
   class Stub;
 
  private:
- void internal_AddStudent(::RPC::Rpc* rpc);
- void internal_DeleteStudent(::RPC::Rpc* rpc);
+  void internal_AddStudent(::RPC::Rpc* rpc);
+  void internal_DeleteStudent(::RPC::Rpc* rpc);
 };
 
 }  // namespace HaiZhong
