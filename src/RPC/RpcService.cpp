@@ -7,7 +7,9 @@ RpcService::RpcService(const std::string& name) : name_(name) {
 
 void RpcService::UnInplemented(Rpc* rpc, Base::Closure* done) {
   (void)rpc;
-  done->Run();
+  if (done) {
+    done->Run();
   }
+}
 
 }  // namespace RPC

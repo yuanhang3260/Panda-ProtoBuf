@@ -1637,23 +1637,25 @@ void StudentManagement::DeregisterFromServer(::RPC::RpcServer* server) {
 }
 
 void StudentManagement::InternalRegisterHandlers(::RPC::RpcHandlerMap* handler_map) {
-  (*handler_map)["HaiZhong.StudentManagement.AddStudent"] = std::shared_ptr<RpcHandler>(
-      new RpcHandler(
-        "HaiZhong.StudentManagement.AddStudent",  // full rpc name
-        "AddStudent",  // method name
-        new ::HaiZhong::StudentRequest(),  // request proto type
-        new ::HaiZhong::StudentResponse(),  // response proto type
-        nullptr,  // TODO: stream prototype
-        new RPC::InternalRpcMethod(StudentManagement::&internal_AddStudent, this, std::placeholders::_1),
+  (*handler_map)["HaiZhong.StudentManagement.AddStudent"] =
+      std::shared_ptr<RpcHandler>(new RpcHandler(
+          "HaiZhong.StudentManagement.AddStudent",  // full rpc name
+          "AddStudent",  // method name
+          new ::HaiZhong::StudentRequest(),  // request proto type
+          new ::HaiZhong::StudentResponse(),  // response proto type
+          nullptr,  // TODO: stream prototype
+          new RPC::InternalRpcMethod(StudentManagement::&internal_AddStudent,
+                                     this, std::placeholders::_1),
       ));
-  (*handler_map)["HaiZhong.StudentManagement.DeleteStudent"] = std::shared_ptr<RpcHandler>(
-      new RpcHandler(
-        "HaiZhong.StudentManagement.DeleteStudent",  // full rpc name
-        "DeleteStudent",  // method name
-        new ::HaiZhong::StudentRequest(),  // request proto type
-        new ::HaiZhong::StudentResponse(),  // response proto type
-        nullptr,  // TODO: stream prototype
-        new RPC::InternalRpcMethod(StudentManagement::&internal_DeleteStudent, this, std::placeholders::_1),
+  (*handler_map)["HaiZhong.StudentManagement.DeleteStudent"] =
+      std::shared_ptr<RpcHandler>(new RpcHandler(
+          "HaiZhong.StudentManagement.DeleteStudent",  // full rpc name
+          "DeleteStudent",  // method name
+          new ::HaiZhong::StudentRequest(),  // request proto type
+          new ::HaiZhong::StudentResponse(),  // response proto type
+          nullptr,  // TODO: stream prototype
+          new RPC::InternalRpcMethod(StudentManagement::&internal_DeleteStudent,
+                                     this, std::placeholders::_1),
       ));
 }
 

@@ -1335,14 +1335,15 @@ void CppCodeGenerator::DefineClassMethods(ServiceType* service) {
         (rpc_service->args_list())[0].type_class()->FullNameWithPackagePrefix(CPP);
     matches["return_type"] =
         (rpc_service->returns_list())[0].type_class()->FullNameWithPackagePrefix(CPP);
-    printer.Print("  (*handler_map)[\"${service_full_name}.${rpc_name}\"] = std::shared_ptr<RpcHandler>(\n"
-                  "      new RpcHandler(\n"
-                  "        \"${service_full_name}.${rpc_name}\",  // full rpc name\n"
-                  "        \"${rpc_name}\",  // method name\n"
-                  "        new ${arg_type}(),  // request proto type\n"
-                  "        new ${return_type}(),  // response proto type\n"
-                  "        nullptr,  // TODO: stream prototype\n"
-                  "        new RPC::InternalRpcMethod(${service_name}::&internal_${rpc_name}, this, std::placeholders::_1),\n"
+    printer.Print("  (*handler_map)[\"${service_full_name}.${rpc_name}\"] =\n"
+                  "      std::shared_ptr<RpcHandler>(new RpcHandler(\n"
+                  "          \"${service_full_name}.${rpc_name}\",  // full rpc name\n"
+                  "          \"${rpc_name}\",  // method name\n"
+                  "          new ${arg_type}(),  // request proto type\n"
+                  "          new ${return_type}(),  // response proto type\n"
+                  "          nullptr,  // TODO: stream prototype\n"
+                  "          new RPC::InternalRpcMethod(${service_name}::&internal_${rpc_name},\n"
+                  "                                     this, std::placeholders::_1),\n"
                   "      ));\n",
                   matches);
   }
