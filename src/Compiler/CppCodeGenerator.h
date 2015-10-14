@@ -118,8 +118,8 @@ class CppCodeGenerator : public ProtoParser {
                                              MessageField* field);
 
   // Define service class.
+  void DefineServiceClass(ServiceType* service);
   void DefineServiceClassMethods(ServiceType* service);
-  void DefineClassMethods(ServiceType* service);
   void DefineStubClass(ServiceType* service);
 
   // -------------------------- Helpers methods ----------------------------- //

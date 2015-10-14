@@ -440,17 +440,17 @@ class StudentManagement: public ::RPC::RpcService {
       ::RPC::Rpc* rpc,
       const ::HaiZhong::StudentRequest* arg,
       ::HaiZhong::StudentResponse* result,
-      ::Base::Closure cb);
+      ::Base::Closure* cb);
 
   // DeleteStudent() to be Implemented by user.
   virtual void DeleteStudent(
       ::RPC::Rpc* rpc,
       const ::HaiZhong::StudentRequest* arg,
       ::HaiZhong::StudentResponse* result,
-      ::Base::Closure cb);
+      ::Base::Closure* cb);
 
  protected:
-  StudentManagement();
+  StudentManagement() : ::RPC::RpcService("HaiZhong.StudentManagement") {}
   class Stub;
 
  private:

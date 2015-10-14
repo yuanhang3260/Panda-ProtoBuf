@@ -1622,59 +1622,82 @@ void StudentResponse::clear_error_message() {
   has_bits_[0] &= (~0x4);
 }
 
-StudentManagement::StudentManagement() : ::RPC::RpcService(HaiZhong.StudentManagement) {
-}
+// StudentManagement::StudentManagement() : ::RPC::RpcService("HaiZhong.StudentManagement") {
+// }
 
 StudentManagement* StudentManagement::NewStub() {
+  return nullptr;
 }
 
 void StudentManagement::RegisterToServer(::RPC::RpcServer* server) {
   InternalRegisterHandlers(server->handler_map());
 }
 
-void StudentManagement::DeregisterFromServer(::RPC::RpcServer* server) {
+void StudentManagement::DeRegisterFromServer(::RPC::RpcServer* server) {
   InternalDeRegisterHandlers(server->handler_map());
 }
 
 void StudentManagement::InternalRegisterHandlers(::RPC::RpcHandlerMap* handler_map) {
   (*handler_map)["HaiZhong.StudentManagement.AddStudent"] =
-      std::shared_ptr<RpcHandler>(new RpcHandler(
+      std::shared_ptr<::RPC::RpcHandler>(new RPC::RpcHandler(
           "HaiZhong.StudentManagement.AddStudent",  // full rpc name
           "AddStudent",  // method name
           new ::HaiZhong::StudentRequest(),  // request proto type
           new ::HaiZhong::StudentResponse(),  // response proto type
           nullptr,  // TODO: stream prototype
-          new RPC::InternalRpcMethod(StudentManagement::&internal_AddStudent,
-                                     this, std::placeholders::_1),
+          new RPC::InternalRpcMethod(
+              std::bind(&StudentManagement::internal_AddStudent,
+                        this, std::placeholders::_1))
       ));
   (*handler_map)["HaiZhong.StudentManagement.DeleteStudent"] =
-      std::shared_ptr<RpcHandler>(new RpcHandler(
+      std::shared_ptr<::RPC::RpcHandler>(new RPC::RpcHandler(
           "HaiZhong.StudentManagement.DeleteStudent",  // full rpc name
           "DeleteStudent",  // method name
           new ::HaiZhong::StudentRequest(),  // request proto type
           new ::HaiZhong::StudentResponse(),  // response proto type
           nullptr,  // TODO: stream prototype
-          new RPC::InternalRpcMethod(StudentManagement::&internal_DeleteStudent,
-                                     this, std::placeholders::_1),
+          new RPC::InternalRpcMethod(
+              std::bind(&StudentManagement::internal_DeleteStudent,
+                        this, std::placeholders::_1))
       ));
 }
 
-void internal_AddStudent(::RPC::Rpc* rpc) {
-  AddStudent(rpc, rpc->_request_prototype, rpc->_response_prototype, rpc->_rpc_method);
+void StudentManagement::InternalDeRegisterHandlers(::RPC::RpcHandlerMap* handler_map) {
+  auto it = handler_map->end();
+  if ((it = handler_map->find("HaiZhong.StudentManagement.AddStudent")) != handler_map->end()) {
+    handler_map->erase(it);
+  }
+  if ((it = handler_map->find("HaiZhong.StudentManagement.DeleteStudent")) != handler_map->end()) {
+    handler_map->erase(it);
+  }
 }
 
-void internal_DeleteStudent(::RPC::Rpc* rpc) {
-  DeleteStudent(rpc, rpc->_request_prototype, rpc->_response_prototype, rpc->_rpc_method);
+void StudentManagement::internal_AddStudent(::RPC::Rpc* rpc) {
+  AddStudent(
+      rpc,
+      (::HaiZhong::StudentRequest*)rpc->internal_request(),
+      (::HaiZhong::StudentResponse*)rpc->internal_response(),
+      rpc->cb_final()
+  );
 }
 
-void AddStudent(
-    ::RPC::Rpc rpc*, const ::HaiZhong::StudentRequest*,
+void StudentManagement::internal_DeleteStudent(::RPC::Rpc* rpc) {
+  DeleteStudent(
+      rpc,
+      (::HaiZhong::StudentRequest*)rpc->internal_request(),
+      (::HaiZhong::StudentResponse*)rpc->internal_response(),
+      rpc->cb_final()
+  );
+}
+
+void StudentManagement::AddStudent(
+    ::RPC::Rpc* rpc, const ::HaiZhong::StudentRequest*,
     ::HaiZhong::StudentResponse*, ::Base::Closure* done) {
   UnInplemented(rpc, done);
 }
 
-void DeleteStudent(
-    ::RPC::Rpc rpc*, const ::HaiZhong::StudentRequest*,
+void StudentManagement::DeleteStudent(
+    ::RPC::Rpc* rpc, const ::HaiZhong::StudentRequest*,
     ::HaiZhong::StudentResponse*, ::Base::Closure* done) {
   UnInplemented(rpc, done);
 }

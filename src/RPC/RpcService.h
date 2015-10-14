@@ -11,8 +11,8 @@ namespace RPC {
 
 class RpcService {
  public:
-  RpcService(const std::string& name);
-  virtual ~RpcService();
+  RpcService(const std::string name);
+  virtual ~RpcService() {};
 
   // Get rpc service name.
   std::string name() const { return name_; }
@@ -22,11 +22,12 @@ class RpcService {
   void set_rpc_server(RpcServer* rpc_server) { rpc_server_ = rpc_server; }
 
   // Register and de-register this rpc service to a rpc server.
-  virtual void RegisterToServer() {}
-  virtual void DeRegisterFromServer() {}
+  virtual void RegisterToServer() {};
+  virtual void DeRegisterFromServer() {};
 
   // Register rpc handlers to a rpc server's handler map.
-  virtual void InternalRegisterHandlers(RpcHandlerMap* handler_map) {}
+  virtual void InternalRegisterHandlers(RpcHandlerMap* handler_map) {};
+  virtual void InternalDeRegisterHandlers(RpcHandlerMap* handler_map) {};
 
  protected:
   void UnInplemented(Rpc* rpc, Base::Closure* done);

@@ -145,7 +145,7 @@ void CppCodeGenerator::DeclareRpcServiceClass(ServiceType* service) {
                   "      ::RPC::Rpc* rpc,\n"
                   "      const ${arg_type}* arg,\n"
                   "      ${return_type}* result,\n"
-                  "      ::Base::Closure cb);\n\n",
+                  "      ::Base::Closure* cb);\n\n",
                   matches);
   }
 
@@ -296,7 +296,7 @@ void CppCodeGenerator::GenerateCC() {
   }
 
   for (auto& service: services_map_) {
-    DefineServiceClassMethods(service.second.get());
+    DefineServiceClass(service.second.get());
   }
 
   CheckoutNameSpace(pkg_stack_, std::vector<std::string>());
@@ -1301,28 +1301,29 @@ void CppCodeGenerator::DefineRepeatedNonNumericTypeAccessors(
                 matches);
 }
 
-void CppCodeGenerator::DefineServiceClassMethods(ServiceType* service) {
+void CppCodeGenerator::DefineServiceClass(ServiceType* service) {
   CheckoutNameSpace(pkg_stack_, service->pkg_stack());
-  DefineClassMethods(service);
+  DefineServiceClassMethods(service);
   DefineStubClass(service);
 }
 
-void CppCodeGenerator::DefineClassMethods(ServiceType* service) {
+void CppCodeGenerator::DefineServiceClassMethods(ServiceType* service) {
   std::map<std::string, std::string> matches{
     {"service_name", service->name()},
     {"full_service_name", service->FullNameWithPackagePrefix()},
   };
   // Constructor
-  printer.Print("${service_name}::${service_name}() : ::RPC::RpcService(${full_service_name}) {\n"
+  printer.Print("${service_name}::${service_name}() : ::RPC::RpcService(\"${full_service_name}\") {\n"
                 "}\n\n", matches);
   // NewStub
   printer.Print("StudentManagement* ${service_name}::NewStub() {\n"
+                "  return nullptr;\n"
                 "}\n\n", matches);
   // Register and De-Register service.
   printer.Print("void ${service_name}::RegisterToServer(::RPC::RpcServer* server) {\n"
                 "  InternalRegisterHandlers(server->handler_map());\n"
                 "}\n\n", matches);
-  printer.Print("void ${service_name}::DeregisterFromServer(::RPC::RpcServer* server) {\n"
+  printer.Print("void ${service_name}::DeRegisterFromServer(::RPC::RpcServer* server) {\n"
                 "  InternalDeRegisterHandlers(server->handler_map());\n"
                 "}\n\n", matches);
   // Internal register handler to server's handler_map
@@ -1336,19 +1337,24 @@ void CppCodeGenerator::DefineClassMethods(ServiceType* service) {
     matches["return_type"] =
         (rpc_service->returns_list())[0].type_class()->FullNameWithPackagePrefix(CPP);
     printer.Print("  (*handler_map)[\"${service_full_name}.${rpc_name}\"] =\n"
-                  "      std::shared_ptr<RpcHandler>(new RpcHandler(\n"
+                  "      std::shared_ptr<::RPC::RpcHandler>(new RPC::RpcHandler(\n"
                   "          \"${service_full_name}.${rpc_name}\",  // full rpc name\n"
                   "          \"${rpc_name}\",  // method name\n"
                   "          new ${arg_type}(),  // request proto type\n"
                   "          new ${return_type}(),  // response proto type\n"
                   "          nullptr,  // TODO: stream prototype\n"
-                  "          new RPC::InternalRpcMethod(${service_name}::&internal_${rpc_name},\n"
-                  "                                     this, std::placeholders::_1),\n"
+                  "          new RPC::InternalRpcMethod(\n"
+                  "              std::bind(&${service_name}::internal_${rpc_name},\n"
+                  "                        this, std::placeholders::_1))\n"
                   "      ));\n",
                   matches);
   }
   printer.Print("}\n\n");
 
+  // Internal de-register handler from server's handler_map
+  printer.Print("void ${service_name}::InternalDeRegisterHandlers(::RPC::RpcHandlerMap* handler_map) {\n"
+                "  auto it = handler_map->end();\n",
+                matches);
   for (auto rpc_service: service->RpcServices()) {
     matches["rpc_name"] = rpc_service->name();
     matches["service_full_name"] = service->FullNameWithPackagePrefix();
@@ -1356,11 +1362,32 @@ void CppCodeGenerator::DefineClassMethods(ServiceType* service) {
         (rpc_service->args_list())[0].type_class()->FullNameWithPackagePrefix(CPP);
     matches["return_type"] =
         (rpc_service->returns_list())[0].type_class()->FullNameWithPackagePrefix(CPP);
-    printer.Print("void internal_${rpc_name}(::RPC::Rpc* rpc) {\n"
-                  "  ${rpc_name}(rpc, rpc->_request_prototype, rpc->_response_prototype, rpc->_rpc_method);\n"
+    printer.Print("  if ((it = handler_map->find(\"${service_full_name}.${rpc_name}\")) != handler_map->end()) {\n"
+                  "    handler_map->erase(it);\n"
+                  "  }\n",
+                  matches);
+  }
+  printer.Print("}\n\n");
+
+  // internal rpc handler method.
+  for (auto rpc_service: service->RpcServices()) {
+    matches["rpc_name"] = rpc_service->name();
+    matches["service_full_name"] = service->FullNameWithPackagePrefix();
+    matches["arg_type"] =
+        (rpc_service->args_list())[0].type_class()->FullNameWithPackagePrefix(CPP);
+    matches["return_type"] =
+        (rpc_service->returns_list())[0].type_class()->FullNameWithPackagePrefix(CPP);
+    printer.Print("void ${service_name}::internal_${rpc_name}(::RPC::Rpc* rpc) {\n"
+                  "  ${rpc_name}(\n"
+                  "      rpc,\n"
+                  "      (${arg_type}*)rpc->internal_request(),\n"
+                  "      (${return_type}*)rpc->internal_response(),\n"
+                  "      rpc->cb_final()\n"
+                  "  );\n"
                   "}\n\n", matches);
   }
 
+  // rpc method to be implemented by user.
   for (auto rpc_service: service->RpcServices()) {
     matches["rpc_name"] = rpc_service->name();
     matches["service_full_name"] = service->FullNameWithPackagePrefix();
@@ -1368,8 +1395,8 @@ void CppCodeGenerator::DefineClassMethods(ServiceType* service) {
         (rpc_service->args_list())[0].type_class()->FullNameWithPackagePrefix(CPP);
     matches["return_type"] =
         (rpc_service->returns_list())[0].type_class()->FullNameWithPackagePrefix(CPP);
-    printer.Print("void ${rpc_name}(\n"
-                  "    ::RPC::Rpc rpc*, const ${arg_type}*,\n"
+    printer.Print("void ${service_name}::${rpc_name}(\n"
+                  "    ::RPC::Rpc* rpc, const ${arg_type}*,\n"
                   "    ${return_type}*, ::Base::Closure* done) {\n"
                   "  UnInplemented(rpc, done);\n"
                   "}\n\n", matches);
