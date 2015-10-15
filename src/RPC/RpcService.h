@@ -12,7 +12,7 @@ namespace RPC {
 class RpcService {
  public:
   RpcService(const std::string name);
-  virtual ~RpcService() {};
+  virtual ~RpcService();
 
   // Get rpc service name.
   std::string name() const { return name_; }

@@ -22,6 +22,9 @@ class RpcServer {
   // Look up RpcHandler by fullname. Returns nullptr if non-existent.
   RpcHandler* FindRpcHandler(std::string name);
 
+  // Client stub starts rpc call.
+  void StartRpcCall(Rpc* rpc);
+
  private:
   RpcHandlerMap handler_map_;
   int port_;

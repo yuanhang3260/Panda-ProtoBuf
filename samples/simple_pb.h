@@ -427,7 +427,7 @@ class StudentResponse: public ::proto::Message {
 class StudentManagement: public ::RPC::RpcService {
  public:
   static StudentManagement* NewStub();
-  virtual ~StudentManagement();
+  virtual ~StudentManagement() {}
 
   virtual void RegisterToServer(::RPC::RpcServer* server);
   virtual void DeRegisterFromServer(::RPC::RpcServer* server);
@@ -450,7 +450,7 @@ class StudentManagement: public ::RPC::RpcService {
       ::Base::Closure* cb);
 
  protected:
-  StudentManagement() : ::RPC::RpcService("HaiZhong.StudentManagement") {}
+  StudentManagement();
   class Stub;
 
  private:

@@ -126,7 +126,7 @@ void CppCodeGenerator::DeclareRpcServiceClass(ServiceType* service) {
   };
   printer.Print(" public:\n"
                 "  static ${service_name}* NewStub();\n"
-                "  virtual ~${service_name}();\n"
+                "  virtual ~${service_name}() {}\n"
                 "\n"
                 "  virtual void RegisterToServer(::RPC::RpcServer* server);\n"
                 "  virtual void DeRegisterFromServer(::RPC::RpcServer* server);\n"
@@ -277,7 +277,9 @@ void CppCodeGenerator::GenerateCC() {
   // Include proto_name.pb.h file
   std::vector<std::string> result = StringUtils::Split(outfile, '/');
   std::string filename = result[result.size() - 1];
-  printer.Print("#include <memory>\n\n");
+  printer.Print("#include <memory>\n");
+  printer.Print("#include <mutex>\n");
+  printer.Print("#include <map>\n\n");
   printer.Print("#include \"Compiler/Message.h\"\n");
   printer.Print("#include \"Compiler/ProtoParser.h\"\n");
   printer.Print("#include \"Proto/MessageReflection.h\"\n");
@@ -1312,6 +1314,8 @@ void CppCodeGenerator::DefineServiceClassMethods(ServiceType* service) {
     {"service_name", service->name()},
     {"full_service_name", service->FullNameWithPackagePrefix()},
   };
+  printer.Print("// ------------------------- ${service_name} -------------------------- //\n",
+                matches);
   // Constructor
   printer.Print("${service_name}::${service_name}() : ::RPC::RpcService(\"${full_service_name}\") {\n"
                 "}\n\n", matches);
@@ -1404,7 +1408,18 @@ void CppCodeGenerator::DefineServiceClassMethods(ServiceType* service) {
 }
 
 void CppCodeGenerator::DefineStubClass(ServiceType* service) {
-
+  std::map<std::string, std::string> matches{
+    {"service_name", service->name()},
+    {"full_service_name", service->FullNameWithPackagePrefix()},
+  };
+  printer.Print("// ----------------------- ${service_name}_Stub ------------------------ //\n"
+                "class ${service_name}::Stub : public ${service_name} {\n"
+                " private:\n"
+                "  static std::mutex mutex_;\n"
+                "  static const ::RPC::Rpc* params;\n"
+                "  static std::map<std::string, const std::string*>* static_names;\n"
+                "  const std::string* method_names_;\n\n",
+                matches);
 }
 
 std::map<std::string, std::string>

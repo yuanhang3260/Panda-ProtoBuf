@@ -21,7 +21,7 @@ class Rpc {
   void set_internal_stream(proto::Message* stream) { stream_ = stream; }
 
   Base::Closure* cb_final() const { return cb_final_; }
-  void set_cb_final(Base::Closure* cb_final) { cb_final_ = cb_final; }  
+  void set_cb_final(Base::Closure* cb_final) { cb_final_ = cb_final; }
 
  private:
   const proto::Message* request_;

@@ -12,4 +12,8 @@ RpcHandler* RpcServer::FindRpcHandler(std::string name) {
   return nullptr;
 }
 
+void RpcServer::StartRpcCall(Rpc* rpc) {
+  // TODO
+}
+
 }  // namespace RPC

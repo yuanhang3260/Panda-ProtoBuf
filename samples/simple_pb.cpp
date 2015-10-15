@@ -1,4 +1,6 @@
 #include <memory>
+#include <mutex>
+#include <map>
 
 #include "Compiler/Message.h"
 #include "Compiler/ProtoParser.h"
@@ -1622,8 +1624,9 @@ void StudentResponse::clear_error_message() {
   has_bits_[0] &= (~0x4);
 }
 
-// StudentManagement::StudentManagement() : ::RPC::RpcService("HaiZhong.StudentManagement") {
-// }
+// ------------------------- StudentManagement -------------------------- //
+StudentManagement::StudentManagement() : ::RPC::RpcService("HaiZhong.StudentManagement") {
+}
 
 StudentManagement* StudentManagement::NewStub() {
   return nullptr;
@@ -1701,6 +1704,14 @@ void StudentManagement::DeleteStudent(
     ::HaiZhong::StudentResponse*, ::Base::Closure* done) {
   UnInplemented(rpc, done);
 }
+
+// ------------------------- StudentManagement_Stub -------------------------- //
+class StudentManagement::Stub : public StudentManagement {
+ private:
+  static std::mutex mutex_;
+  static const ::RPC::Rpc* params;
+  static std::map<std::string, const std::string*>* static_names;
+  const std::string* method_names_;
 
 }  // namespace HaiZhong
 
