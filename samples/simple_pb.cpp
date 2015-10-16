@@ -1705,13 +1705,20 @@ void StudentManagement::DeleteStudent(
   UnInplemented(rpc, done);
 }
 
-// ------------------------- StudentManagement_Stub -------------------------- //
+// ----------------------- StudentManagement_Stub ------------------------ //
 class StudentManagement::Stub : public StudentManagement {
  private:
   static std::mutex mutex_;
-  static const ::RPC::Rpc* params;
-  static std::map<std::string, const std::string*>* static_names;
-  const std::string* method_names_;
+  static const ::RPC::RpcDescriptor* descriptor_;
+
+ public:
+  Stub(const char* name, ::RPC::RPCChannel* channel, const ::RPC::RpcStubOptions):
+      StudentManagement() {
+    ::RPC::RpcService::InitStub(sname, channel, options);
+    if (!descriptor_) {
+      descriptor_ = StudentManagement::descriptor();
+    }
+  }
 
 }  // namespace HaiZhong
 

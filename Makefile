@@ -44,6 +44,7 @@ RPC_OBJ = \
       $(OBJ_DIR)/RPC/Rpc.o \
       $(OBJ_DIR)/RPC/RpcService.o \
       $(OBJ_DIR)/RPC/RpcServer.o \
+      $(OBJ_DIR)/RPC/RpcCommon.o \
 
 
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \

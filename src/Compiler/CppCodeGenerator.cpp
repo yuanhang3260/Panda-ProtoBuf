@@ -1416,9 +1416,16 @@ void CppCodeGenerator::DefineStubClass(ServiceType* service) {
                 "class ${service_name}::Stub : public ${service_name} {\n"
                 " private:\n"
                 "  static std::mutex mutex_;\n"
-                "  static const ::RPC::Rpc* params;\n"
-                "  static std::map<std::string, const std::string*>* static_names;\n"
-                "  const std::string* method_names_;\n\n",
+                "  static const ::RPC::RpcDescriptor* descriptor_;\n"
+                "\n"
+                " public:\n"
+                "  Stub(const char* name, ::RPC::RPCChannel* channel, const ::RPC::RpcStubOptions):\n"
+                "      ${service_name}() {\n"
+                "    ::RPC::RpcService::InitStub(sname, channel, options);\n"
+                "    if (!descriptor_) {\n"
+                "      descriptor_ = ${service_name}::descriptor();\n"
+                "    }\n"
+                "  }\n\n",
                 matches);
 }
 
