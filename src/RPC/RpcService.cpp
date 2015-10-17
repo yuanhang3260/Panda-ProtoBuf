@@ -15,4 +15,13 @@ void RpcService::UnInplemented(Rpc* rpc, Base::Closure* done) {
   }
 }
 
+void RpcService::StartClientRpcCall(
+    Rpc* rpc,
+    const RpcDescriptor* descriptor,
+    const proto::Message* request,
+    proto::Message* response,
+    Base::Closure* cb) {
+
+}
+
 }  // namespace RPC

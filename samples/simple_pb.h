@@ -10,6 +10,7 @@
 #include "RPC/Rpc.h"
 #include "RPC/RpcService.h"
 #include "RPC/RpcServer.h"
+#include "RPC/Common.h"
 #include "Utility/CallBack.h"
 
 void static_init_samples_simple();
@@ -426,8 +427,9 @@ class StudentResponse: public ::proto::Message {
 
 class StudentManagement: public ::RPC::RpcService {
  public:
-  static StudentManagement* NewStub();
   virtual ~StudentManagement() {}
+  virtual const RpcDescriptor* descriptor();
+  static StudentManagement* NewStub();
 
   virtual void RegisterToServer(::RPC::RpcServer* server);
   virtual void DeRegisterFromServer(::RPC::RpcServer* server);
@@ -452,6 +454,7 @@ class StudentManagement: public ::RPC::RpcService {
  protected:
   StudentManagement();
   class Stub;
+  static const RpcDescriptor* descriptor_;
 
  private:
   void internal_AddStudent(::RPC::Rpc* rpc);

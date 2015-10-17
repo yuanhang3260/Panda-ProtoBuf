@@ -29,7 +29,7 @@ class CppCodeGenerator : public ProtoParser {
   void DeclareMessageClass(Message* message);
 
   // Declare an rpc service class.
-  void DeclareRpcServiceClass(ServiceType* service);
+  void DeclareRpcMethodClass(ServiceType* service);
 
   // Declare nested enums.
   void DeclareNestedEnums(Message* message);
@@ -125,6 +125,9 @@ class CppCodeGenerator : public ProtoParser {
   // -------------------------- Helpers methods ----------------------------- //
   std::map<std::string, std::string>
   GetFieldMatchMap(Message* message, MessageField* field);
+
+  std::map<std::string, std::string>
+  GetRpcMatchMap(ServiceType* service, RpcMethod* rpc);
   
   void CheckoutNameSpace(std::vector<std::string>& context_stk,
                          const std::vector<std::string>& target_stk);

@@ -167,7 +167,7 @@ bool ProtoParser::ReadProtoFile() {
         }
       }
       else if (line == "}") {
-        if (current_service_->RpcServices().empty()) {
+        if (current_service_->RpcMethods().empty()) {
           LogError("service %s contains nothing",
                    current_service_->name().c_str());
           return false;
@@ -508,7 +508,7 @@ bool ProtoParser::ParseRpcName(std::string line) {
     return false;
   }
   const std::string& rpc_name = result[1];
-  std::shared_ptr<RpcService> new_rpc(new RpcService(rpc_name));
+  std::shared_ptr<RpcMethod> new_rpc(new RpcMethod(rpc_name));
   // Parse and check all rpc arg type.
   std::vector<std::string> args =
       StringUtils::SplitGreedy(StringUtils::Strip(rpc_params[0], "()"), ',');
@@ -559,7 +559,7 @@ bool ProtoParser::ParseRpcName(std::string line) {
 
   // Add new rpc to current service class.
   current_rpc_ = new_rpc.get();
-  current_service_->AddRpcService(new_rpc);
+  current_service_->AddRpcMethod(new_rpc);
 
   return true;
 }

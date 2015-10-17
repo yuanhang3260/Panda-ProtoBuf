@@ -1632,6 +1632,8 @@ StudentManagement* StudentManagement::NewStub() {
   return nullptr;
 }
 
+const RpcDescriptor* descriptor() { return descriptor_; }
+
 void StudentManagement::RegisterToServer(::RPC::RpcServer* server) {
   InternalRegisterHandlers(server->handler_map());
 }
@@ -1705,6 +1707,13 @@ void StudentManagement::DeleteStudent(
   UnInplemented(rpc, done);
 }
 
+static const RpcDescriptor* Init_HaiZhong_StudentManagement_Descriptor() {
+  // TODO
+}
+
+const RpcDescriptor* StudentManagement::descriptor_ =
+    Init_HaiZhong_StudentManagement_Descriptor();
+
 // ----------------------- StudentManagement_Stub ------------------------ //
 class StudentManagement::Stub : public StudentManagement {
  private:
@@ -1715,10 +1724,28 @@ class StudentManagement::Stub : public StudentManagement {
   Stub(const char* name, ::RPC::RPCChannel* channel, const ::RPC::RpcStubOptions):
       StudentManagement() {
     ::RPC::RpcService::InitStub(sname, channel, options);
-    if (!descriptor_) {
-      descriptor_ = StudentManagement::descriptor();
+    {
+      std::unique_lock<std::mutex> lock(mutex_);
+      if (!descriptor_) {
+        descriptor_ = StudentManagement::descriptor();
+      }
     }
   }
+
+  virtual void AddStudent(
+      RPC::Rpc* rpc, const ::HaiZhong::StudentRequest* request,
+      ::HaiZhong::StudentResponse* response,
+      Base::Closure* cb) {
+    StartClientRpcCall(rpc, descriptor_, request, response, cb);
+  }
+
+  virtual void DeleteStudent(
+      RPC::Rpc* rpc, const ::HaiZhong::StudentRequest* request,
+      ::HaiZhong::StudentResponse* response,
+      Base::Closure* cb) {
+    StartClientRpcCall(rpc, descriptor_, request, response, cb);
+  }
+};
 
 }  // namespace HaiZhong
 

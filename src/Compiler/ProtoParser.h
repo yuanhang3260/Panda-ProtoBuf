@@ -62,7 +62,7 @@ class ProtoParser {
   Message* current_message_;
   EnumType* current_enum_;
   ServiceType* current_service_;
-  RpcService* current_rpc_;
+  RpcMethod* current_rpc_;
  
  private:
   bool ParsePackageName(std::string line);

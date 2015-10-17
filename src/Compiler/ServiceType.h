@@ -10,7 +10,7 @@
 namespace proto {
 namespace ProtoParser {
 
-class RpcService;
+class RpcMethod;
 
 class ServiceType : public PbType {
  public:
@@ -18,15 +18,15 @@ class ServiceType : public PbType {
 
   FIELD_TYPE type() override { return UNDETERMINED; }
 
-  int AddRpcService(std::shared_ptr<RpcService> rpc);
-  int NumberRpcServices() const;
-  const RpcService* FindRpcService(std::string rpc_name) const;
+  int AddRpcMethod(std::shared_ptr<RpcMethod> rpc);
+  int NumberRpcMethods() const;
+  const RpcMethod* FindRpcMethod(std::string rpc_name) const;
   void Print() const;
-  const std::vector<std::shared_ptr<RpcService>>& RpcServices() const;
+  const std::vector<std::shared_ptr<RpcMethod>>& RpcMethods() const;
 
  protected:
-  std::vector<std::shared_ptr<RpcService>> rpcs_list_;
-  std::map<std::string, std::shared_ptr<RpcService>> rpcs_map_;
+  std::vector<std::shared_ptr<RpcMethod>> rpcs_list_;
+  std::map<std::string, std::shared_ptr<RpcMethod>> rpcs_map_;
 };
 
 class RpcParam {
@@ -44,10 +44,10 @@ class RpcParam {
   const PbType* type_class_ = nullptr;
 };
 
-class RpcService {
+class RpcMethod {
  public:
-  RpcService(const std::string& name) : name_(name) {}
-  virtual ~RpcService() {}
+  RpcMethod(const std::string& name) : name_(name) {}
+  virtual ~RpcMethod() {}
 
   std::string name() { return name_; }
 

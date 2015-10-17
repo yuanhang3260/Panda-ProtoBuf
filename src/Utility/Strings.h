@@ -54,18 +54,18 @@ class StringUtils {
   static std::string Strip(std::string str);
   static std::string Strip(std::string str, std::string match);
 
-  static bool StartWith(std::string& str, std::string match);
-  static bool EndWith(std::string& str, std::string match);
+  static bool StartWith(std::string str, std::string match);
+  static bool EndWith(std::string str, std::string match);
 
-  static std::vector<std::string> Split(const std::string& str, const char c);
+  static std::vector<std::string> Split(const std::string str, const char c);
   static std::vector<std::string> Split(
-      const std::string& str, const std::string& match);
+      const std::string str, const std::string match);
 
-  static std::vector<std::string> SplitGreedy(const std::string& str, const char c);
-  static std::vector<std::string> SplitGreedy(const std::string& str,
-                                              const std::string& match);
+  static std::vector<std::string> SplitGreedy(const std::string str, const char c);
+  static std::vector<std::string> SplitGreedy(const std::string str,
+                                              const std::string match);
 
-  static bool IsSingleWord(const std::string& str);
+  static bool IsSingleWord(const std::string str);
 
   static std::string StrCat(std::vector<std::string>, unsigned int start);
 
@@ -75,10 +75,10 @@ class StringUtils {
   static int findFirstMatch(std::string str, std::string match, int offset);
   static int findLastMatch(std::string str, std::string match);
   
-  static void replaceWith(std::string& str, const char old, const char match);
-  static const std::string replaceWith(std::string& str,
-                                        const std::string& old,
-                                        const std::string& match);
+  static std::string replaceWith(std::string str, const char old, const char match);
+  static std::string replaceWith(std::string str,
+                                 const std::string old,
+                                 const std::string match);
 
   // extract tokens from a string.
   static std::vector<std::string> ExtractTokens(

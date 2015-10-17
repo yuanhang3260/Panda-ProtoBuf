@@ -46,7 +46,7 @@ std::string StringUtils::Strip(std::string str, std::string match) {
   return str.substr(i, j + 1 - i);
 }
 
-bool StringUtils::StartWith(std::string& str, std::string match) {
+bool StringUtils::StartWith(std::string str, std::string match) {
   if (match.length() > str.length()) {
     return false;
   }
@@ -58,7 +58,7 @@ bool StringUtils::StartWith(std::string& str, std::string match) {
   return true;
 }
 
-bool StringUtils::EndWith(std::string& str, std::string match) {
+bool StringUtils::EndWith(std::string str, std::string match) {
   if (match.length() > str.length()) {
     return false;
   }
@@ -71,7 +71,7 @@ bool StringUtils::EndWith(std::string& str, std::string match) {
   return true;
 }
 
-std::vector<std::string> StringUtils::Split(const std::string& str, const char c) {
+std::vector<std::string> StringUtils::Split(const std::string str, const char c) {
   std::vector<std::string> result;
   unsigned int start = 0;
   for (unsigned int i = 0; i < str.length(); i++) {
@@ -84,8 +84,8 @@ std::vector<std::string> StringUtils::Split(const std::string& str, const char c
   return result;
 }
 
-std::vector<std::string> StringUtils::Split(const std::string& str,
-                                            const std::string& match) {
+std::vector<std::string> StringUtils::Split(const std::string str,
+                                            const std::string match) {
   std::vector<std::string> result;
   if (match.length() == 0 || str.length() <= match.length()) {
     return result;
@@ -102,7 +102,7 @@ std::vector<std::string> StringUtils::Split(const std::string& str,
   return result;
 }
 
-std::vector<std::string> StringUtils::SplitGreedy(const std::string& str,
+std::vector<std::string> StringUtils::SplitGreedy(const std::string str,
                                                   const char c) {
   std::vector<std::string> result;
   unsigned int start = 0;
@@ -121,8 +121,8 @@ std::vector<std::string> StringUtils::SplitGreedy(const std::string& str,
   return result;
 }
 
-std::vector<std::string> StringUtils::SplitGreedy(const std::string& str,
-                                                  const std::string& match) {
+std::vector<std::string> StringUtils::SplitGreedy(const std::string str,
+                                                  const std::string match) {
   std::vector<std::string> result;
   if (match.length() == 0 || str.length() <= match.length()) {
     return result;
@@ -144,7 +144,7 @@ std::vector<std::string> StringUtils::SplitGreedy(const std::string& str,
   return result;
 }
 
-bool StringUtils::IsSingleWord(const std::string& str) {
+bool StringUtils::IsSingleWord(const std::string str) {
   return SplitGreedy(str, ' ').size() == 0;
 }
 
@@ -201,17 +201,18 @@ int StringUtils::findLastMatch(std::string str, std::string match) {
   return -1;
 }
 
-void StringUtils::replaceWith(
-    std::string& str, const char old, const char rep) {
+std::string StringUtils::replaceWith(
+    std::string str, const char old, const char rep) {
   for (unsigned int i = 0; i < str.length(); i++) {
     if (str[i] == old) {
       str[i] = rep;
     }
   }
+  return str;
 }
 
-const std::string StringUtils::replaceWith(
-    std::string& str, const std::string& old, const std::string& rep) {
+std::string StringUtils::replaceWith(
+    std::string str, const std::string old, const std::string rep) {
   Utility::StringBuilder str_builder;
   for (unsigned int i = 0; i <= str.length() - old.length(); i++) {
     if (str.substr(i, old.length()) == old) {

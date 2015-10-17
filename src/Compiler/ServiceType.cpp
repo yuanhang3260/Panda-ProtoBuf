@@ -10,7 +10,7 @@ ServiceType::ServiceType(const std::string& name, const std::string& package) :
     PbType(name, package) {
 }
 
-int ServiceType::AddRpcService(std::shared_ptr<RpcService> rpc) {
+int ServiceType::AddRpcMethod(std::shared_ptr<RpcMethod> rpc) {
   if (rpc) {
     rpcs_list_.push_back(rpc);
     rpcs_map_[rpc->name()] = rpc;
@@ -19,19 +19,19 @@ int ServiceType::AddRpcService(std::shared_ptr<RpcService> rpc) {
   return -1;
 }
 
-int ServiceType::NumberRpcServices() const {
+int ServiceType::NumberRpcMethods() const {
   return rpcs_list_.size();
 }
 
-const RpcService* ServiceType::FindRpcService(std::string name) const {
+const RpcMethod* ServiceType::FindRpcMethod(std::string name) const {
   if (rpcs_map_.find(name) != rpcs_map_.end()) {
     return rpcs_map_.at(name).get();
   }
   return nullptr;
 }
 
-const std::vector<std::shared_ptr<RpcService>>&
-ServiceType::RpcServices() const {
+const std::vector<std::shared_ptr<RpcMethod>>&
+ServiceType::RpcMethods() const {
   return rpcs_list_;
 }
 
@@ -43,7 +43,7 @@ void ServiceType::Print() const {
   std::cout  << "}" << std::endl;
 }
 
-void RpcService::Print() const {
+void RpcMethod::Print() const {
   std::cout << "  rpc " << name_ << "(";
   std::string args, rets;
   for (const auto& arg: args_list_) {
