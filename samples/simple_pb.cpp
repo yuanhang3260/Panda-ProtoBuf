@@ -178,7 +178,7 @@ struct static_init_forcer_samples_simple {
 
 namespace HaiZhong {
 
-// -------------------- Pet --------------------- //
+// ******************** Pet ******************** //
 // constructor
 Pet::Pet() {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
@@ -339,7 +339,7 @@ void Pet::clear_type() {
   has_bits_[0] &= (~0x4);
 }
 
-// -------------------- Student --------------------- //
+// ******************** Student ******************** //
 // constructor
 Student::Student() {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
@@ -935,7 +935,7 @@ void Student::clear_sex() {
   has_bits_[3] &= (~0x2);
 }
 
-// -------------------- SchoolClass --------------------- //
+// ******************** SchoolClass ******************** //
 // constructor
 SchoolClass::SchoolClass() {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
@@ -1205,7 +1205,7 @@ const ::proto::RepeatedPtrField<Student>& SchoolClass::students() const {
   return students_;
 }
 
-// -------------------- StudentRequest --------------------- //
+// ******************** StudentRequest ******************** //
 // constructor
 StudentRequest::StudentRequest() {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
@@ -1463,7 +1463,7 @@ void StudentRequest::clear_student() {
   has_bits_[0] &= (~0x10);
 }
 
-// -------------------- StudentResponse --------------------- //
+// ******************** StudentResponse ******************** //
 // constructor
 StudentResponse::StudentResponse() {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
@@ -1624,15 +1624,43 @@ void StudentResponse::clear_error_message() {
   has_bits_[0] &= (~0x4);
 }
 
-// ------------------------- StudentManagement -------------------------- //
+// *********************** StudentManagement_Stub *********************** //
+class StudentManagement::Stub : public StudentManagement {
+ public:
+  Stub(const char* name, ::RPC::RpcClientChannel* channel, const ::RPC::RpcStubOptions options):
+      StudentManagement() {
+    ::RPC::RpcService::InitStub(name, channel, options);
+  }
+
+  virtual void AddStudent(
+      RPC::Rpc* rpc, const ::HaiZhong::StudentRequest* request,
+      ::HaiZhong::StudentResponse* response,
+      Base::Closure* cb) {
+    StartClientRpcCall(rpc, descriptor_, request, response, cb);
+  }
+
+  virtual void DeleteStudent(
+      RPC::Rpc* rpc, const ::HaiZhong::StudentRequest* request,
+      ::HaiZhong::StudentResponse* response,
+      Base::Closure* cb) {
+    StartClientRpcCall(rpc, descriptor_, request, response, cb);
+  }
+};
+
+// *********************** StudentManagement *********************** //
 StudentManagement::StudentManagement() : ::RPC::RpcService("HaiZhong.StudentManagement") {
 }
 
-StudentManagement* StudentManagement::NewStub() {
-  return nullptr;
+const ::RPC::RpcDescriptor* StudentManagement::descriptor() { return descriptor_; }
+
+StudentManagement* StudentManagement::NewStub(::RPC::RpcClientChannel* channel) {
+  return new StudentManagement::Stub("StudentManagement", channel, ::RPC::RpcStubOptions());
 }
 
-const RpcDescriptor* descriptor() { return descriptor_; }
+StudentManagement* StudentManagement::NewStub(
+    ::RPC::RpcClientChannel* channel, const ::RPC::RpcStubOptions options) {
+  return new StudentManagement::Stub("StudentManagement", channel, options);
+}
 
 void StudentManagement::RegisterToServer(::RPC::RpcServer* server) {
   InternalRegisterHandlers(server->handler_map());
@@ -1707,45 +1735,30 @@ void StudentManagement::DeleteStudent(
   UnInplemented(rpc, done);
 }
 
-static const RpcDescriptor* Init_HaiZhong_StudentManagement_Descriptor() {
-  // TODO
+static const RPC::RpcDescriptor* Init_HaiZhong_StudentManagement_Descriptor() {
+  ::RPC::RpcDescriptor* descriptor =
+      new ::RPC::RpcDescriptor("HaiZhong", "StudentManagement");
+  // Add method AddStudent
+  {
+    ::RPC::RpcMethodDescriptor* method_decpt = descriptor->AddMethod("AddStudent");
+    method_decpt->set_arg_type("HaiZhong.StudentRequest");
+    method_decpt->set_return_type("HaiZhong.StudentResponse");
+    method_decpt->add_option("deadline", "5");
+    method_decpt->add_option("security_level", "NONE");
+  }
+  // Add method DeleteStudent
+  {
+    ::RPC::RpcMethodDescriptor* method_decpt = descriptor->AddMethod("DeleteStudent");
+    method_decpt->set_arg_type("HaiZhong.StudentRequest");
+    method_decpt->set_return_type("HaiZhong.StudentResponse");
+    method_decpt->add_option("deadline", "3");
+  }
+
+  return descriptor;
 }
 
-const RpcDescriptor* StudentManagement::descriptor_ =
+const RPC::RpcDescriptor* StudentManagement::descriptor_ =
     Init_HaiZhong_StudentManagement_Descriptor();
-
-// ----------------------- StudentManagement_Stub ------------------------ //
-class StudentManagement::Stub : public StudentManagement {
- private:
-  static std::mutex mutex_;
-  static const ::RPC::RpcDescriptor* descriptor_;
-
- public:
-  Stub(const char* name, ::RPC::RPCChannel* channel, const ::RPC::RpcStubOptions):
-      StudentManagement() {
-    ::RPC::RpcService::InitStub(sname, channel, options);
-    {
-      std::unique_lock<std::mutex> lock(mutex_);
-      if (!descriptor_) {
-        descriptor_ = StudentManagement::descriptor();
-      }
-    }
-  }
-
-  virtual void AddStudent(
-      RPC::Rpc* rpc, const ::HaiZhong::StudentRequest* request,
-      ::HaiZhong::StudentResponse* response,
-      Base::Closure* cb) {
-    StartClientRpcCall(rpc, descriptor_, request, response, cb);
-  }
-
-  virtual void DeleteStudent(
-      RPC::Rpc* rpc, const ::HaiZhong::StudentRequest* request,
-      ::HaiZhong::StudentResponse* response,
-      Base::Closure* cb) {
-    StartClientRpcCall(rpc, descriptor_, request, response, cb);
-  }
-};
 
 }  // namespace HaiZhong
 

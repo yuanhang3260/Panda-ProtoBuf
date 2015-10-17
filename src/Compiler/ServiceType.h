@@ -14,7 +14,7 @@ class RpcMethod;
 
 class ServiceType : public PbType {
  public:
-  ServiceType(const std::string& name, const std::string& package);
+  ServiceType(std::string name, std::string package);
 
   FIELD_TYPE type() override { return UNDETERMINED; }
 
@@ -31,12 +31,12 @@ class ServiceType : public PbType {
 
 class RpcParam {
  public:
-  RpcParam(const std::string& type) :
+  RpcParam(std::string type) :
       type_(type), is_message_(false) {}
-  RpcParam(const std::string& type, const PbType* type_class) :
+  RpcParam(std::string type, const PbType* type_class) :
       type_(type), is_message_(true), type_class_(type_class) {}
   std::string type() const { return type_; }
-  const PbType* type_class() { return type_class_; }
+  const PbType* type_class() const { return type_class_; }
   bool IsMessage() const { return is_message_; }
  private:
   std::string type_;
@@ -46,34 +46,35 @@ class RpcParam {
 
 class RpcMethod {
  public:
-  RpcMethod(const std::string& name) : name_(name) {}
+  RpcMethod(std::string name) : name_(name) {}
   virtual ~RpcMethod() {}
 
-  std::string name() { return name_; }
+  std::string name() const { return name_; }
 
-  std::vector<RpcParam>& args_list() { return args_list_; }
-  std::vector<RpcParam>& returns_list() { return returns_list_; }
+  const std::vector<RpcParam>& args_list() const { return args_list_; }
+  const std::vector<RpcParam>& returns_list() const { return returns_list_; }
+  const std::map<std::string, std::string>& options_map() const {
+    return options_map_;
+  }
 
-  void AddArg(const std::string& arg_type, PbType* type_class) {
+  void AddArg(const std::string arg_type, PbType* type_class) {
     args_list_.push_back(RpcParam(arg_type, type_class));
   }
 
-  void AddArg(const std::string& arg_type) {
+  void AddArg(const std::string arg_type) {
     args_list_.push_back(RpcParam(arg_type));
   }
   
-  void AddReturn(const std::string& return_type, PbType* type_class) {
+  void AddReturn(const std::string return_type, PbType* type_class) {
     returns_list_.push_back(RpcParam(return_type, type_class));
   }
 
-  void AddReturn(const std::string& return_type) {
+  void AddReturn(const std::string return_type) {
     returns_list_.push_back(RpcParam(return_type));
   }
 
-  void AddOption(const std::string& key, const std::string& value) {
-    options_map_[key] = value;
-  }
-  
+  void AddOption(const std::string key, const std::string value);
+
   void Print() const;
 
  private:

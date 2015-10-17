@@ -10,7 +10,8 @@
 #include "RPC/Rpc.h"
 #include "RPC/RpcService.h"
 #include "RPC/RpcServer.h"
-#include "RPC/Common.h"
+#include "RPC/RpcClientChannel.h"
+#include "RPC/RpcCommon.h"
 #include "Utility/CallBack.h"
 
 void static_init_samples_simple();
@@ -428,8 +429,10 @@ class StudentResponse: public ::proto::Message {
 class StudentManagement: public ::RPC::RpcService {
  public:
   virtual ~StudentManagement() {}
-  virtual const RpcDescriptor* descriptor();
-  static StudentManagement* NewStub();
+  virtual const ::RPC::RpcDescriptor* descriptor();
+
+  static StudentManagement* NewStub(::RPC::RpcClientChannel* channel);
+  static StudentManagement* NewStub(::RPC::RpcClientChannel* channel, const ::RPC::RpcStubOptions options);
 
   virtual void RegisterToServer(::RPC::RpcServer* server);
   virtual void DeRegisterFromServer(::RPC::RpcServer* server);
@@ -454,7 +457,7 @@ class StudentManagement: public ::RPC::RpcService {
  protected:
   StudentManagement();
   class Stub;
-  static const RpcDescriptor* descriptor_;
+  static const ::RPC::RpcDescriptor* descriptor_;
 
  private:
   void internal_AddStudent(::RPC::Rpc* rpc);

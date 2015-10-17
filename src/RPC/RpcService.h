@@ -8,6 +8,7 @@
 #include "../Proto/Message.h"
 #include "RpcCommon.h"
 #include "RpcServer.h"
+#include "RpcClientChannel.h"
 
 namespace RPC {
 
@@ -19,6 +20,7 @@ class RpcService {
   // Get rpc service name.
   std::string name() const { return name_; }
 
+  // --------------------------- Server methods ----------------------------- //
   // rpc server accessor
   const RpcServer* rpc_server() const { return rpc_server_; }
   void set_rpc_server(RpcServer* rpc_server) { rpc_server_ = rpc_server; }
@@ -34,10 +36,17 @@ class RpcService {
   virtual void InternalRegisterHandlers(RpcHandlerMap* handler_map) {};
   virtual void InternalDeRegisterHandlers(RpcHandlerMap* handler_map) {};
 
+  // ---------------------------- Client methods ---------------------------- //
+  void InitStub(std::string name,
+                ::RPC::RpcClientChannel* channel,
+                const ::RPC::RpcStubOptions options);
+
  protected:
+  // ---------------------------- Server methods ---------------------------- //
   // Default server rpc method.
   void UnInplemented(Rpc* rpc, Base::Closure* done);
 
+  // ---------------------------- Client methods ---------------------------- //
   // Client start call rpc.
   void StartClientRpcCall(Rpc* rpc,
                           const RpcDescriptor* descriptor,
@@ -46,7 +55,11 @@ class RpcService {
                           Base::Closure* cb);
 
   std::string name_;
+  // server
   RpcServer* rpc_server_ = nullptr;
+  // client
+  RpcClientChannel* rpc_client_channel_ = nullptr;
+  ::RPC::RpcStubOptions options_;
 };
 
 }  // namespace RPC

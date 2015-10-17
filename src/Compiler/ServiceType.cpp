@@ -6,7 +6,7 @@
 namespace proto {
 namespace ProtoParser {
 
-ServiceType::ServiceType(const std::string& name, const std::string& package) :
+ServiceType::ServiceType(std::string name, std::string package) :
     PbType(name, package) {
 }
 
@@ -59,6 +59,10 @@ void RpcMethod::Print() const {
               << std::endl;
   }
   std::cout << "  }" << std::endl;
+}
+
+void RpcMethod::AddOption(const std::string key, const std::string value) {
+  options_map_[key] = value;
 }
 
 }  // namespace ProtoParser

@@ -7,7 +7,9 @@
 
 namespace RPC {
 
+class RpcDescriptor;
 class RpcMethodDescriptor;
+class RpcStubOptions;
 
 class RpcDescriptor {
  public:
@@ -41,14 +43,22 @@ class RpcMethodDescriptor {
   std::string return_type() const { return return_type_; }
   void set_return_type(std::string return_type) { return_type_ = return_type; }
 
-  double deadline() const { return deadline_; }
-  void set_deadline(double deadline) { deadline_ = deadline; }
+  void add_option(std::string key, std::string value);
+
+  std::string find_option(std::string key);
 
  private:
   std::string name_;
   std::string arg_type_;
   std::string return_type_;
   double deadline_;
+  std::map<std::string, std::string> options_;
+};
+
+// ----------------------------- RpcStubOptions ----------------------------- //
+class RpcStubOptions {
+ public:
+  RpcStubOptions() = default;
 };
 
 }  // namespace RPC

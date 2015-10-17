@@ -21,4 +21,23 @@ RpcDescriptor::FindMethod(std::string name) const {
   return nullptr;
 }
 
+void RpcMethodDescriptor::add_option(std::string key, std::string value) {
+  options_[key] = value;
+  if (key == "deadline") {
+    try {
+      deadline_ = std::stod(value);
+    }
+    catch (std::exception& err) {
+      return;
+    }
+  }
+}
+
+std::string RpcMethodDescriptor::find_option(std::string key) {
+  if (options_.find(key) != options_.end()) {
+    return options_.at(key);
+  }
+  return "";
+}
+
 }  // namespace RPC
