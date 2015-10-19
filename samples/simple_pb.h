@@ -14,8 +14,8 @@
 #include "RPC/RpcCommon.h"
 #include "Utility/CallBack.h"
 
-void static_init_samples_simple();
-void static_init_default_instances_samples_simple();
+void static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+void static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
 
 namespace HaiZhong {
 
@@ -72,8 +72,8 @@ class Pet: public ::proto::Message {
   // default instance
   static Pet* default_instance_;
 
-  friend void ::static_init_samples_simple();
-  friend void ::static_init_default_instances_samples_simple();
+  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
 };
 
 class Student: public ::proto::Message {
@@ -225,8 +225,8 @@ class Student: public ::proto::Message {
   // default instance
   static Student* default_instance_;
 
-  friend void ::static_init_samples_simple();
-  friend void ::static_init_default_instances_samples_simple();
+  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
 };
 
 class SchoolClass: public ::proto::Message {
@@ -296,8 +296,8 @@ class SchoolClass: public ::proto::Message {
   // default instance
   static SchoolClass* default_instance_;
 
-  friend void ::static_init_samples_simple();
-  friend void ::static_init_default_instances_samples_simple();
+  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
 };
 
 class StudentRequest: public ::proto::Message {
@@ -370,8 +370,8 @@ class StudentRequest: public ::proto::Message {
   // default instance
   static StudentRequest* default_instance_;
 
-  friend void ::static_init_samples_simple();
-  friend void ::static_init_default_instances_samples_simple();
+  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
 };
 
 class StudentResponse: public ::proto::Message {
@@ -422,8 +422,8 @@ class StudentResponse: public ::proto::Message {
   // default instance
   static StudentResponse* default_instance_;
 
-  friend void ::static_init_samples_simple();
-  friend void ::static_init_default_instances_samples_simple();
+  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
 };
 
 class StudentManagement: public ::RPC::RpcService {

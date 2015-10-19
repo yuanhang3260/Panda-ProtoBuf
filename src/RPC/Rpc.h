@@ -1,8 +1,9 @@
 #ifndef RPC_BASE
 #define RPC_BASE
 
-#include "../Proto/Message.h"
-#include "../Utility/CallBack.h"
+#include "Proto/Message.h"
+#include "Utility/CallBack.h"
+#include "RpcSession_pb.h"
 
 namespace RPC {
 
@@ -29,6 +30,18 @@ class Rpc {
   proto::Message* stream_;
   Base::Closure* cb_final_;
 };
+
+
+// force initialization of RpcSession_pb protos
+int InitRpcSessionProto() {
+  RPC::RpcResponseHeader _default_response_header__;
+  RPC::RpcRequestHeader _default_request_header__;
+  (void)_default_request_header__;
+  (void)_default_response_header__;
+  return 1;
+}
+
+static int init_rpc_session_pb = InitRpcSessionProto();
 
 }  // namespace RPC
 

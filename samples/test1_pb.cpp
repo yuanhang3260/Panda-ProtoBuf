@@ -1,4 +1,6 @@
 #include <memory>
+#include <mutex>
+#include <map>
 
 #include "Compiler/Message.h"
 #include "Compiler/ProtoParser.h"
@@ -141,7 +143,7 @@ struct static_init_forcer_samples_test1 {
 
 namespace AA {
 
-// -------------------- DogInfo --------------------- //
+// ******************** DogInfo ******************** //
 // constructor
 DogInfo::DogInfo() {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
@@ -417,7 +419,7 @@ void DogInfo::clear_sex() {
 namespace BB {
 namespace CC {
 
-// -------------------- DogFriendInfo --------------------- //
+// ******************** DogFriendInfo ******************** //
 // constructor
 DogFriendInfo::DogFriendInfo() {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
@@ -606,7 +608,7 @@ void DogFriendInfo::clear_friend_type() {
 }  // namespace CC
 }  // namespace BB
 
-// -------------------- DogFriends --------------------- //
+// ******************** DogFriends ******************** //
 // constructor
 DogFriends::DogFriends() {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
@@ -814,7 +816,7 @@ void DogFriends::clear_bestDogFriend() {
 
 namespace DD {
 
-// -------------------- DogFamily --------------------- //
+// ******************** DogFamily ******************** //
 // constructor
 DogFamily::DogFamily() {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {

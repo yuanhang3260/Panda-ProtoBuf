@@ -1,0 +1,14 @@
+// RpcSession proto
+
+package RPC;
+
+message RpcRequestHeader {
+	optional string service_name = 1;
+	optional string method_name = 2;
+	optional uint32 rpc_request_length = 3;
+}
+
+message RpcResponseHeader {
+	optional uint32 rpc_response_length = 1;
+}
+

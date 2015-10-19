@@ -5,17 +5,16 @@
 #include <string>
 #include <memory>
 
-#include "../IO/FileDescriptorInterface.h"
+#include "IO/FileDescriptorInterface.h"
 
 namespace Utility {
 
 class BufferedDataReader {
  public:
   // Constructors
-  BufferedDataReader(
-      std::unique_ptr<IO::FileDescriptorInterface> fd, int bufSize);
+  BufferedDataReader(IO::FileDescriptorInterface* fd, int bufSize);
 
-  BufferedDataReader(std::unique_ptr<IO::FileDescriptorInterface> fd);
+  BufferedDataReader(IO::FileDescriptorInterface* fd);
 
   virtual ~BufferedDataReader() {
     //std::cout << "deleting BufferedDataReader\n";
@@ -47,7 +46,7 @@ private:
 
   int bufSize;
   char* buffer;
-  std::unique_ptr<IO::FileDescriptorInterface> fdscrpt_;
+  IO::FileDescriptorInterface* fdscrpt_;
   int head = 0;
   int tail = 0;
   int dataLen = 0; // effective data lengt

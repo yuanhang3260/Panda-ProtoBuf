@@ -8,9 +8,8 @@
 #include "Proto/SerializedMessage.h"
 #include "Proto/SerializedPrimitive.h"
 
-
-#include "tiny_pb.h"
 #include "simple_pb.h"
+#include "tiny_pb.h"
 
 using namespace proto;
 

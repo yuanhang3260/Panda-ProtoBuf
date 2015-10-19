@@ -4,8 +4,8 @@
 #include <vector>
 #include <map>
 
-#include "../Utility/CallBack.h"
-#include "../Proto/Message.h"
+#include "Utility/CallBack.h"
+#include "Proto/Message.h"
 #include "RpcCommon.h"
 #include "RpcServer.h"
 #include "RpcClientChannel.h"
@@ -14,6 +14,7 @@ namespace RPC {
 
 class RpcService {
  public:
+  RpcService() = default;
   RpcService(const std::string name);
   virtual ~RpcService();
 

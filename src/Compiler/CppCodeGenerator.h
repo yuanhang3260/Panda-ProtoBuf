@@ -17,10 +17,14 @@ class CppCodeGenerator : public ProtoParser {
   void GenerateCode() override;
  
  private:
+  // Generate Proto path name
+  void GenerateProtoPathName();
+
+  // Format path name
+  void FormatPath(std::string& path);
+
   // ------------------------ Generate header file. ------------------------- //
   void GenerateHeader();
-
-  void GenerateProtoPathName();
 
   // Declare global enum.
   void DeclareGlobalEnum(EnumType* enum_p);
@@ -52,7 +56,7 @@ class CppCodeGenerator : public ProtoParser {
                                            MessageField* field);
   void DeclareRepeatedNonNumericTypeAccessors(Message* message,
                                               MessageField* field);
-  
+
   // ------------------------ Generate cpp file. ---------------------------- //
   void GenerateCC();
 
@@ -131,7 +135,7 @@ class CppCodeGenerator : public ProtoParser {
   
   void CheckoutNameSpace(std::vector<std::string>& context_stk,
                          const std::vector<std::string>& target_stk);
-  
+
   std::string GetNameSpacePrefix(const std::vector<std::string>& context_stk,
                                  const std::vector<std::string>& target_stk);
 

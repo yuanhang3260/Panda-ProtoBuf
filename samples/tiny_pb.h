@@ -8,8 +8,8 @@
 #include "Proto/RepeatedFields.h"
 #include "Proto/SerializedMessage.h"
 
-void static_init_samples_tiny();
-void static_init_default_instances_samples_tiny();
+void static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny();
+void static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny();
 
 namespace AA {
 
@@ -61,8 +61,8 @@ class FamilyInfo: public ::proto::Message {
   // default instance
   static FamilyInfo* default_instance_;
 
-  friend void ::static_init_samples_tiny();
-  friend void ::static_init_default_instances_samples_tiny();
+  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny();
+  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny();
 };
 
 namespace BB {
@@ -175,8 +175,8 @@ class DogInfo: public ::proto::Message {
   // default instance
   static DogInfo* default_instance_;
 
-  friend void ::static_init_samples_tiny();
-  friend void ::static_init_default_instances_samples_tiny();
+  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny();
+  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny();
 };
 
 }  // namespace BB

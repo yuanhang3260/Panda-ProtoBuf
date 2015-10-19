@@ -32,12 +32,12 @@ class TextPrinterImpl {
 
 bool TextPrinterImpl::Open_Impl(std::string outputfile) {
   outputfile_ = outputfile;
-  std::unique_ptr<FileDescriptor> fd_;
-  fd_.reset(new FileDescriptor(outputfile, FileDescriptor::WRITE_ONLY));
-  if (fd_->closed()) {
+  FileDescriptor* fd =
+    new FileDescriptor(outputfile, FileDescriptor::WRITE_ONLY);
+  if (fd->closed()) {
     return false;
   }
-  writer_.reset(new Utility::BufferedDataWriter(std::move(fd_)));
+  writer_.reset(new Utility::BufferedDataWriter(fd));
   return true;
 }
 
@@ -47,9 +47,9 @@ void TextPrinterImpl::Close_Impl() {
 
 TextPrinterImpl::TextPrinterImpl(std::string outputfile) :
     outputfile_(outputfile) {
-  std::unique_ptr<FileDescriptor> fd_;
-  fd_.reset(new FileDescriptor(outputfile, FileDescriptor::WRITE_ONLY));
-  writer_.reset(new Utility::BufferedDataWriter(std::move(fd_)));
+  FileDescriptor* fd =
+    new FileDescriptor(outputfile, FileDescriptor::WRITE_ONLY);
+  writer_.reset(new Utility::BufferedDataWriter(fd));
 }
 
 int TextPrinterImpl::Print_Impl(const std::string& content) {

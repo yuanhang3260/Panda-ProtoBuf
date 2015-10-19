@@ -12,8 +12,8 @@
 namespace Utility {
 
 BufferedDataWriter::BufferedDataWriter(
-    std::unique_ptr<IO::FileDescriptorInterface> fd, int bufSize) {
-  fdscrpt_ = std::move(fd);
+    IO::FileDescriptorInterface* fd, int bufSize) {
+  fdscrpt_ = fd;
 
   if (bufSize < 0 || bufSize > MAX_BUFSIZE) {
     bufSize = 1024;
@@ -24,9 +24,8 @@ BufferedDataWriter::BufferedDataWriter(
   buffer = new char[bufSize];
 }
 
-BufferedDataWriter::BufferedDataWriter(
-    std::unique_ptr<IO::FileDescriptorInterface> fd) {
-  fdscrpt_ = std::move(fd);;
+BufferedDataWriter::BufferedDataWriter(IO::FileDescriptorInterface* fd) {
+  fdscrpt_ = fd;
   bufSize = BUFSIZE;
   buffer = new char[bufSize];
 }

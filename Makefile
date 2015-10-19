@@ -1,11 +1,12 @@
 #
-# Snoopy Protocol Buffer
+# Protocol Buffer
 #
 # Hang Yuan <yuanhang3260@gmail.com>
 #
 CC=g++ -std=c++11
 CFLAGS=-Wall -Werror -O2
 LFLAGS=-lssl -lcrypto -pthread
+IFLAGS=-Isrc/
 
 SRC_DIR=src
 OBJ_DIR=lib
@@ -18,6 +19,7 @@ OBJ = $(OBJ_DIR)/Utility/BufferedDataReader.o \
       $(OBJ_DIR)/Utility/Utils.o \
       $(OBJ_DIR)/IO/FileDescriptorInterface.o \
       $(OBJ_DIR)/IO/FileDescriptor.o \
+      $(OBJ_DIR)/IO/FileUtils.o \
       $(OBJ_DIR)/IO/TextPrinter.o \
       $(OBJ_DIR)/Log/Log.o \
       $(OBJ_DIR)/Network/Socket.o \
@@ -45,7 +47,9 @@ RPC_OBJ = \
       $(OBJ_DIR)/RPC/RpcService.o \
       $(OBJ_DIR)/RPC/RpcServer.o \
       $(OBJ_DIR)/RPC/RpcCommon.o \
+      $(OBJ_DIR)/RPC/RpcChannelBase.o \
       $(OBJ_DIR)/RPC/RpcClientChannel.o \
+      $(OBJ_DIR)/RPC/RpcSession_pb.o \
 
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
           $(OBJ_DIR)/Utility/StringBuilder_test.o \
@@ -59,61 +63,63 @@ TESTEXE = test/TextPrinter_test.out \
 
 COMPILEROBJ = $(OBJ_DIR)/Compiler/CppCompiler_main.o
 
-default: library compiler
+default: full
 
-test: $(TESTEXE) library
+full: proto_library library compiler
+
+proto: proto_library compiler
+
+test: $(TESTEXE) proto_library library
+
+proto_library: $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ)
+	ar cr libproto.a $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ)
 
 library: $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
-	ar cr libsnp.a $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
+	ar cr libfull.a $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
 
-compiler: $(SRC_DIR)/Compiler/Compiler_main.cpp library
+compiler: $(SRC_DIR)/Compiler/Compiler_main.cpp proto_library
 	$(CC) $(CFLAGS) $(LFLAGS) -c $(SRC_DIR)/Compiler/Compiler_main.cpp -o $(COMPILEROBJ)
-	$(CC) $(CFLAGS) $(LFLAGS) $(COMPILEROBJ) libsnp.a -o $@
+	$(CC) $(CFLAGS) $(LFLAGS) $(COMPILEROBJ) libproto.a -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(SRC_DIR)/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Utility/%.o: $(SRC_DIR)/Utility/%.cpp $(SRC_DIR)/Utility/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Utility/%.o: $(SRC_DIR)/Utility/%.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/IO/%.o: $(SRC_DIR)/IO/%.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Network/%.o: $(SRC_DIR)/Network/%.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Compiler/%.o: $(SRC_DIR)/Compiler/%.cpp $(SRC_DIR)/Compiler/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cpp $(SRC_DIR)/Proto/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cpp
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/RPC/%.o: $(SRC_DIR)/RPC/%.cpp $(SRC_DIR)/RPC/%.h
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
-test/%.out: $(OBJ_DIR)/Utility/%.o library
-	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -o $@
+test/%.out: $(OBJ_DIR)/Utility/%.o proto_library
+	$(CC) $(CFLAGS) $(LFLAGS) $< libproto.a -o $@
 
-test/%.out: $(OBJ_DIR)/Proto/%.o library
-	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -o $@
+test/%.out: $(OBJ_DIR)/Proto/%.o proto_library
+	$(CC) $(CFLAGS) $(LFLAGS) $< libproto.a -o $@
 
-# test/%.out: $(OBJ_DIR)/Network/%.o library
-# 	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -lssl -lcrypto -o $@
-
-test/%.out: $(OBJ_DIR)/IO/%.o library
-	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -lssl -lcrypto -o $@
-
-# test/%.out: test/%.o library
-# 	$(CC) $(CFLAGS) $(LFLAGS) $< libsnp.a -o $@
+test/%.out: $(OBJ_DIR)/IO/%.o proto_library
+	$(CC) $(CFLAGS) $(LFLAGS) $< libproto.a -lssl -lcrypto -o $@
 
 clean:
-	rm -rf libsnp.a
+	rm -rf libproto.a
+	rm -rf libfull.a
 	rm -rf compiler
 	rm -rf $(OBJ_DIR)/*.o
 	rm -rf $(OBJ_DIR)/Utility/*.o
@@ -129,11 +135,16 @@ clean:
 	rm -rf *.output
 
 tinyclean:
-	rm -rf libsnp.a
+	rm -rf libproto.a
+	rm -rf libfull.a
 	rm -rf compiler
 	rm -rf $(OBJ_DIR)/*.o
 	rm -rf $(OBJ_DIR)/Compiler/*.o
+	rm -rf $(OBJ_DIR)/Proto/*.o
+	rm -rf $(OBJ_DIR)/RPC/*.o
 	rm -rf test/*.out
+	rm -rf samples/*.o
+	rm -rf samples/*.out
 	rm -rf *.output
 
 sampleclean:

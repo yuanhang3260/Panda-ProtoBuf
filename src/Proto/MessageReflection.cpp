@@ -80,16 +80,16 @@ MessageReflection::CreateSerializedSingularMessage(
     const ProtoParser::MessageField* field)  const {
   // Serialize a singular nested message
   std::cout << indent() << "serializing singular nested message: "
-            << field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP)
+            << field->type_class()->FullNameWithPackagePrefix()
             << std::endl;
   indent_num++;
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(
-          field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP));
+          field->type_class()->FullNameWithPackagePrefix());
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP) +
+        field->type_class()->FullNameWithPackagePrefix() +
         " exists.");
   }
   SerializedMessage* nested_sdmsg = nested_msg_reflection->Serialize(
@@ -119,11 +119,11 @@ MessageReflection::CreateSerializedRepeatedMessage(
   // get reflection
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(
-          field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP));
+          field->type_class()->FullNameWithPackagePrefix());
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP) +
+        field->type_class()->FullNameWithPackagePrefix() +
         " exists.");
   }
   // Get RepeatedMessagePtr
@@ -472,13 +472,13 @@ uint32 MessageReflection::DeSerializeSingularMessage(
   uint32 offset = 0;
   uint32 obj_size = WireFormat::DecodeUInt32(buf, &offset);
   std::string class_name = 
-      field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP);
+      field->type_class()->FullNameWithPackagePrefix();
   const MessageReflection* nested_msg_reflection = 
       MessageFactory::GetMessageReflection(class_name);
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP) +
+        field->type_class()->FullNameWithPackagePrefix() +
         " exists.");
   }
   Message* new_obj = nested_msg_reflection->defatult_instance()->New();
@@ -499,13 +499,13 @@ uint32 MessageReflection::DeSerializeRepeatedMessage(
   uint32 offset = 0;
   uint32 list_size = WireFormat::DecodeUInt32(buf, &offset);
   std::string class_name = 
-      field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP);
+      field->type_class()->FullNameWithPackagePrefix();
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(class_name);
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        field->type_class()->FullNameWithPackagePrefix(ProtoParser::CPP) +
+        field->type_class()->FullNameWithPackagePrefix() +
         " exists.");
   }
 

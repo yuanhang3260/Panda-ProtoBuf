@@ -1,4 +1,6 @@
 #include <memory>
+#include <mutex>
+#include <map>
 
 #include "Compiler/Message.h"
 #include "Compiler/ProtoParser.h"
@@ -16,11 +18,7 @@ std::shared_ptr<::proto::MessageReflection> DogInfo_reflection_;
 
 }  // namepsace
 
-void static_init_default_instances_samples_tiny() {
-  static bool already_called = false;
-  if (already_called) return;
-  already_called = true;
-
+void static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny() {
   if (AA::FamilyInfo::default_instance_ == NULL) {
     AA::FamilyInfo::default_instance_ = new AA::FamilyInfo();
     AA::FamilyInfo::default_instance_->InitAsDefaultInstance();
@@ -31,14 +29,18 @@ void static_init_default_instances_samples_tiny() {
   }
 }
 
-void static_init_samples_tiny() {
+void static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny() {
+  static bool already_called = false;
+  if (already_called) return;
+  already_called = true;
+
   ::proto::ProtoParser::ProtoParser parser(
       ::proto::ProtoParser::CPP,
-      "./samples/tiny.proto");
+      "/home/hy/Desktop/Snoopy-ProtoBuf/samples/tiny.proto");
   CHECK(parser.ParseProto(),
-        "static class initialization for ./samples/tiny.proto failed");
+        "static class initialization for /home/hy/Desktop/Snoopy-ProtoBuf/samples/tiny.proto failed");
 
-  static_init_default_instances_samples_tiny();
+  static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny();
 
   int i = 0;
   // static init for class FamilyInfo
@@ -84,17 +86,17 @@ void static_init_samples_tiny() {
 
 }
 
-// Force static_init_samples_tiny() to be called at initialization time.
-struct static_init_forcer_samples_tiny {
-  static_init_forcer_samples_tiny() {
-    static_init_samples_tiny();
+// Force static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny() to be called at initialization time.
+struct static_init_forcer_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny {
+  static_init_forcer_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny() {
+    static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny();
   }
-} static_init_forcer_samples_tiny_obj_;
+} static_init_forcer_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny_obj_;
 
 
 namespace AA {
 
-// -------------------- FamilyInfo --------------------- //
+// ******************** FamilyInfo ******************** //
 // constructor
 FamilyInfo::FamilyInfo() {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
@@ -192,7 +194,7 @@ void FamilyInfo::Swap(FamilyInfo* other) {
 // default_instance()
 const FamilyInfo& FamilyInfo::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_samples_tiny();
+    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny();
   }
   return *default_instance_;
 }
@@ -257,7 +259,7 @@ void FamilyInfo::clear_numberdogs() {
 
 namespace BB {
 
-// -------------------- DogInfo --------------------- //
+// ******************** DogInfo ******************** //
 // constructor
 DogInfo::DogInfo() {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
@@ -401,7 +403,7 @@ void DogInfo::Swap(DogInfo* other) {
 // default_instance()
 const DogInfo& DogInfo::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_samples_tiny();
+    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_tiny();
   }
   return *default_instance_;
 }

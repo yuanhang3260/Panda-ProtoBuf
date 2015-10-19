@@ -13,9 +13,9 @@ class BufferedDataWriter {
  public:
   // Constructors
   BufferedDataWriter(
-      std::unique_ptr<IO::FileDescriptorInterface> fd, int bufSize);
+      IO::FileDescriptorInterface* fd, int bufSize);
 
-  BufferedDataWriter(std::unique_ptr<IO::FileDescriptorInterface> fd);
+  BufferedDataWriter(IO::FileDescriptorInterface* fd);
 
   virtual ~BufferedDataWriter() {
     //std::cout << "deleting BufferedDataWriter\n";
@@ -40,7 +40,7 @@ private:
 
   int bufSize;
   char* buffer;
-  std::unique_ptr<IO::FileDescriptorInterface> fdscrpt_;
+  IO::FileDescriptorInterface* fdscrpt_;
   int head = 0;
   int tail = 0;
   int dataLen = 0;

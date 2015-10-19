@@ -1,6 +1,7 @@
 #include <iostream>
 #include "../Utility/Strings.h"
 #include "../Utility/Utils.h"
+#include "../IO/FileUtils.h"
 #include "CppCodeGenerator.h"
 
 namespace proto {
@@ -77,9 +78,18 @@ void CppCodeGenerator::GenerateHeader() {
 }
 
 void CppCodeGenerator::GenerateProtoPathName() {
-  std::string suffix = proto_file_.substr(0, proto_file_.length() - 6);
-  proto_path_name_ = suffix.substr(StringUtils::findFirstMatch(suffix, "/"));
-  proto_path_name_ = StringUtils::replaceWith(proto_path_name_, '/', '_');
+  proto_file_ = IO::FileUtils::GetAbstractPath(proto_file_);
+  std::string proto_name = proto_file_.substr(0, proto_file_.length() - 6);
+  proto_path_name_ = StringUtils::replaceWith(proto_name, '/', '_');
+  FormatPath(proto_path_name_);
+}
+
+void CppCodeGenerator::FormatPath(std::string& path) {
+  for (unsigned int i = 0; i < path.length(); i++) {
+    if (!StringUtils::IsLetterOrDigitOrUnderScore(path[i])) {
+      path[i] = '_';
+    }
+  }
 }
 
 void CppCodeGenerator::DeclareGlobalEnum(EnumType* enum_p) {
@@ -329,9 +339,6 @@ void CppCodeGenerator::DefineStaticInitDefaultInstances() {
   std::string static_init_func = "static_init_default_instances" +
                                  proto_path_name_;
   printer.Print("void " + static_init_func + "() {\n");
-  printer.Print("  static bool already_called = false;\n"
-                "  if (already_called) return;\n"
-                "  already_called = true;\n\n");
   for (const auto& message: messages_list_) {
     matches["msg_name"] = message->name();
     std::string prefix = GetNameSpacePrefix(std::vector<std::string>(),
@@ -355,16 +362,22 @@ void CppCodeGenerator::DefineStaticInit() {
     {"proto_path_name", proto_path_name_},
   };
 
-  printer.Print("  ::proto::ProtoParser::ProtoParser parser(\n"
+  printer.Print("  static bool already_called = false;\n"
+                "  if (already_called) return;\n"
+                "  already_called = true;\n"
+                "\n"
+                "  ::proto::ProtoParser::ProtoParser parser(\n"
                 "      ::proto::ProtoParser::CPP,\n"
                 "      \"${proto_file_}\");\n"
                 "  CHECK(parser.ParseProto(),\n"
                 "        \"static class initialization for ${proto_file_} failed\");\n"
                 "\n",
                 matches);
-  printer.Print("  static_init_default_instances${proto_path_name}();\n\n"
-                "  int i = 0;\n",
+  printer.Print("  static_init_default_instances${proto_path_name}();\n\n",
                 matches);
+  if (!messages_list_.empty()) {
+    printer.Print("  int i = 0;\n");
+  }
   int message_index = 0;
   for (const auto& message: messages_list_) {
     matches["msg_name"] = message->name();
@@ -1441,23 +1454,11 @@ void CppCodeGenerator::DefineStubClass(ServiceType* service) {
   };
   printer.Print("// *********************** ${service_name}_Stub *********************** //\n"
                 "class ${service_name}::Stub : public ${service_name} {\n"
-                // " private:\n"
-                // "  static std::mutex mutex_;\n"
-                // "  static const ::RPC::RpcDescriptor* descriptor_;\n"
-                // "\n"
                 " public:\n"
                 "  Stub(const char* name, ::RPC::RpcClientChannel* channel, const ::RPC::RpcStubOptions options):\n"
                 "      ${service_name}() {\n"
                 "    ::RPC::RpcService::InitStub(name, channel, options);\n"
-                // "    {\n"
-                // "      std::unique_lock<std::mutex> lock(mutex_);\n"
-                // "      if (!descriptor_) {\n"
-                // "        descriptor_ = ${service_name}::descriptor();\n"
-                // "      }\n"
-                // "    }\n"
                 "  }\n",
-                // "\n",
-                // "  const ::RPC::RpcDescriptor* descriptor() { return descriptor_; }\n",
                 matches);
   for (auto& rpc_service: service->RpcMethods()) {
     matches = GetRpcMatchMap(service, rpc_service.get());

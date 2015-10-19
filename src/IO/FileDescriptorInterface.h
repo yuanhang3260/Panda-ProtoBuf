@@ -27,7 +27,7 @@ class FileDescriptorInterface {
   bool closed() const { return closed_; }
 
  protected:
-  unsigned int fd_ = -1;
+  int fd_ = -1;
   bool closed_ = true;
   bool auto_close_ = true;
 };

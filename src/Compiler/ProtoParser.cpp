@@ -30,12 +30,12 @@ bool ProtoParser::ReadProtoFile() {
     return false;
   }
 
-  std::unique_ptr<IO::FileDescriptor> fd(
-      new IO::FileDescriptor(proto_file_, IO::FileDescriptor::READ_ONLY));
+  IO::FileDescriptor* fd =
+      new IO::FileDescriptor(proto_file_, IO::FileDescriptor::READ_ONLY);
   if (fd->closed()) {
     return false;
   }
-  Utility::BufferedDataReader br(std::move(fd));
+  Utility::BufferedDataReader br(fd);
 
   // Read each line and parse in a finite state machine.
   std::string line;
