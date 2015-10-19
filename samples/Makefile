@@ -36,4 +36,4 @@ client: $(OBJ) simple_pb.o RpcClient_main.o ../libfull.a
 
 clean:
 	rm -rf *.o
-	rm test client server
+	rm -rf test client server

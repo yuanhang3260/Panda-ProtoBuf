@@ -13,6 +13,6 @@
 #include "simple_pb.h"
 
 int main(int argc, char** argv) {
-  RPC::RpcClientChannel channel("localhost", 9090);
-  (void)channel;
+  // RPC::RpcClientChannel channel("localhost", 9090);
+  // (void)channel;
 }

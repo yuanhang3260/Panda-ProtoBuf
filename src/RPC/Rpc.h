@@ -31,9 +31,10 @@ class Rpc {
   Base::Closure* cb_final_;
 };
 
+}  // namespace RPC
 
 // force initialization of RpcSession_pb protos
-int InitRpcSessionProto() {
+static int InitRpcSessionProto() {
   RPC::RpcResponseHeader _default_response_header__;
   RPC::RpcRequestHeader _default_request_header__;
   (void)_default_request_header__;
@@ -42,7 +43,5 @@ int InitRpcSessionProto() {
 }
 
 static int init_rpc_session_pb = InitRpcSessionProto();
-
-}  // namespace RPC
 
 #endif  /* RPC_BASE */
