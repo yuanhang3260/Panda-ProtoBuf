@@ -31,13 +31,13 @@ class Pet: public ::proto::Message {
   ~Pet();
   Pet(const Pet& other);  // copy constructor
   Pet(Pet&& other);  // move constructor
-  Pet& operator=(const Pet& other);  // copy assignment
+  Pet& operator=(const Pet& other); // copy assignment
   Pet& operator=(Pet&& other);  // move assignment
-  void Swap(Pet* other);
-
+  void Swap(Pet* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const Pet& other);  // CopyFrom()
   void MoveFrom(Pet&& other);  // MoveFrom()
+  bool Equals(const Pet& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -88,13 +88,13 @@ class Student: public ::proto::Message {
   ~Student();
   Student(const Student& other);  // copy constructor
   Student(Student&& other);  // move constructor
-  Student& operator=(const Student& other);  // copy assignment
+  Student& operator=(const Student& other); // copy assignment
   Student& operator=(Student&& other);  // move assignment
-  void Swap(Student* other);
-
+  void Swap(Student* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const Student& other);  // CopyFrom()
   void MoveFrom(Student&& other);  // MoveFrom()
+  bool Equals(const Student& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -236,13 +236,13 @@ class SchoolClass: public ::proto::Message {
   ~SchoolClass();
   SchoolClass(const SchoolClass& other);  // copy constructor
   SchoolClass(SchoolClass&& other);  // move constructor
-  SchoolClass& operator=(const SchoolClass& other);  // copy assignment
+  SchoolClass& operator=(const SchoolClass& other); // copy assignment
   SchoolClass& operator=(SchoolClass&& other);  // move assignment
-  void Swap(SchoolClass* other);
-
+  void Swap(SchoolClass* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const SchoolClass& other);  // CopyFrom()
   void MoveFrom(SchoolClass&& other);  // MoveFrom()
+  bool Equals(const SchoolClass& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -313,13 +313,13 @@ class StudentRequest: public ::proto::Message {
   ~StudentRequest();
   StudentRequest(const StudentRequest& other);  // copy constructor
   StudentRequest(StudentRequest&& other);  // move constructor
-  StudentRequest& operator=(const StudentRequest& other);  // copy assignment
+  StudentRequest& operator=(const StudentRequest& other); // copy assignment
   StudentRequest& operator=(StudentRequest&& other);  // move assignment
-  void Swap(StudentRequest* other);
-
+  void Swap(StudentRequest* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const StudentRequest& other);  // CopyFrom()
   void MoveFrom(StudentRequest&& other);  // MoveFrom()
+  bool Equals(const StudentRequest& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -381,13 +381,13 @@ class StudentResponse: public ::proto::Message {
   ~StudentResponse();
   StudentResponse(const StudentResponse& other);  // copy constructor
   StudentResponse(StudentResponse&& other);  // move constructor
-  StudentResponse& operator=(const StudentResponse& other);  // copy assignment
+  StudentResponse& operator=(const StudentResponse& other); // copy assignment
   StudentResponse& operator=(StudentResponse&& other);  // move assignment
-  void Swap(StudentResponse* other);
-
+  void Swap(StudentResponse* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const StudentResponse& other);  // CopyFrom()
   void MoveFrom(StudentResponse&& other);  // MoveFrom()
+  bool Equals(const StudentResponse& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;

@@ -152,6 +152,22 @@ void FamilyInfo::MoveFrom(FamilyInfo&& other) {
   }
 }
 
+// Equals()
+bool FamilyInfo::Equals(const FamilyInfo& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  if (address_ != other.address_) {
+    return false;
+  }
+  if (numberdogs_ != other.numberdogs_) {
+    return false;
+  }
+  return true;
+}
+
 // Serialize()
 ::proto::SerializedMessage* FamilyInfo::Serialize() const {
   return FamilyInfo_reflection_->Serialize(this);
@@ -338,6 +354,45 @@ void DogInfo::MoveFrom(DogInfo&& other) {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
     other.has_bits_[i] = 0;
   }
+}
+
+// Equals()
+bool DogInfo::Equals(const DogInfo& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  if (age_ != other.age_) {
+    return false;
+  }
+  if (name_ != other.name_) {
+    return false;
+  }
+  for (unsigned int i = 0; i < sex_.size(); i++) {
+    if (sex_.at(i) != other.sex_.at(i)) {
+      return false;
+    }
+  }
+  for (unsigned int i = 0; i < weights_.size(); i++) {
+    if (weights_.at(i) != other.weights_.at(i)) {
+      return false;
+    }
+  }
+  if (!family_->Equals(*other.family_)) {
+    return false;
+  }
+  for (unsigned int i = 0; i < alias_.size(); i++) {
+    if (alias_.at(i) != other.alias_.at(i)) {
+      return false;
+    }
+  }
+  for (unsigned int i = 0; i < neighbors_.size(); i++) {
+    if (!neighbors_.at(i).Equals(other.neighbors_.at(i))) {
+      return false;
+    }
+  }
+  return true;
 }
 
 // Serialize()

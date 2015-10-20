@@ -22,11 +22,7 @@ std::shared_ptr<::proto::MessageReflection> DogFamily_reflection_;
 
 }  // namepsace
 
-void static_init_default_instances_samples_test1() {
-  static bool already_called = false;
-  if (already_called) return;
-  already_called = true;
-
+void static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1() {
   if (AA::DogInfo::default_instance_ == NULL) {
     AA::DogInfo::default_instance_ = new AA::DogInfo();
     AA::DogInfo::default_instance_->InitAsDefaultInstance();
@@ -45,14 +41,18 @@ void static_init_default_instances_samples_test1() {
   }
 }
 
-void static_init_samples_test1() {
+void static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1() {
+  static bool already_called = false;
+  if (already_called) return;
+  already_called = true;
+
   ::proto::ProtoParser::ProtoParser parser(
       ::proto::ProtoParser::CPP,
-      "./samples/test1.proto");
+      "/home/hy/Desktop/Snoopy-ProtoBuf/samples/test1.proto");
   CHECK(parser.ParseProto(),
-        "static class initialization for ./samples/test1.proto failed");
+        "static class initialization for /home/hy/Desktop/Snoopy-ProtoBuf/samples/test1.proto failed");
 
-  static_init_default_instances_samples_test1();
+  static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
 
   int i = 0;
   // static init for class DogInfo
@@ -133,12 +133,12 @@ void static_init_samples_test1() {
 
 }
 
-// Force static_init_samples_test1() to be called at initialization time.
-struct static_init_forcer_samples_test1 {
-  static_init_forcer_samples_test1() {
-    static_init_samples_test1();
+// Force static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1() to be called at initialization time.
+struct static_init_forcer_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1 {
+  static_init_forcer_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1() {
+    static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
   }
-} static_init_forcer_samples_test1_obj_;
+} static_init_forcer_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1_obj_;
 
 
 namespace AA {
@@ -207,6 +207,36 @@ void DogInfo::MoveFrom(DogInfo&& other) {
   }
 }
 
+// Equals()
+bool DogInfo::Equals(const DogInfo& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  if (age_ != other.age_) {
+    return false;
+  }
+  if (name_ != other.name_) {
+    return false;
+  }
+  if (height_ != other.height_) {
+    return false;
+  }
+  if (like_ != other.like_) {
+    return false;
+  }
+  for (unsigned int i = 0; i < luckynumber_.size(); i++) {
+    if (luckynumber_.at(i) != other.luckynumber_.at(i)) {
+      return false;
+    }
+  }
+  if (sex_ != other.sex_) {
+    return false;
+  }
+  return true;
+}
+
 // Serialize()
 ::proto::SerializedMessage* DogInfo::Serialize() const {
   return DogInfo_reflection_->Serialize(this);
@@ -265,7 +295,7 @@ void DogInfo::Swap(DogInfo* other) {
 // default_instance()
 const DogInfo& DogInfo::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_samples_test1();
+    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
   }
   return *default_instance_;
 }
@@ -477,6 +507,25 @@ void DogFriendInfo::MoveFrom(DogFriendInfo&& other) {
   }
 }
 
+// Equals()
+bool DogFriendInfo::Equals(const DogFriendInfo& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  if (name_ != other.name_) {
+    return false;
+  }
+  if (years_ != other.years_) {
+    return false;
+  }
+  if (friend_type_ != other.friend_type_) {
+    return false;
+  }
+  return true;
+}
+
 // Serialize()
 ::proto::SerializedMessage* DogFriendInfo::Serialize() const {
   return DogFriendInfo_reflection_->Serialize(this);
@@ -523,7 +572,7 @@ void DogFriendInfo::Swap(DogFriendInfo* other) {
 // default_instance()
 const DogFriendInfo& DogFriendInfo::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_samples_test1();
+    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
   }
   return *default_instance_;
 }
@@ -677,6 +726,24 @@ void DogFriends::MoveFrom(DogFriends&& other) {
   }
 }
 
+// Equals()
+bool DogFriends::Equals(const DogFriends& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  for (unsigned int i = 0; i < friends_.size(); i++) {
+    if (!friends_.at(i).Equals(other.friends_.at(i))) {
+      return false;
+    }
+  }
+  if (!bestDogFriend_->Equals(*other.bestDogFriend_)) {
+    return false;
+  }
+  return true;
+}
+
 // Serialize()
 ::proto::SerializedMessage* DogFriends::Serialize() const {
   return DogFriends_reflection_->Serialize(this);
@@ -720,7 +787,7 @@ void DogFriends::Swap(DogFriends* other) {
 // default_instance()
 const DogFriends& DogFriends::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_samples_test1();
+    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
   }
   return *default_instance_;
 }
@@ -872,6 +939,21 @@ void DogFamily::MoveFrom(DogFamily&& other) {
   }
 }
 
+// Equals()
+bool DogFamily::Equals(const DogFamily& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  for (unsigned int i = 0; i < dogs_.size(); i++) {
+    if (!dogs_.at(i).Equals(other.dogs_.at(i))) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // Serialize()
 ::proto::SerializedMessage* DogFamily::Serialize() const {
   return DogFamily_reflection_->Serialize(this);
@@ -910,7 +992,7 @@ void DogFamily::Swap(DogFamily* other) {
 // default_instance()
 const DogFamily& DogFamily::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_samples_test1();
+    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
   }
   return *default_instance_;
 }

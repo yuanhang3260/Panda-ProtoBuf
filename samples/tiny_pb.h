@@ -20,13 +20,13 @@ class FamilyInfo: public ::proto::Message {
   ~FamilyInfo();
   FamilyInfo(const FamilyInfo& other);  // copy constructor
   FamilyInfo(FamilyInfo&& other);  // move constructor
-  FamilyInfo& operator=(const FamilyInfo& other);  // copy assignment
+  FamilyInfo& operator=(const FamilyInfo& other); // copy assignment
   FamilyInfo& operator=(FamilyInfo&& other);  // move assignment
-  void Swap(FamilyInfo* other);
-
+  void Swap(FamilyInfo* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const FamilyInfo& other);  // CopyFrom()
   void MoveFrom(FamilyInfo&& other);  // MoveFrom()
+  bool Equals(const FamilyInfo& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -79,13 +79,13 @@ class DogInfo: public ::proto::Message {
   ~DogInfo();
   DogInfo(const DogInfo& other);  // copy constructor
   DogInfo(DogInfo&& other);  // move constructor
-  DogInfo& operator=(const DogInfo& other);  // copy assignment
+  DogInfo& operator=(const DogInfo& other); // copy assignment
   DogInfo& operator=(DogInfo&& other);  // move assignment
-  void Swap(DogInfo* other);
-
+  void Swap(DogInfo* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const DogInfo& other);  // CopyFrom()
   void MoveFrom(DogInfo&& other);  // MoveFrom()
+  bool Equals(const DogInfo& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;

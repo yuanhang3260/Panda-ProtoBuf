@@ -142,116 +142,27 @@ void test_Serialize() {
   ::HaiZhong::Student stu2;
   stu2.DeSerialize(obj_data, sdmsg->size());
   
-  PRINT_HAS(stu2, name, "stu2", "name")
-  PRINT_HAS(stu2, age, "stu2", "age")
-  PRINT_HAS(stu2, xyz, "stu2", "xyz")
-  PRINT_HAS(stu2, def, "stu2", "def")
-  PRINT_HAS(stu2, ghi, "stu2", "ghi")
-  PRINT_HAS(stu2, graduated, "stu2", "graduated")
-  PRINT_HAS(stu2, weight, "stu2", "weight")
-  PRINT_HAS(stu2, sex, "stu2", "sex")
-  PRINT_HAS(stu2, first_pet, "stu2", "first_pet")
-  PRINT_HAS(stu2, partner, "stu2", "partner")
-  std::cout << "stu2.name() = " << stu2.name() << std::endl;
-  std::cout << "stu2.age() = " << stu2.age() << std::endl;
-  std::cout << "stu2.xyz() = " << stu2.xyz() << std::endl;
-  std::cout << "stu2.def() = " << stu2.def() << std::endl;
-  std::cout << "stu2.ghi() = " << stu2.ghi() << std::endl;
-  std::cout << "stu2.graduated() = " << stu2.graduated() << std::endl;
-  std::cout << "stu2.weight() = " << stu2.weight() << std::endl;
-  std::cout << "stu2.sex() = " << stu2.sex() << std::endl;
-  std::cout << "stu2.scores(): [ ";
-  for (const auto& score: stu2.scores()) {
-    std::cout << score << " ";
+  if (!stu1.Equals(stu2)) {
+    std::cerr << "\033[1;31mERROR\033[0m: deserialized stu2 != stu1" << std::endl;
+    return;
   }
-  std::cout << "]" << std::endl;
-  std::cout << "stu2.alias(): [ ";
-  for (const auto& alias: stu2.alias()) {
-    std::cout << alias << " ";
+  else {
+    std::cout << "\033[1;32mSUCCESS\033[0m: stu1 == stu2 ^_^" << std::endl;
   }
-  std::cout << "]" << std::endl;
-
-  std::cout << "stu2.pets(): [ ";
-  for (const auto& pet: stu2.pets()) {
-    std::cout << "(" << pet.name() << " ";
-    std::cout << pet.type() << "), ";  
-  }
-  std::cout << " ]" << std::endl;
-  std::cout << "stu2.first_pet.name = " << stu2.first_pet().name() << std::endl;
-  std::cout << "stu2.first_pet.type = " << stu2.first_pet().type() << std::endl;
-
-  std::cout << "stu2.partner.name = " << stu2.partner().name() << std::endl;
-  std::cout << "stu2.partner.age = " << stu2.partner().age() << std::endl;
-  std::cout << "stu2.partner.ghi = " << stu2.partner().ghi() << std::endl;
-
-  std::cout << "stu2.partner.partner.name = "
-            << stu2.mutable_partner()->partner().name() << std::endl;
-  std::cout << "stu2.partner.partner.age = "
-            << stu2.mutable_partner()->partner().age() << std::endl;
-  std::cout << "stu2.partner.partner.alias[0] = "
-            << stu2.partner().partner().alias(0) << std::endl;
-  std::cout << "stu2.partner.partner.alias[1] = "
-            << stu2.partner().partner().alias(1) << std::endl;
 
   std::cout << "deleting sdmsg ..." << std::endl;
 
   // mutiple students in class
   ::HaiZhong::SchoolClass class1;
   ::HaiZhong::Student* stu3 = class1.add_students();
-  //::HaiZhong::Student* stu3 = new ::HaiZhong::Student();
-  stu3->set_def(17375839784);
-  PRINT_HAS((*stu3), def, "stu3", "def")
-  *stu3 = (stu2);
-  PRINT_HAS((*stu3), name, "stu3", "name")
-  PRINT_HAS((*stu3), age, "stu3", "age")
-  PRINT_HAS((*stu3), xyz, "stu3", "xyz")
-  PRINT_HAS((*stu3), def, "stu3", "def")
-  PRINT_HAS((*stu3), ghi, "stu3", "ghi")
-  PRINT_HAS((*stu3), graduated, "stu3", "graduated")
-  PRINT_HAS((*stu3), weight, "stu3", "weight")
-  PRINT_HAS((*stu3), sex, "stu3", "sex")
-  PRINT_HAS((*stu3), first_pet, "stu3", "first_pet")
-  PRINT_HAS((*stu3), partner, "stu3", "partner")
-  std::cout << "stu3.name() = " << stu3->name() << std::endl;
-  std::cout << "stu3.age() = " << stu3->age() << std::endl;
-  std::cout << "stu3.xyz() = " << stu3->xyz() << std::endl;
-  std::cout << "stu3.def() = " << stu3->def() << std::endl;
-  std::cout << "stu3.ghi() = " << stu3->ghi() << std::endl;
-  std::cout << "stu3.graduated() = " << stu3->graduated() << std::endl;
-  std::cout << "stu3.weight() = " << stu3->weight() << std::endl;
-  std::cout << "stu3.sex() = " << stu3->sex() << std::endl;
-  std::cout << "stu3.scores(): [ ";
-  for (const auto& score: stu3->scores()) {
-    std::cout << score << " ";
+  *stu3 = std::move(stu2);
+  if (!stu1.Equals(*stu3)) {
+    std::cerr << "ERROR: moved to stu3 != stu1" << std::endl;
+    return;
   }
-  std::cout << "]" << std::endl;
-  std::cout << "stu3.alias(): [ ";
-  for (const auto& alias: stu3->alias()) {
-    std::cout << alias << " ";
+  else {
+    std::cout << "Success: stu1 == stu3 ^_^" << std::endl;
   }
-  std::cout << "]" << std::endl;
-
-  std::cout << "stu3.pets(): [ ";
-  for (const auto& pet: stu3->pets()) {
-    std::cout << "(" << pet.name() << " ";
-    std::cout << pet.type() << "), ";  
-  }
-  std::cout << " ]" << std::endl;
-  std::cout << "stu3.first_pet.name = " << stu3->first_pet().name() << std::endl;
-  std::cout << "stu3.first_pet.type = " << stu3->first_pet().type() << std::endl;
-
-  std::cout << "stu3.partner.name = " << stu3->partner().name() << std::endl;
-  std::cout << "stu3.partner.age = " << stu3->partner().age() << std::endl;
-  std::cout << "stu3.partner.ghi = " << stu3->partner().ghi() << std::endl;
-
-  std::cout << "stu3.partner.partner.name = "
-            << stu3->mutable_partner()->partner().name() << std::endl;
-  std::cout << "stu3.partner.partner.age = "
-            << stu3->mutable_partner()->partner().age() << std::endl;
-  std::cout << "stu3.partner.partner.alias[0] = "
-            << stu3->partner().partner().alias(0) << std::endl;
-  std::cout << "stu3.partner.partner.alias[1] = "
-            << stu3->partner().partner().alias(1) << std::endl;
 
   ::HaiZhong::Student* stu4 = class1.add_students();
   stu4->set_name("rjj");
@@ -286,6 +197,13 @@ void test_Serialize() {
   // Whole class de-serialization
   ::HaiZhong::SchoolClass class2;
   class2.DeSerialize(obj_data2, sdmsg2->size());
+  if (!class1.Equals(class2)) {
+    std::cerr << "\033[1;31mERROR\033[0m: deserialized class2 != class1" << std::endl;
+    return;
+  }
+  else {
+    std::cout << "\033[2;32mSUCCESS\033[0m: class1 == class2 ^_^" << std::endl;
+  }
 
   std::cout << "class2.captain.name() = "
             << class2.captain().name() << std::endl;

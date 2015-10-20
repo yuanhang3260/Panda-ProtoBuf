@@ -200,37 +200,20 @@ void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
   printer.Print("  " + message->name() + "();\n");
   printer.Print("  ~" + message->name() + "();\n");
   printer.Print(
-      "  ${msg_name}(const ${msg_name}& other);  // copy constructor\n",
-      msg_match);
-  printer.Print(
-      "  ${msg_name}(${msg_name}&& other);  // move constructor\n",
-      msg_match);
-  printer.Print(
-      "  ${msg_name}& operator=(const ${msg_name}& other);"
-      "  // copy assignment\n",
-      msg_match);
-  printer.Print(
-      "  ${msg_name}& operator=(${msg_name}&& other);  // move assignment\n",
-      msg_match);
-  printer.Print("  void Swap(${msg_name}* other);\n\n", msg_match);
-  printer.Print(
-      "  ::proto::Message* New() const override;  // New()\n",
-      msg_match);
-  printer.Print(
-      "  void CopyFrom(const ${msg_name}& other);  // CopyFrom()\n",
-      msg_match);
-  printer.Print(
-      "  void MoveFrom(${msg_name}&& other);  // MoveFrom()\n",
-      msg_match);
-  printer.Print(
+      "  ${msg_name}(const ${msg_name}& other);  // copy constructor\n"
+      "  ${msg_name}(${msg_name}&& other);  // move constructor\n"
+      "  ${msg_name}& operator=(const ${msg_name}& other); // copy assignment\n"
+      "  ${msg_name}& operator=(${msg_name}&& other);  // move assignment\n"
+      "  void Swap(${msg_name}* other);  // Swap\n"
+      "  ::proto::Message* New() const override;  // New()\n"
+      "  void CopyFrom(const ${msg_name}& other);  // CopyFrom()\n"
+      "  void MoveFrom(${msg_name}&& other);  // MoveFrom()\n"
+      "  bool Equals(const ${msg_name}& other) const;  // Compare\n"
       "  // Serialize() and DeSerialize().\n"
-      "  ::proto::SerializedMessage* Serialize() const override;\n",
+      "  ::proto::SerializedMessage* Serialize() const override;\n"
+      "  void DeSerialize(const char* buf, unsigned int size) override;\n"
+      "  static const ${msg_name}& default_instance();\n\n",
       msg_match);
-  printer.Print(
-      "  void DeSerialize(const char* buf, unsigned int size) override;\n",
-      msg_match);
-  printer.Print("  static const ${msg_name}& default_instance();\n\n",
-                msg_match);
 }
 
 void CppCodeGenerator::DeclarePrivateFields(Message* message) {
@@ -440,6 +423,7 @@ void CppCodeGenerator::DefineClassMethods(Message* message) {
   DefineNew(message);
   DefineCopyFrom(message);
   DefineMoveFrom(message);
+  DefineEquals(message);
   DefineSerialize(message);
   DefineDeSerialize(message);
   DefineInitAsDefaultInstance(message);
@@ -580,6 +564,63 @@ void CppCodeGenerator::PrintMoveClassCode(Message* message) {
   printer.Print("  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {\n"
                 "    other.has_bits_[i] = 0;\n"
                 "  }\n");
+}
+
+void CppCodeGenerator::DefineEquals(Message* message) {
+  printer.Print("// Equals()\n");
+
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+  printer.Print("bool ${msg_name}::Equals(const ${msg_name}& other) const {\n",
+                msg_match);
+
+  printer.Print("  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {\n"
+                "    if (has_bits_[i] != other.has_bits_[i]) {\n"
+                "      return false;\n"
+                "    }\n"
+                "  }\n");
+
+  for (auto& field : message->fields_list()) {
+    std::map<std::string, std::string> matches =
+        GetFieldMatchMap(message, field.get());
+
+    if (field->IsSingularMessageType()) {
+      printer.Print(
+        "  if (${field_name}_ && other.${field_name}_ &&\n"
+        "      !${field_name}_->Equals(*other.${field_name}_)) {\n"
+        "    return false;\n"
+        "  }\n",
+        matches);
+    }
+    else if (field->IsRepeatedMessageType()) {
+      printer.Print(
+        "  for (unsigned int i = 0; i < ${field_name}_.size(); i++) {\n"
+        "    if (!${field_name}_.at(i).Equals(other.${field_name}_.at(i))) {\n"
+        "      return false;\n"
+        "    }\n"
+        "  }\n",
+        matches);
+    }
+    else if (field->IsSingularNumericType() || field->IsSingularStringType()) {
+      printer.Print(
+        "  if (${field_name}_ != other.${field_name}_) {\n"
+        "    return false;\n"
+        "  }\n",
+        matches);
+    }
+    else if (field->IsRepeatedNumericType() || field->IsRepeatedStringType()) {
+      printer.Print(
+        "  for (unsigned int i = 0; i < ${field_name}_.size(); i++) {\n"
+        "    if (${field_name}_.at(i) != other.${field_name}_.at(i)) {\n"
+        "      return false;\n"
+        "    }\n"
+        "  }\n",
+        matches);
+    }
+  }
+  printer.Print("  return true;\n"
+                "}\n\n");
 }
 
 void CppCodeGenerator::DefineMoveConstructor(Message* message) {

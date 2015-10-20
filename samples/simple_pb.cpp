@@ -234,6 +234,22 @@ void Pet::MoveFrom(Pet&& other) {
   }
 }
 
+// Equals()
+bool Pet::Equals(const Pet& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  if (name_ != other.name_) {
+    return false;
+  }
+  if (type_ != other.type_) {
+    return false;
+  }
+  return true;
+}
+
 // Serialize()
 ::proto::SerializedMessage* Pet::Serialize() const {
   return Pet_reflection_->Serialize(this);
@@ -441,6 +457,63 @@ void Student::MoveFrom(Student&& other) {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
     other.has_bits_[i] = 0;
   }
+}
+
+// Equals()
+bool Student::Equals(const Student& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  if (name_ != other.name_) {
+    return false;
+  }
+  if (age_ != other.age_) {
+    return false;
+  }
+  if (xyz_ != other.xyz_) {
+    return false;
+  }
+  if (def_ != other.def_) {
+    return false;
+  }
+  if (ghi_ != other.ghi_) {
+    return false;
+  }
+  if (graduated_ != other.graduated_) {
+    return false;
+  }
+  if (weight_ != other.weight_) {
+    return false;
+  }
+  for (unsigned int i = 0; i < pets_.size(); i++) {
+    if (!pets_.at(i).Equals(other.pets_.at(i))) {
+      return false;
+    }
+  }
+  for (unsigned int i = 0; i < scores_.size(); i++) {
+    if (scores_.at(i) != other.scores_.at(i)) {
+      return false;
+    }
+  }
+  if (first_pet_ && other.first_pet_ &&
+      !first_pet_->Equals(*other.first_pet_)) {
+    return false;
+  }
+  for (unsigned int i = 0; i < alias_.size(); i++) {
+    if (alias_.at(i) != other.alias_.at(i)) {
+      return false;
+    }
+  }
+  if (partner_ && other.partner_ &&
+      !partner_->Equals(*other.partner_)) {
+    return false;
+  }
+  if (sex_ != other.sex_) {
+    return false;
+  }
+  return true;
 }
 
 // Serialize()
@@ -1008,6 +1081,31 @@ void SchoolClass::MoveFrom(SchoolClass&& other) {
   }
 }
 
+// Equals()
+bool SchoolClass::Equals(const SchoolClass& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  if (number_ != other.number_) {
+    return false;
+  }
+  if (alias_ != other.alias_) {
+    return false;
+  }
+  if (captain_ && other.captain_ &&
+      !captain_->Equals(*other.captain_)) {
+    return false;
+  }
+  for (unsigned int i = 0; i < students_.size(); i++) {
+    if (!students_.at(i).Equals(other.students_.at(i))) {
+      return false;
+    }
+  }
+  return true;
+}
+
 // Serialize()
 ::proto::SerializedMessage* SchoolClass::Serialize() const {
   return SchoolClass_reflection_->Serialize(this);
@@ -1276,6 +1374,29 @@ void StudentRequest::MoveFrom(StudentRequest&& other) {
   }
 }
 
+// Equals()
+bool StudentRequest::Equals(const StudentRequest& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  if (op_type_ != other.op_type_) {
+    return false;
+  }
+  if (class_number_ != other.class_number_) {
+    return false;
+  }
+  if (student_name_ != other.student_name_) {
+    return false;
+  }
+  if (student_ && other.student_ &&
+      !student_->Equals(*other.student_)) {
+    return false;
+  }
+  return true;
+}
+
 // Serialize()
 ::proto::SerializedMessage* StudentRequest::Serialize() const {
   return StudentRequest_reflection_->Serialize(this);
@@ -1517,6 +1638,22 @@ void StudentResponse::MoveFrom(StudentResponse&& other) {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
     other.has_bits_[i] = 0;
   }
+}
+
+// Equals()
+bool StudentResponse::Equals(const StudentResponse& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  if (return_code_ != other.return_code_) {
+    return false;
+  }
+  if (error_message_ != other.error_message_) {
+    return false;
+  }
+  return true;
 }
 
 // Serialize()

@@ -90,6 +90,9 @@ class CppCodeGenerator : public ProtoParser {
   // Define MoveFrom()
   void DefineMoveFrom(Message* message);
 
+  // Define Equals()
+  void DefineEquals(Message* message);
+
   // Define Serialize()
   void DefineSerialize(Message* message);
 

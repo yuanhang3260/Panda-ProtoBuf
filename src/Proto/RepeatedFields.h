@@ -72,6 +72,14 @@ class RepeatedField: public RepeatedFieldBase {
   typedef int size_type;
   // typedef ptrdiff_t difference_type;
 
+  const value_type at(int index) const {
+    return elements[index];
+  }
+
+  reference operator[](int index) {
+    return elements[index];
+  }
+
   iterator begin();
   const_iterator begin() const;
   const_iterator cbegin() const;
@@ -125,6 +133,14 @@ class RepeatedPtrField: public RepeatedPtrFieldBase {
   typedef const value_type* const_pointer;
   typedef int size_type;
   // typedef ptrdiff_t difference_type;
+
+  const reference at(int index) const {
+    return *(elements[index]);
+  }
+
+  reference operator[](int index) {
+    return *(elements[index]);
+  }
 
   iterator begin();
   const_iterator begin() const;

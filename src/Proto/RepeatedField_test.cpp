@@ -28,15 +28,25 @@ void test_RepeatedField() {
 
   const proto::RepeatedField<int> list2(list);
 
+  std::cout << "iterator printing" << std::endl;
   for (auto it = list2.begin();
        it != list2.end();
        it++) {
-    std::cout << *it;
+    std::cout << *it << ", ";
+  }
+  std::cout << std::endl;
+  for (const auto& value: list) {
+    std::cout << value << ", ";
   }
   std::cout << std::endl;
 
-  for (const auto& value: list) {
-    std::cout << value;
+  std::cout << "index printing" << std::endl;
+  for (unsigned int i = 0; i < list.size(); i++) {
+    std::cout << list[i] << ", ";
+  }
+  std::cout << std::endl;
+  for (unsigned int i = 0; i < list.size(); i++) {
+    std::cout << list.at(i) << ", ";
   }
   std::cout << std::endl;
 
@@ -120,11 +130,27 @@ void test_RepeatedPtrField() {
     }
   }
 
-  for (auto& dog: list) {
-    dog.print();
-    dog.set_age(2);
+  std::cout << "index printing" << std::endl;
+  for (unsigned int i = 0; i < list.size(); i++) {
+    list[i].print();
   }
   std::cout << std::endl;
+  for (unsigned int i = 0; i < list.size(); i++) {
+    list.at(i).print();
+  }
+  std::cout << std::endl;
+
+  std::cout << "iterator printing" << std::endl;
+  for (auto& dog: list) {
+    dog.print();
+  }
+  std::cout << std::endl;
+  for (auto it = list.begin(); it != list.end(); it++) {
+    it->set_age(2);
+    (*it).print();
+  }
+  std::cout << std::endl;
+
   access_const_repeated_ptr_list(list);
 
   list.GetMutable(0)->set_age(3);
@@ -151,7 +177,7 @@ void test_RepeatedPtrField() {
 }
 
 int main() {
-  // test_RepeatedField();
+  test_RepeatedField();
   test_RepeatedPtrField();
   return 0;
 }

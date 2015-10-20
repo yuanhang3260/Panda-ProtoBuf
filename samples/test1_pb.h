@@ -8,8 +8,8 @@
 #include "Proto/RepeatedFields.h"
 #include "Proto/SerializedMessage.h"
 
-void static_init_samples_test1();
-void static_init_default_instances_samples_test1();
+void static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
+void static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
 
 namespace AA {
 namespace BB {
@@ -33,13 +33,13 @@ class DogInfo: public ::proto::Message {
   ~DogInfo();
   DogInfo(const DogInfo& other);  // copy constructor
   DogInfo(DogInfo&& other);  // move constructor
-  DogInfo& operator=(const DogInfo& other);  // copy assignment
+  DogInfo& operator=(const DogInfo& other); // copy assignment
   DogInfo& operator=(DogInfo&& other);  // move assignment
-  void Swap(DogInfo* other);
-
+  void Swap(DogInfo* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const DogInfo& other);  // CopyFrom()
   void MoveFrom(DogInfo&& other);  // MoveFrom()
+  bool Equals(const DogInfo& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -105,8 +105,8 @@ class DogInfo: public ::proto::Message {
   // default instance
   static DogInfo* default_instance_;
 
-  friend void ::static_init_samples_test1();
-  friend void ::static_init_default_instances_samples_test1();
+  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
+  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
 };
 
 namespace BB {
@@ -119,13 +119,13 @@ class DogFriendInfo: public ::proto::Message {
   ~DogFriendInfo();
   DogFriendInfo(const DogFriendInfo& other);  // copy constructor
   DogFriendInfo(DogFriendInfo&& other);  // move constructor
-  DogFriendInfo& operator=(const DogFriendInfo& other);  // copy assignment
+  DogFriendInfo& operator=(const DogFriendInfo& other); // copy assignment
   DogFriendInfo& operator=(DogFriendInfo&& other);  // move assignment
-  void Swap(DogFriendInfo* other);
-
+  void Swap(DogFriendInfo* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const DogFriendInfo& other);  // CopyFrom()
   void MoveFrom(DogFriendInfo&& other);  // MoveFrom()
+  bool Equals(const DogFriendInfo& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -167,8 +167,8 @@ class DogFriendInfo: public ::proto::Message {
   // default instance
   static DogFriendInfo* default_instance_;
 
-  friend void ::static_init_samples_test1();
-  friend void ::static_init_default_instances_samples_test1();
+  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
+  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
 };
 
 }  // namespace CC
@@ -181,13 +181,13 @@ class DogFriends: public ::proto::Message {
   ~DogFriends();
   DogFriends(const DogFriends& other);  // copy constructor
   DogFriends(DogFriends&& other);  // move constructor
-  DogFriends& operator=(const DogFriends& other);  // copy assignment
+  DogFriends& operator=(const DogFriends& other); // copy assignment
   DogFriends& operator=(DogFriends&& other);  // move assignment
-  void Swap(DogFriends* other);
-
+  void Swap(DogFriends* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const DogFriends& other);  // CopyFrom()
   void MoveFrom(DogFriends&& other);  // MoveFrom()
+  bool Equals(const DogFriends& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -224,8 +224,8 @@ class DogFriends: public ::proto::Message {
   // default instance
   static DogFriends* default_instance_;
 
-  friend void ::static_init_samples_test1();
-  friend void ::static_init_default_instances_samples_test1();
+  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
+  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
 };
 
 namespace DD {
@@ -237,13 +237,13 @@ class DogFamily: public ::proto::Message {
   ~DogFamily();
   DogFamily(const DogFamily& other);  // copy constructor
   DogFamily(DogFamily&& other);  // move constructor
-  DogFamily& operator=(const DogFamily& other);  // copy assignment
+  DogFamily& operator=(const DogFamily& other); // copy assignment
   DogFamily& operator=(DogFamily&& other);  // move assignment
-  void Swap(DogFamily* other);
-
+  void Swap(DogFamily* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const DogFamily& other);  // CopyFrom()
   void MoveFrom(DogFamily&& other);  // MoveFrom()
+  bool Equals(const DogFamily& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -271,8 +271,8 @@ class DogFamily: public ::proto::Message {
   // default instance
   static DogFamily* default_instance_;
 
-  friend void ::static_init_samples_test1();
-  friend void ::static_init_default_instances_samples_test1();
+  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
+  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_test1();
 };
 
 }  // namespace DD

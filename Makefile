@@ -131,7 +131,9 @@ clean:
 	rm -rf $(OBJ_DIR)/RPC/*.o
 	rm -rf test/*.out
 	rm -rf samples/*.o
-	rm -rf samples/*.out
+	rm -rf samples/client
+	rm -rf samples/server
+	rm -rf samples/test
 	rm -rf *.output
 
 tinyclean:
@@ -144,7 +146,6 @@ tinyclean:
 	rm -rf $(OBJ_DIR)/RPC/*.o
 	rm -rf test/*.out
 	rm -rf samples/*.o
-	rm -rf samples/*.out
 	rm -rf *.output
 
 sampleclean:
