@@ -6,6 +6,7 @@
 
 #include "Utility/CallBack.h"
 #include "Proto/Message.h"
+#include "Rpc.h"
 #include "RpcCommon.h"
 #include "RpcServer.h"
 #include "RpcClientChannel.h"
@@ -51,15 +52,32 @@ class RpcService {
   // Client start call rpc.
   void StartClientRpcCall(Rpc* rpc,
                           const RpcDescriptor* descriptor,
+                          std::string method_name,
                           const proto::Message* request,
                           proto::Message* response,
                           Base::Closure* cb);
+
+  void DoRpcCall(Rpc* rpc,
+                 const RpcDescriptor* descriptor,
+                 std::string method_name,
+                 const proto::Message* request,
+                 proto::Message* response,
+                 Base::Closure* cb);
+
+  int ClientSendRequest(Rpc* rpc,
+                        const RpcDescriptor* descriptor,
+                        std::string method_name,
+                        const proto::Message* request);
+
+  int ClientReceiveResponse(Rpc* rpc,
+                            proto::Message* response,
+                            Base::Closure* cb);
 
   std::string name_;
   // server
   RpcServer* rpc_server_ = nullptr;
   // client
-  RpcClientChannel* rpc_client_channel_ = nullptr;
+  std::unique_ptr<RpcClientChannel> rpc_client_channel_;
   ::RPC::RpcStubOptions options_;
 };
 

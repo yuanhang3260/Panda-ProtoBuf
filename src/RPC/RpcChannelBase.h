@@ -6,6 +6,7 @@
 
 #include "Network/Socket.h"
 #include "Utility/BufferedDataReader.h"
+#include "Utility/BufferedDataWriter.h"
 #include "RpcSession_pb.h"
 
 namespace RPC {
@@ -17,12 +18,19 @@ class RpcChannelBase {
   RpcChannelBase(const RpcChannelBase&) = delete;
   RpcChannelBase& operator=(const RpcChannelBase&) = delete;
 
+  void Initialize();
+  bool IsReady() const;
+
+  int ReceiveData(char* buf, unsigned int size);
+  int SendData(const char* buf, unsigned int size);
+  void FlushSend();
+
  protected:
   std::string hostname_;
   int port_;
   std::unique_ptr<Network::Socket> socket_;
   std::unique_ptr<Utility::BufferedDataReader> sock_reader_;
-  std::unique_ptr<Utility::BufferedDataReader> sock_writer_;
+  std::unique_ptr<Utility::BufferedDataWriter> sock_writer_;
 };
 
 }  // namespace RPC

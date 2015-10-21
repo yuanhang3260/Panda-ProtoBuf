@@ -1773,14 +1773,14 @@ class StudentManagement::Stub : public StudentManagement {
       RPC::Rpc* rpc, const ::HaiZhong::StudentRequest* request,
       ::HaiZhong::StudentResponse* response,
       Base::Closure* cb) {
-    StartClientRpcCall(rpc, descriptor_, request, response, cb);
+    StartClientRpcCall(rpc, descriptor_, "AddStudent", request, response, cb);
   }
 
   virtual void DeleteStudent(
       RPC::Rpc* rpc, const ::HaiZhong::StudentRequest* request,
       ::HaiZhong::StudentResponse* response,
       Base::Closure* cb) {
-    StartClientRpcCall(rpc, descriptor_, request, response, cb);
+    StartClientRpcCall(rpc, descriptor_, "DeleteStudent", request, response, cb);
   }
 };
 

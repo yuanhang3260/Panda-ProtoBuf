@@ -1508,7 +1508,7 @@ void CppCodeGenerator::DefineStubClass(ServiceType* service) {
                   "      RPC::Rpc* rpc, const ${arg_type}* request,\n"
                   "      ${return_type}* response,\n"
                   "      Base::Closure* cb) {\n"
-                  "    StartClientRpcCall(rpc, descriptor_, request, response, cb);\n"
+                  "    StartClientRpcCall(rpc, descriptor_, \"${rpc_method_name}\", request, response, cb);\n"
                   "  }\n", matches);
   }
   printer.Print("};\n\n");

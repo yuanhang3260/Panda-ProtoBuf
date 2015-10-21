@@ -8,6 +8,13 @@ class Utils {
 
   template<typename T>
   static T Min(T t1, T t2) { return t1 < t2? t1 : t2; }
+
+  static int RandomNumber();
+
+ private:
+  static void InitRandomSeed();
+
+  static bool rand_seed_init_;
 };
 
 #endif
