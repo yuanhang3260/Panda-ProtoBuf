@@ -437,17 +437,20 @@ void CppCodeGenerator::DefineClassMethods(Message* message) {
 }
 
 void CppCodeGenerator::DefineDestructor(Message* message) {
-  std::map<std::string, std::string> msg_match{
+  std::map<std::string, std::string> matches{
      {"msg_name", message->name()},
   };
 
   printer.Print("// destructor\n");
-  printer.Print("${msg_name}::~${msg_name}() {\n", msg_match);
+  printer.Print("${msg_name}::~${msg_name}() {\n", matches);
   if (message->has_message_field()) {
     for (auto& field : message->fields_list()) {
+      matches["field_name"] = field->name();
       if (field->type() == MESSAGETYPE &&
           field->modifier() != MessageField::REPEATED) {
-        printer.Print("  delete " + field->name() + "_;\n");
+        printer.Print("  if (${field_name}_) {\n"
+                      "    delete ${field_name}_;\n"
+                      "  }\n", matches);
       }
     }
   }
@@ -1392,9 +1395,11 @@ void CppCodeGenerator::DefineServiceClassMethods(ServiceType* service) {
                 "}\n\n", matches);
   // Register and De-Register service.
   printer.Print("void ${service_name}::RegisterToServer(::RPC::RpcServer* server) {\n"
+                "  server->RegisterService(\"${service_name}\", this);\n"
                 "  InternalRegisterHandlers(server->handler_map());\n"
                 "}\n\n", matches);
   printer.Print("void ${service_name}::DeRegisterFromServer(::RPC::RpcServer* server) {\n"
+                "  server->DeRegisterService(\"${service_name}\");\n"
                 "  InternalDeRegisterHandlers(server->handler_map());\n"
                 "}\n\n", matches);
   // Internal register handler to server's handler_map

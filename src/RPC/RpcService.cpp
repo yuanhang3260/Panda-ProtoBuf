@@ -46,6 +46,7 @@ void RpcService::StartClientRpcCall(
   // Do rpc call asynchronously.
   std::thread t(&RpcService::DoRpcCall, this,
                 rpc, descriptor, method_name, request, response, cb);
+  t.join();
 }
 
 void RpcService::DoRpcCall(Rpc* rpc,
@@ -59,14 +60,19 @@ void RpcService::DoRpcCall(Rpc* rpc,
     return;
   }
 
-  ClientReceiveResponse(rpc, response, cb);
+  if (ClientReceiveResponse(rpc, response, cb) < 0) {
+    rpc->SetRpcFinished();
+    return;
+  }
 
   // Run the callback
   if (cb) {
     cb->Run();
+    delete cb;
   }
 
   // Set rpc finished so that future rpc->Wait() will not block.
+  rpc->set_client_status(Rpc::SUCCESS);
   rpc->SetRpcFinished();
 }
 
@@ -76,7 +82,7 @@ int RpcService::ClientSendRequest(Rpc* rpc,
                                   const proto::Message* request) {
   // Init a request header.
   RpcRequestHeader request_header;
-  request_header.set_service_name(descriptor->name());
+  request_header.set_service_name(descriptor->fullname());
   request_header.set_method_name(method_name);
 
   // Serialize the request message
@@ -89,9 +95,13 @@ int RpcService::ClientSendRequest(Rpc* rpc,
   // Serialize the request header
   proto::SerializedMessage* sdhdr = request_header.Serialize();
   const char* hdr_data = sdhdr->GetBytes();
+  for (unsigned int i = 0; i < sdhdr->size(); i++) {
+    printf("0x%x ", hdr_data[i] & 0xff);
+  }
+  printf("\n");
 
   // Begin sending data
-  if (!rpc_client_channel_ || rpc_client_channel_->IsReady()) {
+  if (!rpc_client_channel_ || !rpc_client_channel_->IsReady()) {
     rpc->set_client_status(Rpc::INTERNAL_CHANNEL_ERROR);
     return -1;
   }
@@ -103,6 +113,9 @@ int RpcService::ClientSendRequest(Rpc* rpc,
   rpc->set_check_num(check_num);  // set check_num
   int req_header_size = sdhdr->size(); // request header size
   int req_size = sdreq->size();  // user request size
+  printf("check_num = %d\n", check_num);
+  printf("req_header_size = %d\n", req_header_size);
+  printf("req_size = %d\n", req_size);
 
   rpc_client_channel_->SendData(reinterpret_cast<const char*>(&check_num),
                                 sizeof(check_num));
@@ -117,6 +130,9 @@ int RpcService::ClientSendRequest(Rpc* rpc,
 
   // Flush send channel to make sure data is sent.
   rpc_client_channel_->FlushSend();
+
+  delete sdreq;
+  delete sdhdr;
   return 0;
 }
 

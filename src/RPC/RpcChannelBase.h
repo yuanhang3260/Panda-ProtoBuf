@@ -20,6 +20,7 @@ class RpcChannelBase {
 
   void Initialize();
   bool IsReady() const;
+  Network::Socket* socket() { return socket_.get(); } 
 
   int ReceiveData(char* buf, unsigned int size);
   int SendData(const char* buf, unsigned int size);

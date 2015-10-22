@@ -20,13 +20,13 @@ class RpcRequestHeader: public ::proto::Message {
   ~RpcRequestHeader();
   RpcRequestHeader(const RpcRequestHeader& other);  // copy constructor
   RpcRequestHeader(RpcRequestHeader&& other);  // move constructor
-  RpcRequestHeader& operator=(const RpcRequestHeader& other);  // copy assignment
+  RpcRequestHeader& operator=(const RpcRequestHeader& other); // copy assignment
   RpcRequestHeader& operator=(RpcRequestHeader&& other);  // move assignment
-  void Swap(RpcRequestHeader* other);
-
+  void Swap(RpcRequestHeader* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const RpcRequestHeader& other);  // CopyFrom()
   void MoveFrom(RpcRequestHeader&& other);  // MoveFrom()
+  bool Equals(const RpcRequestHeader& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
@@ -82,13 +82,13 @@ class RpcResponseHeader: public ::proto::Message {
   ~RpcResponseHeader();
   RpcResponseHeader(const RpcResponseHeader& other);  // copy constructor
   RpcResponseHeader(RpcResponseHeader&& other);  // move constructor
-  RpcResponseHeader& operator=(const RpcResponseHeader& other);  // copy assignment
+  RpcResponseHeader& operator=(const RpcResponseHeader& other); // copy assignment
   RpcResponseHeader& operator=(RpcResponseHeader&& other);  // move assignment
-  void Swap(RpcResponseHeader* other);
-
+  void Swap(RpcResponseHeader* other);  // Swap
   ::proto::Message* New() const override;  // New()
   void CopyFrom(const RpcResponseHeader& other);  // CopyFrom()
   void MoveFrom(RpcResponseHeader&& other);  // MoveFrom()
+  bool Equals(const RpcResponseHeader& other) const;  // Compare
   // Serialize() and DeSerialize().
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;

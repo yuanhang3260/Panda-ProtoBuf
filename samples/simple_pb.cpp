@@ -613,8 +613,12 @@ Student* Student::default_instance_ = NULL;
 
 // destructor
 Student::~Student() {
-  delete first_pet_;
-  delete partner_;
+  if (first_pet_) {
+    delete first_pet_;
+  }
+  if (partner_) {
+    delete partner_;
+  }
 }
 
 // "name" = 1
@@ -1166,7 +1170,9 @@ SchoolClass* SchoolClass::default_instance_ = NULL;
 
 // destructor
 SchoolClass::~SchoolClass() {
-  delete captain_;
+  if (captain_) {
+    delete captain_;
+  }
 }
 
 // "number" = 1
@@ -1457,7 +1463,9 @@ StudentRequest* StudentRequest::default_instance_ = NULL;
 
 // destructor
 StudentRequest::~StudentRequest() {
-  delete student_;
+  if (student_) {
+    delete student_;
+  }
 }
 
 // "op_type" = 1
@@ -1800,10 +1808,12 @@ StudentManagement* StudentManagement::NewStub(
 }
 
 void StudentManagement::RegisterToServer(::RPC::RpcServer* server) {
+  server->RegisterService("StudentManagement", this);
   InternalRegisterHandlers(server->handler_map());
 }
 
 void StudentManagement::DeRegisterFromServer(::RPC::RpcServer* server) {
+  server->DeRegisterService("StudentManagement");
   InternalDeRegisterHandlers(server->handler_map());
 }
 

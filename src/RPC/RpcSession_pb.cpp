@@ -149,6 +149,25 @@ void RpcRequestHeader::MoveFrom(RpcRequestHeader&& other) {
   }
 }
 
+// Equals()
+bool RpcRequestHeader::Equals(const RpcRequestHeader& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  if (service_name_ != other.service_name_) {
+    return false;
+  }
+  if (method_name_ != other.method_name_) {
+    return false;
+  }
+  if (rpc_request_length_ != other.rpc_request_length_) {
+    return false;
+  }
+  return true;
+}
+
 // Serialize()
 ::proto::SerializedMessage* RpcRequestHeader::Serialize() const {
   return RpcRequestHeader_reflection_->Serialize(this);
@@ -343,6 +362,19 @@ void RpcResponseHeader::MoveFrom(RpcResponseHeader&& other) {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
     other.has_bits_[i] = 0;
   }
+}
+
+// Equals()
+bool RpcResponseHeader::Equals(const RpcResponseHeader& other) const {
+  for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
+    if (has_bits_[i] != other.has_bits_[i]) {
+      return false;
+    }
+  }
+  if (rpc_response_length_ != other.rpc_response_length_) {
+    return false;
+  }
+  return true;
 }
 
 // Serialize()

@@ -13,6 +13,11 @@
 
 namespace RPC {
 
+class RpcServer;
+class RpcService;
+
+using RpcHandlerMap = std::map<std::string, std::shared_ptr<RpcHandler>>;
+
 class RpcService {
  public:
   RpcService() = default;

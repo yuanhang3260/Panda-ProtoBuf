@@ -17,6 +17,8 @@ OBJ = $(OBJ_DIR)/Utility/BufferedDataReader.o \
       $(OBJ_DIR)/Utility/Strings.o \
       $(OBJ_DIR)/Utility/StringBuilder.o \
       $(OBJ_DIR)/Utility/Utils.o \
+      $(OBJ_DIR)/Utility/ThreadPool.o \
+      $(OBJ_DIR)/Utility/EventManager.o \
       $(OBJ_DIR)/IO/FileDescriptorInterface.o \
       $(OBJ_DIR)/IO/FileDescriptor.o \
       $(OBJ_DIR)/IO/FileUtils.o \
@@ -49,6 +51,7 @@ RPC_OBJ = \
       $(OBJ_DIR)/RPC/RpcCommon.o \
       $(OBJ_DIR)/RPC/RpcChannelBase.o \
       $(OBJ_DIR)/RPC/RpcClientChannel.o \
+      $(OBJ_DIR)/RPC/RpcServerChannel.o \
       $(OBJ_DIR)/RPC/RpcSession_pb.o \
 
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \

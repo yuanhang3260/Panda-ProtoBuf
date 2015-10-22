@@ -34,10 +34,10 @@ class RpcHandler {
 
   std::string fullname;
   std::string method_name;
-  proto::Message* request_prototype;
-  proto::Message* response_prototype;
-  proto::Message* stream_prototype;
-  InternalRpcMethod* rpc_method;
+  proto::Message* request_prototype = nullptr;
+  proto::Message* response_prototype = nullptr;
+  proto::Message* stream_prototype = nullptr;
+  InternalRpcMethod* rpc_method = nullptr;
   // TODO: maybe handler executor ?
 };
 

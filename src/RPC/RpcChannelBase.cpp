@@ -27,7 +27,13 @@ int RpcChannelBase::ReceiveData(char* buf, unsigned int size) {
   if (!socket_ || !sock_reader_) {
     return -1;
   }
-  return sock_reader_->Read(buf, 0, size);
+
+  int nread = sock_reader_->Read(buf, 0, size);
+  // for (int i = 0; i < nread; i++) {
+  //   printf("buf[%d] = 0x%x\n", i, buf[i] & 0xff);
+  // }
+  // printf("channel nread = %d\n", nread);
+  return nread;
 }
 
 void RpcChannelBase::FlushSend() {

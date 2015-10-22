@@ -22,23 +22,24 @@ class Rpc {
     BAD_RESPONSE_HEADER = 6,
   };
 
-  Rpc();
+  Rpc() = default;
   virtual ~Rpc();
 
-  const proto::Message* internal_request() const { return request_; }
-  void set_internal_request(const proto::Message* req) { request_ = req; }
+  proto::Message* internal_request() { return request_; }
+  void set_internal_request(proto::Message* req) { request_ = req; }
 
-  proto::Message* internal_response() const { return response_; }
+  proto::Message* internal_response() { return response_; }
   void set_internal_response(proto::Message* res) { response_ = res; }
 
-  proto::Message* internal_stream() const { return stream_; }
+  proto::Message* internal_stream() { return stream_; }
   void set_internal_stream(proto::Message* stream) { stream_ = stream; }
 
-  Base::Closure* cb_final() const { return cb_final_; }
+  Base::Closure* cb_final() { return cb_final_; }
   void set_cb_final(Base::Closure* cb_final) { cb_final_ = cb_final; }
 
   ClientStatus client_status() const { return client_status_; }
   void set_client_status(ClientStatus status) { client_status_ = status; }
+  bool isOk() const { return client_status_ == SUCCESS; }
 
   int check_num() const { return check_num_; }
   void set_check_num(int num) { check_num_ = num; }
@@ -48,10 +49,10 @@ class Rpc {
   void Wait();
 
  private:
-  const proto::Message* request_;
-  proto::Message* response_;
-  proto::Message* stream_;
-  Base::Closure* cb_final_;
+  proto::Message* request_ = nullptr;
+  proto::Message* response_ = nullptr;
+  proto::Message* stream_ = nullptr;
+  Base::Closure* cb_final_ = nullptr;
 
   int check_num_;
   ClientStatus client_status_ = INIT;

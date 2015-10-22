@@ -7,6 +7,8 @@
 
 namespace RPC {
 
+typedef unsigned int uint32;
+
 class RpcDescriptor;
 class RpcMethodDescriptor;
 class RpcStubOptions;

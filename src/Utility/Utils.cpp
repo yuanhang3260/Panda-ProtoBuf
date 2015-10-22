@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 #include <time.h>
 
 #include "Utils.h"
@@ -18,4 +19,11 @@ int Utils::RandomNumber() {
     InitRandomSeed();
   }
   return rand();
+}
+
+void Utils::PrintMemoryBytes(const char* buf, int size) {
+  for (int i = 0; i < size; i++) {
+    printf("0x%x ", buf[i] & 0xff);
+  }
+  printf("\n");
 }

@@ -11,6 +11,8 @@ class Utils {
 
   static int RandomNumber();
 
+  static void PrintMemoryBytes(const char* buf, int size);
+
  private:
   static void InitRandomSeed();
 
