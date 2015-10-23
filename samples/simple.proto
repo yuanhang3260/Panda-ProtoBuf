@@ -51,7 +51,7 @@ message StudentRequest {
 }
 
 message StudentResponse {
-	required int32 return_code = 1;
+	required int32 return_code = 1 [default = -1];
 	optional string error_message = 2;
 }
 

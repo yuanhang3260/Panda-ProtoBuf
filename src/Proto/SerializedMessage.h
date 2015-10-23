@@ -15,7 +15,9 @@ class SerializedMessage: public SerializedObjectInterface {
   SerializedMessage(const bool is_repeated) : is_repeated_(is_repeated) {}
   SerializedMessage(const SerializedMessage& other) = delete;
   SerializedMessage& operator=(const SerializedMessage& other) = delete;
-  ~SerializedMessage() { std::cout << "deleting SerializedMessage" << std::endl; }
+  ~SerializedMessage() {
+    //std::cout << "deleting SerializedMessage" << std::endl;
+  }
 
   int CopyTo(char* buf) const override;
 

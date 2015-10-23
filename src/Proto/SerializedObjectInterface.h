@@ -14,7 +14,7 @@ class SerializedObjectInterface {
   }
 
   const char* GetBytes() {
-    std::cout << "GetByte() Size = " << size_ << std::endl;
+    //std::cout << "GetByte() Size = " << size_ << std::endl;
     if (size_ > 0) {
       flat_buf_ = new char[size_];
       CopyTo(flat_buf_);

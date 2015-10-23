@@ -2,6 +2,7 @@
 #include <memory>
 
 #include "Utility/CallBack.h"
+#include "Utility/ThreadPool.h"
 #include "Compiler/Message.h"
 #include "Compiler/ProtoParser.h"
 #include "Proto/MessageReflection.h"
@@ -27,9 +28,9 @@ class HmzxStudentSystem {
   void SetRpcServerPort(int port) { port_ = port; }
   void Init();
 
-  void RegisterNewStudent();
+  int RegisterNewStudent();
 
-  void DeRegisterStudent();
+  int DeRegisterStudent();
 
  private:
   Student* CreateStudent();
@@ -44,7 +45,7 @@ void HmzxStudentSystem::Init() {
       new RPC::RpcClientChannel("localhost", port_));
 }
 
-void HmzxStudentSystem::RegisterNewStudent() {
+int HmzxStudentSystem::RegisterNewStudent() {
   RPC::Rpc rpc;
   StudentRequest request;
   StudentResponse response;
@@ -65,8 +66,20 @@ void HmzxStudentSystem::RegisterNewStudent() {
   rpc.Wait();
 
   if (!rpc.isOk()) {
-    std::cerr << rpc.client_status() << std::endl;
+    std::cerr << "Rpc call status: " << rpc.RpcCallStatus() << std::endl;
+    return -1;
   }
+
+  if (response.return_code() != 0) {
+    std::cerr << "StduentResponse error code: "
+              << response.return_code() << std::endl;
+    return -1;
+  }
+  return 0;
+}
+
+int HmzxStudentSystem::DeRegisterStudent() {
+  return 0;
 }
 
 Student* HmzxStudentSystem::CreateStudent() {
@@ -88,11 +101,21 @@ Student* HmzxStudentSystem::CreateStudent() {
 }
 
 void HmzxStudentSystem::DoneRegister() {
-  std::cout << "Done register :)" << std::endl;
+  std::cout << "Done register ~" << std::endl;
 }
 
-void HmzxStudentSystem::DeRegisterStudent() {
+void LoadTest(int port) {
+  HmzxStudentSystem hmzx;
+  hmzx.SetRpcServerPort(port);
+  hmzx.Init();
 
+  for (int i = 0; i < 20; i++) {
+    std::cout << "***** Reqeust " << i << " *****" << std::endl;
+    if (hmzx.RegisterNewStudent() < 0) {
+      std::cout << "\033[1;31mFailed***\033[0m" << std::endl;
+      exit(1);
+    }
+  }
 }
 
 int main(int argc, char** argv) {
@@ -101,9 +124,16 @@ int main(int argc, char** argv) {
     port = std::stoi(argv[1]);
   }
 
-  HmzxStudentSystem hmzx;
-  hmzx.SetRpcServerPort(port);
-  hmzx.Init();
+  Executors::FixedThreadPool pool(10);
+  pool.Start();
 
-  hmzx.RegisterNewStudent();
+  for (int i = 0; i < 100; i++) {
+    pool.AddTask(new Base::Closure(LoadTest, port));
+  }
+
+  pool.Stop();
+  pool.AwaitTermination();
+
+  std::cout << "\033[1;32mPassed ^_^\033[0m" << std::endl;
+  return 0;
 }

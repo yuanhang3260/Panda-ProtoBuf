@@ -1732,7 +1732,7 @@ void StudentResponse::set_return_code(int return_code) {
 }
 
 void StudentResponse::clear_return_code() {
-  return_code_ = 0;
+  return_code_ = -1;
   has_bits_[0] &= (~0x2);
 }
 

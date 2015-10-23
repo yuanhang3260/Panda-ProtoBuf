@@ -48,6 +48,8 @@ class Rpc {
 
   void Wait();
 
+  std::string RpcCallStatus();
+
  private:
   proto::Message* request_ = nullptr;
   proto::Message* response_ = nullptr;

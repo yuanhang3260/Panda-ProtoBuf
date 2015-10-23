@@ -46,10 +46,15 @@ class RpcServer {
  private:
   void RpcConnectionListenerHandler();
   void ReadRpcRequestHandler(int fd);
+  void WriteRpcResponseHandler(int fd);
 
   int ParseRpcPacketHeader(RpcSession* session);
   int ParseRpcRequestHeader(RpcSession* session);
   int ParseRpcRequest(RpcSession* session);
+
+  void EnqueueRpcTask(RpcSession* session);
+  void BackendRpcProcess(RpcSession* session);
+  void PrepareResponseData(RpcSession* session);
 
   void RemoveSession(int fd);
 
@@ -63,7 +68,8 @@ class RpcServer {
   std::mutex map_mutex_;
 
   // Thread executors
-  Executors::EventManager recv_em_;
+  Executors::EventManager recv_em_; // Incoming request processor 
+  Executors::EventManager run_em_; // Execute rpc and reply
 
   // Listening socket
   int port_;
@@ -78,8 +84,9 @@ class RpcSession {
     PARSING_REQ_HDR = 2,
     PARSING_REQ = 3,
     READ_DONE = 4,
-    WRITING = 5,
-    WRITE_DONE = 6,
+    RPC_METHOD_DONE = 5,
+    WRITING = 6,
+    WRITE_DONE = 7,
   };
 
   RpcSession(int fd);
@@ -111,10 +118,12 @@ class RpcSession {
   int received_size() const { return received_size_; }
   void set_received_size(int size) { received_size_ = size; }
   void add_received_size(int size) { received_size_ += size; }
-  int remain_size() const { return bufSize_ - received_size_; }
+  int remain_size_to_recv() const { return bufSize_ - received_size_; }
+  int remain_size_to_send() const { return bufSize_ - sent_size_; }
   bool bufFull() const { return bufSize_ == received_size_; }
-  int sent_size() const { return received_size_; }
+  int sent_size() const { return sent_size_; }
   void set_sent_size(int size) { sent_size_ = size; }
+  void add_sent_size(int size) { sent_size_ += size; }
 
   // rpc state
   RpcState state() const { return state_; }
@@ -122,6 +131,8 @@ class RpcSession {
 
   RpcHandler* handler() const { return handler_; }
   void set_handler(RpcHandler* handler) { handler_ = handler; }
+
+  void ResetAll();
 
   // RPC obj
   Rpc* rpc() { return rpc_.get(); }

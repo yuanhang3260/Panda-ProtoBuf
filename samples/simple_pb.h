@@ -414,7 +414,7 @@ class StudentResponse: public ::proto::Message {
   // has bits
   char has_bits_[1];
   // message fields
-  int return_code_ = 0;
+  int return_code_ = -1;
   std::string error_message_ = "";
 
   // InitAsDefaultInstance()

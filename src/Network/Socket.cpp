@@ -93,7 +93,8 @@ int Socket::Read(void* buffer, const int nbytes) const {
 
 int Socket::Write(const void* buf, const int nbytes) const {
   if (!closed_ && fd_ > 0) {
-    return write(fd_, buf, nbytes);
+    int nwrite = write(fd_, buf, nbytes);
+    return nwrite;
   }
   return -1;
 }

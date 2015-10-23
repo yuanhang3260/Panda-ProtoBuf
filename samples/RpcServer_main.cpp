@@ -32,8 +32,11 @@ void StudentManagementImpl::AddStudent(
   // TODO : implement AddStudent.
   std::cout << "op_type = " << request->op_type() << std::endl;
   std::cout << "class_number = " << request->class_number() << std::endl;
-  std::cout << "stu_name = " << request->student_name() << std::endl;
+  std::cout << "student_name = " << request->student_name() << std::endl;
   std::cout << "stu1.age() = " << request->student().age() << std::endl;
+
+  response->set_return_code(0);
+  response->set_error_message("SUCCESS!");
 }
 
 void StudentManagementImpl::DeleteStudent(

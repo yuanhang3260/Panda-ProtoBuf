@@ -1,3 +1,5 @@
+#include <time.h>
+#include <chrono>
 #include <thread>
 
 #include "Utility/Utils.h"
@@ -95,10 +97,6 @@ int RpcService::ClientSendRequest(Rpc* rpc,
   // Serialize the request header
   proto::SerializedMessage* sdhdr = request_header.Serialize();
   const char* hdr_data = sdhdr->GetBytes();
-  for (unsigned int i = 0; i < sdhdr->size(); i++) {
-    printf("0x%x ", hdr_data[i] & 0xff);
-  }
-  printf("\n");
 
   // Begin sending data
   if (!rpc_client_channel_ || !rpc_client_channel_->IsReady()) {
@@ -113,19 +111,27 @@ int RpcService::ClientSendRequest(Rpc* rpc,
   rpc->set_check_num(check_num);  // set check_num
   int req_header_size = sdhdr->size(); // request header size
   int req_size = sdreq->size();  // user request size
-  printf("check_num = %d\n", check_num);
-  printf("req_header_size = %d\n", req_header_size);
-  printf("req_size = %d\n", req_size);
 
   rpc_client_channel_->SendData(reinterpret_cast<const char*>(&check_num),
                                 sizeof(check_num));
+  rpc_client_channel_->FlushSend();
+  std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 3));
+  
   rpc_client_channel_->SendData(reinterpret_cast<const char*>(&req_header_size),
                                 sizeof(req_header_size));
+  rpc_client_channel_->FlushSend();
+  std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 3));
+  
   rpc_client_channel_->SendData(reinterpret_cast<const char*>(&req_size),
                                 sizeof(req_size));
+  rpc_client_channel_->FlushSend();
+  std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 3));
 
   // Send request header and request message.
   rpc_client_channel_->SendData(hdr_data, sdhdr->size());
+  rpc_client_channel_->FlushSend();
+  std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 3));
+
   rpc_client_channel_->SendData(req_data, sdreq->size());
 
   // Flush send channel to make sure data is sent.

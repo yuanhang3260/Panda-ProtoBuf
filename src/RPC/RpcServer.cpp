@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 #include <fcntl.h>
 #include <assert.h>
+#include <iostream>
 
 #include "RpcServer.h"
 
@@ -34,7 +35,10 @@ void RpcServer::StartServing() {
   recv_em_.AddTask(
       Base::NewCallBack(&RpcServer::RpcConnectionListenerHandler, this));;
   recv_em_.Start();
+  run_em_.Start();
+
   recv_em_.AwaitTermination();
+  run_em_.AwaitTermination();
 }
 
 void RpcServer::RpcConnectionListenerHandler() {
@@ -69,7 +73,7 @@ void RpcServer::RpcConnectionListenerHandler() {
 }
 
 void RpcServer::ReadRpcRequestHandler(int fd) {
-  std::cout << "Read_Handler() ..." << std::endl;
+  std::cout << "Read_Handler(" << fd << ") ..." << std::endl;
   
   // Find the session control block.
   RpcSession* session = nullptr;
@@ -89,7 +93,8 @@ void RpcServer::ReadRpcRequestHandler(int fd) {
       session->state() == RpcSession::PARSING_PKT_HDR) {
     while (!session->bufFull() &&
            (nread = channel->ReceiveData(buf + session->received_size(),
-                                         session->remain_size())) > 0) {
+                                         session->remain_size_to_recv())) > 0) {
+      printf("#1 nread = %d\n", nread);
       session->add_received_size(nread);
       if (session->bufFull()) {
         // Done reading packet header. Parse the header and reset internal
@@ -104,18 +109,19 @@ void RpcServer::ReadRpcRequestHandler(int fd) {
       }
     }
     if ((nread == 0 && !session->bufFull()) ||
-        (errno != EAGAIN && errno != 0)) {
+        (errno != EAGAIN && errno != 0 && errno != ECONNRESET)) {
       RemoveSession(fd);
       return;
     }
   }
-  
+
   // Read request header
   buf = session->InternalBuf();
   if (session->state() == RpcSession::PARSING_REQ_HDR) {
     while (!session->bufFull() &&
            (nread = channel->ReceiveData(buf + session->received_size(),
-                                         session->remain_size())) > 0) {
+                                         session->remain_size_to_recv())) > 0) {
+      printf("#2 nread = %d\n", nread);
       session->add_received_size(nread);
       if (session->bufFull()) {
         // Done reading rpc request header. Deserialize RpcRequestHeader and
@@ -131,7 +137,7 @@ void RpcServer::ReadRpcRequestHandler(int fd) {
     }
     // Unexpected EOF or errno other than EAGAIN.
     if ((nread == 0 && !session->bufFull()) ||
-        (errno != EAGAIN && errno != 0)) {
+        (errno != EAGAIN && errno != 0 && errno != ECONNRESET)) {
       RemoveSession(fd);
       return;
     }
@@ -142,7 +148,8 @@ void RpcServer::ReadRpcRequestHandler(int fd) {
   if (session->state() == RpcSession::PARSING_REQ) {
     while (!session->bufFull() &&
            (nread = channel->ReceiveData(buf + session->received_size(),
-                                         session->remain_size())) > 0) {
+                                         session->remain_size_to_recv())) > 0) {
+      printf("#3 nread = %d\n", nread);
       session->add_received_size(nread);
       if (session->bufFull()) {
         // Done reading rpc request. Deserialize request and process.
@@ -157,32 +164,122 @@ void RpcServer::ReadRpcRequestHandler(int fd) {
     }
     // Unexpected EOF or errno other than EAGAIN.
     if ((nread == 0 && !session->bufFull()) ||
-        (errno != EAGAIN && errno != 0)) {
+        (errno != EAGAIN && errno != 0 && errno != ECONNRESET)) {
       RemoveSession(fd);
       return;
     }
   }
 
   // Excute the rpc method
-  // TODO: should submit it to another specific thread pool for rpc processing.
+  // TODO: Submit it to a separate thread pool for rpc processing and reply.
   if (session->state() == RpcSession::READ_DONE) {
-    (*session->handler()->rpc_method)(session->rpc());
+    EnqueueRpcTask(session);
   }
   else {
     recv_em_.ModifyTaskWaitingStatus(fd, EPOLLIN | EPOLLONESHOT,
         Base::NewCallBack(&RpcServer::ReadRpcRequestHandler, this, fd));
   }
+}
 
-  // if (session->state() == RpcSession::FINISHREADING) {
-  //   //std::cout << "Change to writing awating for " << fd << std::endl;
-  //   //event_manger_.RemoveTaskWaitingReadable(fd);
-  //   event_manger_.ModifyTaskWaitingStatus(fd, EPOLLOUT | EPOLLONESHOT,
-  //       Base::NewCallBack(&SimpleServer::WriteRequestHandler, this, fd));
-  // }
+void RpcServer::WriteRpcResponseHandler(int fd) {
+  std::cout << "Write_Handler(" << fd << ") ..." << std::endl;
+
+  // Find the session control block.
+  RpcSession* session = nullptr;
+  {
+    // TODO: handle no seesion error
+    std::unique_lock<std::mutex> lock(map_mutex_);
+    if (sessions_map_.find(fd) == sessions_map_.end()) {
+      sessions_map_[fd] = new RpcSession(fd);
+    }
+    session = sessions_map_.at(fd);
+  }
+  RpcServerChannel* channel = session->channel();
+
+  // Rpc method execution done - prepare for data to send
+  if (session->state() == RpcSession::RPC_METHOD_DONE) {
+    PrepareResponseData(session);
+    session->set_state(RpcSession::WRITING);
+  }
+
+  if (session->state() == RpcSession::WRITING) {
+    char* buf = session->InternalBuf();
+    int nwrite = channel->socket()->Write(buf + session->sent_size(),
+                                          session->remain_size_to_send());
+    std::cout << "nwrite = " << nwrite << std::endl;
+    if (nwrite < 0) {
+      RemoveSession(fd);
+      return;
+    }
+    session->add_sent_size(nwrite);
+    if (session->sent_size() == session->bufSize()) {
+      session->set_state(RpcSession::WRITE_DONE);
+      //RemoveSession(fd);
+      session->set_state(RpcSession::INIT);
+      session->ResetAll();
+      recv_em_.ModifyTaskWaitingStatus(fd, EPOLLIN | EPOLLONESHOT,
+        Base::NewCallBack(&RpcServer::ReadRpcRequestHandler, this, fd));
+    }
+    else {
+      recv_em_.ModifyTaskWaitingStatus(fd, EPOLLOUT | EPOLLONESHOT,
+          Base::NewCallBack(&RpcServer::WriteRpcResponseHandler, this, fd));
+    }
+  }
+  return;
+}
+
+void RpcServer::PrepareResponseData(RpcSession* session) {
+  // Init a response header.
+  RpcResponseHeader response_header;
+
+  // Serialize the response message
+  proto::SerializedMessage* sdres =
+      session->rpc()->internal_response()->Serialize();
+  const char* res_data = sdres->GetBytes();
+
+  // Set request size in request header
+  response_header.set_rpc_response_length(sdres->size());
+
+  // Serialize the request header
+  proto::SerializedMessage* sdhdr = response_header.Serialize();
+  const char* hdr_data = sdhdr->GetBytes();
+
+  // Send packet header:
+  // | check number | header-length | request-length | ... data ... |
+  //      4 byte          4 byte          4 byte
+  int check_num = session->check_num();
+  int res_header_size = sdhdr->size(); // response header size
+  int res_size = sdres->size();  // user response size
+
+  // Copy all data to internal buffer to prepare for sending.
+  session->ResetBuf(3 * sizeof(int) + sdhdr->size() + sdres->size());
+  memcpy(session->InternalBuf(), (const char*)&check_num, sizeof(int));
+  memcpy(session->InternalBuf() + sizeof(int), (const char*)&res_header_size,
+         sizeof(int));
+  memcpy(session->InternalBuf() + 2 * sizeof(int), (const char*)&res_size,
+         sizeof(int));
+  memcpy(session->InternalBuf() + 3 * sizeof(int), hdr_data, sdhdr->size());
+  memcpy(session->InternalBuf() + 3 * sizeof(int) + sdhdr->size(), res_data,
+         sdres->size());
+
+  delete sdres;
+  delete sdhdr;
 }
 
 void RpcServer::RemoveSession(int fd) {
-  std::cout << "Removing session fd" << std::endl;
+  std::cout << "Removing session " << fd << std::endl;
+  // Remove fd from epoll.
+  recv_em_.RemoveAwaitingTask(fd);
+
+  // Delete fd_message map record.
+  {
+    std::unique_lock<std::mutex> lock(map_mutex_);
+    if (sessions_map_.find(fd) == sessions_map_.end()) {
+      return;
+    }
+    delete sessions_map_[fd];
+    sessions_map_.erase(sessions_map_.find(fd));
+  }
 }
 
 int RpcServer::ParseRpcPacketHeader(RpcSession* session) {
@@ -193,11 +290,11 @@ int RpcServer::ParseRpcPacketHeader(RpcSession* session) {
   session->set_check_num(*(reinterpret_cast<int*>(buf)));
   session->set_req_header_size(*(reinterpret_cast<uint32*>(buf + sizeof(int))));
   session->set_req_size(*(reinterpret_cast<uint32*>(buf + 2 * sizeof(int))));
-  printf("check_num = %d\n", session->check_num());
-  printf("req_header_size = %d\n", session->req_header_size());
-  printf("req_size = %d\n", session->req_size());
-  
+
   if (session->req_header_size() <= 0 || session->req_size() <= 0) {
+    std::cerr << "[ERROR] "
+              << "reqeust header size = " << session->req_header_size() << ", "
+              << "request body size = " << session->req_size() << std::endl;
     return -1;
   }
   return 0;
@@ -207,9 +304,6 @@ int RpcServer::ParseRpcRequestHeader(RpcSession* session) {
   RpcRequestHeader* req_hdr = new RpcRequestHeader();
 
   req_hdr->DeSerialize(session->InternalBuf(), session->bufSize());
-  // std::cout << "service_name = " << req_hdr->service_name() << std::endl;
-  // std::cout << "method_name = " << req_hdr->method_name() << std::endl;
-  // std::cout << "rpc_request_length = " << req_hdr->rpc_request_length() << std::endl;
   // Verify rpc requst length with data in packet header.
   if (req_hdr->rpc_request_length() != session->req_size()) {
     delete req_hdr;
@@ -254,6 +348,20 @@ int RpcServer::ParseRpcRequest(RpcSession* session) {
                                        session->bufSize());
   // Okay, we're ready to execute the rpc method.
   return 0;
+}
+
+void RpcServer::EnqueueRpcTask(RpcSession* session) {
+  run_em_.AddTask(Base::NewCallBack(
+                      &RpcServer::BackendRpcProcess, this, session));
+}
+
+void RpcServer::BackendRpcProcess(RpcSession* session) {
+  // Run rpc task.
+  (*session->handler()->rpc_method)(session->rpc());
+
+  // Send reply.
+  session->set_state(RpcSession::RPC_METHOD_DONE);
+  WriteRpcResponseHandler(session->getFd());
 }
 
 const RpcService* RpcServer::FindRpcService(std::string name) {
@@ -306,7 +414,7 @@ RpcSession::~RpcSession() {
 }
 
 void RpcSession::ResetBuf(int size) {
-  std::cout << "Resetting buf = " << size << std::endl;
+  //std::cout << "Resetting buf = " << size << std::endl;
   if (buf_) {
     delete[] buf_;
     buf_ = nullptr;
@@ -322,6 +430,13 @@ void RpcSession::ResetBuf(int size) {
 Rpc* RpcSession::CreateRpc() {
   rpc_.reset(new Rpc());
   return rpc_.get();
+}
+
+void RpcSession::ResetAll() {
+  bufSize_ = 3 * sizeof(int);
+  buf_ = new char[bufSize_];
+  received_size_ = 0;
+  sent_size_ = 0;
 }
 
 void RpcSession::PrintInternalBuffer() const {

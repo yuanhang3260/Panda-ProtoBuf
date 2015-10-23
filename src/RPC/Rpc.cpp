@@ -21,4 +21,31 @@ void Rpc::SetRpcFinished() {
   rpc_finished_ = true;
 }
 
+std::string Rpc::RpcCallStatus() {
+  if (client_status_ == INIT) {
+    return "Init";
+  }
+  else if (client_status_ == SUCCESS) {
+    return "Success";
+  }
+  else if (client_status_ == INTERNAL_CHANNEL_ERROR) {
+    return "Internal Channel Error";
+  }
+  else if (client_status_ == CHECK_NUM_ERROR) {
+    return "check Num Error";
+  }
+  else if (client_status_ == RESPONSE_HEADER_SIZE_ERROR) {
+    return "Response Header Size Error";
+  }
+  else if (client_status_ == RESPONSE_SIZE_ERROR) {
+    return "Response Size Error";
+  }
+  else if (client_status_ == BAD_RESPONSE_HEADER) {
+    return "Bad Response Header";
+  }
+  else {
+    return "Unknown";
+  }
+}
+
 }  // namespace RPC
