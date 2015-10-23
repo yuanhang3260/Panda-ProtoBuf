@@ -100,7 +100,8 @@ void RpcServer::ReadRpcRequestHandler(int fd) {
         // Done reading packet header. Parse the header and reset internal
         // buffer. And change state to PARSING_REQ_HDR.
         if (ParseRpcPacketHeader(session) < 0) {
-          RemoveSession(fd);
+          session->set_state(RpcSession::REQUEST_ERROR);
+          EnqueueRpcBanckendProcessing(session);
           return;
         }
         session->ResetBuf(session->req_header_size());
@@ -127,7 +128,8 @@ void RpcServer::ReadRpcRequestHandler(int fd) {
         // Done reading rpc request header. Deserialize RpcRequestHeader and
         // do sanity check.
         if (ParseRpcRequestHeader(session) < 0) {
-          RemoveSession(fd);
+          session->set_state(RpcSession::REQUEST_ERROR);
+          EnqueueRpcBanckendProcessing(session);
           return;
         }
         session->ResetBuf(session->req_size());
@@ -154,7 +156,8 @@ void RpcServer::ReadRpcRequestHandler(int fd) {
       if (session->bufFull()) {
         // Done reading rpc request. Deserialize request and process.
         if (ParseRpcRequest(session) < 0) {
-          RemoveSession(fd);
+          session->set_state(RpcSession::REQUEST_ERROR);
+          EnqueueRpcBanckendProcessing(session);
           return;
         }
         session->ResetBuf(0);
@@ -173,7 +176,7 @@ void RpcServer::ReadRpcRequestHandler(int fd) {
   // Excute the rpc method
   // TODO: Submit it to a separate thread pool for rpc processing and reply.
   if (session->state() == RpcSession::READ_DONE) {
-    EnqueueRpcTask(session);
+    EnqueueRpcBanckendProcessing(session);
   }
   else {
     recv_em_.ModifyTaskWaitingStatus(fd, EPOLLIN | EPOLLONESHOT,
@@ -199,10 +202,16 @@ void RpcServer::WriteRpcResponseHandler(int fd) {
   // Rpc method execution done - prepare for data to send
   if (session->state() == RpcSession::RPC_METHOD_DONE) {
     PrepareResponseData(session);
-    session->set_state(RpcSession::WRITING);
+    session->set_state(RpcSession::WRITING_SUCCESS_RES);
   }
 
-  if (session->state() == RpcSession::WRITING) {
+  if (session->state() == RpcSession::REQUEST_ERROR) {
+    PrepareResponseData(session);
+    session->set_state(RpcSession::WRITING_ERROR_RES);
+  }
+
+  if (session->state() == RpcSession::WRITING_SUCCESS_RES ||
+      session->state() == RpcSession::WRITING_ERROR_RES) {
     char* buf = session->InternalBuf();
     int nwrite = channel->socket()->Write(buf + session->sent_size(),
                                           session->remain_size_to_send());
@@ -213,12 +222,17 @@ void RpcServer::WriteRpcResponseHandler(int fd) {
     }
     session->add_sent_size(nwrite);
     if (session->sent_size() == session->bufSize()) {
-      session->set_state(RpcSession::WRITE_DONE);
-      //RemoveSession(fd);
-      session->set_state(RpcSession::INIT);
-      session->ResetAll();
-      recv_em_.ModifyTaskWaitingStatus(fd, EPOLLIN | EPOLLONESHOT,
-        Base::NewCallBack(&RpcServer::ReadRpcRequestHandler, this, fd));
+      // TODO: keep-alive ?
+      // Only keep-alive if last rpc call is succss.
+      if (session->state() == RpcSession::WRITING_SUCCESS_RES) {
+        session->set_state(RpcSession::INIT);
+        session->ResetAll();
+        recv_em_.AddTaskWaitingReadable(fd,
+          Base::NewCallBack(&RpcServer::ReadRpcRequestHandler, this, fd));
+      }
+      else {
+        RemoveSession(fd);
+      }
     }
     else {
       recv_em_.ModifyTaskWaitingStatus(fd, EPOLLOUT | EPOLLONESHOT,
@@ -228,42 +242,23 @@ void RpcServer::WriteRpcResponseHandler(int fd) {
   return;
 }
 
-void RpcServer::PrepareResponseData(RpcSession* session) {
-  // Init a response header.
-  RpcResponseHeader response_header;
+void RpcServer::EnqueueRpcBanckendProcessing(RpcSession* session) {
+  recv_em_.RemoveAwaitingTask(session->getFd());
+  run_em_.AddTask(Base::NewCallBack(
+                      &RpcServer::BackendRpcProcess, this, session));
+}
 
-  // Serialize the response message
-  proto::SerializedMessage* sdres =
-      session->rpc()->internal_response()->Serialize();
-  const char* res_data = sdres->GetBytes();
+void RpcServer::BackendRpcProcess(RpcSession* session) {
+  // Run rpc task.
+  if (session->state() == RpcSession::READ_DONE &&
+      session->handler()->rpc_method) {
+    (*session->handler()->rpc_method)(session->rpc());
+    session->rpc()->SetRpcReturnCode(RpcResponseHeader::OK);
+    session->set_state(RpcSession::RPC_METHOD_DONE);
+  }
 
-  // Set request size in request header
-  response_header.set_rpc_response_length(sdres->size());
-
-  // Serialize the request header
-  proto::SerializedMessage* sdhdr = response_header.Serialize();
-  const char* hdr_data = sdhdr->GetBytes();
-
-  // Send packet header:
-  // | check number | header-length | request-length | ... data ... |
-  //      4 byte          4 byte          4 byte
-  int check_num = session->check_num();
-  int res_header_size = sdhdr->size(); // response header size
-  int res_size = sdres->size();  // user response size
-
-  // Copy all data to internal buffer to prepare for sending.
-  session->ResetBuf(3 * sizeof(int) + sdhdr->size() + sdres->size());
-  memcpy(session->InternalBuf(), (const char*)&check_num, sizeof(int));
-  memcpy(session->InternalBuf() + sizeof(int), (const char*)&res_header_size,
-         sizeof(int));
-  memcpy(session->InternalBuf() + 2 * sizeof(int), (const char*)&res_size,
-         sizeof(int));
-  memcpy(session->InternalBuf() + 3 * sizeof(int), hdr_data, sdhdr->size());
-  memcpy(session->InternalBuf() + 3 * sizeof(int) + sdhdr->size(), res_data,
-         sdres->size());
-
-  delete sdres;
-  delete sdhdr;
+  // Send reply.
+  WriteRpcResponseHandler(session->getFd());
 }
 
 void RpcServer::RemoveSession(int fd) {
@@ -282,10 +277,62 @@ void RpcServer::RemoveSession(int fd) {
   }
 }
 
+void RpcServer::PrepareResponseData(RpcSession* session) {
+  // Init a response header.
+  RpcResponseHeader response_header;
+
+  proto::SerializedMessage* sdres = nullptr;
+  if (session->state() == RpcSession::RPC_METHOD_DONE) {
+    // Serialize the response message
+    sdres = session->rpc()->internal_response()->Serialize();
+
+    // Set request size in request header
+    response_header.set_rpc_response_length(sdres->size());
+  }
+  else {
+    response_header.set_rpc_response_length(0);
+  }
+
+  // Set rpc return code and error message to rpc response header.
+  response_header.set_rpc_return_code(session->rpc()->RpcReturnCode());
+  response_header.set_rpc_return_msg(session->rpc()->RpcReturnMessage());
+
+  // Serialize the request header
+  proto::SerializedMessage* sdhdr = response_header.Serialize();
+
+  // Send packet header:
+  // | check number | header-length | request-length | ... data ... |
+  //      4 byte          4 byte          4 byte
+  int check_num = session->check_num();
+  int res_header_size = sdhdr->size(); // response header size
+  int res_size = sdres? sdres->size() : 0;  // user response size
+
+  // Copy all data to internal buffer to prepare for sending.
+  session->ResetBuf(3 * sizeof(int) + res_header_size + res_size);
+  memcpy(session->InternalBuf(), (const char*)&check_num, sizeof(int));
+  memcpy(session->InternalBuf() + sizeof(int), (const char*)&res_header_size,
+         sizeof(int));
+  memcpy(session->InternalBuf() + 2 * sizeof(int), (const char*)&res_size,
+         sizeof(int));
+  memcpy(session->InternalBuf() + 3 * sizeof(int),
+         sdhdr->GetBytes(), sdhdr->size());
+  if (sdres) {
+    memcpy(session->InternalBuf() + 3 * sizeof(int) + sdhdr->size(),
+           sdres->GetBytes(), sdres->size());
+    delete sdres;
+  }
+
+  delete sdhdr;
+}
+
 int RpcServer::ParseRpcPacketHeader(RpcSession* session) {
+  // Create rpc object for this session.
+  Rpc* rpc = session->CreateRpc();
+
   if (!session || session->bufSize() != 3 * sizeof(int)) {
     return -1;
   }
+
   char* buf = session->InternalBuf();
   session->set_check_num(*(reinterpret_cast<int*>(buf)));
   session->set_req_header_size(*(reinterpret_cast<uint32*>(buf + sizeof(int))));
@@ -295,6 +342,7 @@ int RpcServer::ParseRpcPacketHeader(RpcSession* session) {
     std::cerr << "[ERROR] "
               << "reqeust header size = " << session->req_header_size() << ", "
               << "request body size = " << session->req_size() << std::endl;
+    rpc->SetRpcReturnCode(RpcResponseHeader::INVALID_RPC_PKT_HEADER);
     return -1;
   }
   return 0;
@@ -307,6 +355,7 @@ int RpcServer::ParseRpcRequestHeader(RpcSession* session) {
   // Verify rpc requst length with data in packet header.
   if (req_hdr->rpc_request_length() != session->req_size()) {
     delete req_hdr;
+    session->rpc()->SetRpcReturnCode(RpcResponseHeader::REQ_LENG_MISMATCH);
     return -1;
   }
 
@@ -315,6 +364,7 @@ int RpcServer::ParseRpcRequestHeader(RpcSession* session) {
       req_hdr->service_name() + "." + req_hdr->method_name();
   RpcHandler* handler = FindRpcHandler(full_service_name);
   if (!handler) {
+    session->rpc()->SetRpcReturnCode(RpcResponseHeader::UNKNOWN_SERVICE);
     std::cerr << "ERROR: Can't find service_name "
               << full_service_name << std::endl;
     return -1;
@@ -330,38 +380,21 @@ int RpcServer::ParseRpcRequest(RpcSession* session) {
   RpcHandler* handler = session->handler();
 
   // Create rpc obj for this session
-  Rpc* rpc = session->CreateRpc();
   if (handler->request_prototype) {
-    rpc->set_internal_request(handler->request_prototype->New());
+    session->rpc()->set_internal_request(handler->request_prototype->New());
   }
   if (handler->response_prototype) {
-    rpc->set_internal_response(handler->response_prototype->New());
+    session->rpc()->set_internal_response(handler->response_prototype->New());
   }
   if (handler->stream_prototype) {
-    rpc->set_internal_stream(handler->stream_prototype->New());
+    session->rpc()->set_internal_stream(handler->stream_prototype->New());
   }
-  // TODO: set rpc internal callback as FinishRpc() which sends reply to user.
-  // rpc->set_cb_final();
 
   // Deserialize the rpc request
-  rpc->internal_request()->DeSerialize(session->InternalBuf(),
-                                       session->bufSize());
+  session->rpc()->internal_request()->DeSerialize(session->InternalBuf(),
+                                                  session->bufSize());
   // Okay, we're ready to execute the rpc method.
   return 0;
-}
-
-void RpcServer::EnqueueRpcTask(RpcSession* session) {
-  run_em_.AddTask(Base::NewCallBack(
-                      &RpcServer::BackendRpcProcess, this, session));
-}
-
-void RpcServer::BackendRpcProcess(RpcSession* session) {
-  // Run rpc task.
-  (*session->handler()->rpc_method)(session->rpc());
-
-  // Send reply.
-  session->set_state(RpcSession::RPC_METHOD_DONE);
-  WriteRpcResponseHandler(session->getFd());
 }
 
 const RpcService* RpcServer::FindRpcService(std::string name) {

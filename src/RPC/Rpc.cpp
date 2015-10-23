@@ -15,10 +15,9 @@ void Rpc::Wait() {
 }
 
 void Rpc::SetRpcFinished() {
-  rpc_wait_cond_.notify_one();
-
   std::unique_lock<std::mutex> lock(rpc_wait_mutex_);
   rpc_finished_ = true;
+  rpc_wait_cond_.notify_one();
 }
 
 std::string Rpc::RpcCallStatus() {
@@ -42,6 +41,30 @@ std::string Rpc::RpcCallStatus() {
   }
   else if (client_status_ == BAD_RESPONSE_HEADER) {
     return "Bad Response Header";
+  }
+  else if (client_status_ == BAD_RESPONSE) {
+    return "Bad Response";
+  }
+  else {
+    return "Unknown";
+  }
+}
+
+std::string Rpc::RpcReturnMessage() const {
+  if (rpc_return_code_ == RpcResponseHeader::OK) {
+    return "OK";
+  }
+  else if (rpc_return_code_ == RpcResponseHeader::INVALID_RPC_PKT_HEADER) {
+    return "Invalid RPC Request Header";
+  }
+  else if (rpc_return_code_ == RpcResponseHeader::REQ_LENG_MISMATCH) {
+    return "Request Length Mismatch in Headers";
+  }
+  else if (rpc_return_code_ == RpcResponseHeader::UNKNOWN_SERVICE) {
+    return "Can't Find this RPC Service.Method";
+  }
+  else if (rpc_return_code_ == RpcResponseHeader::INTERNAL_SERVER_ERROR) {
+    return "Internal Server Error";
   }
   else {
     return "Unknown";

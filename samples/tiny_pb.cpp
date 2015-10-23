@@ -379,7 +379,8 @@ bool DogInfo::Equals(const DogInfo& other) const {
       return false;
     }
   }
-  if (!family_->Equals(*other.family_)) {
+  if (family_ && other.family_ &&
+      !family_->Equals(*other.family_)) {
     return false;
   }
   for (unsigned int i = 0; i < alias_.size(); i++) {
@@ -467,7 +468,9 @@ DogInfo* DogInfo::default_instance_ = NULL;
 
 // destructor
 DogInfo::~DogInfo() {
-  delete family_;
+  if (family_) {
+    delete family_;
+  }
 }
 
 // "age" = 1

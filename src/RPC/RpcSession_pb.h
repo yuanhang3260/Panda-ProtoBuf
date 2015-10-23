@@ -77,6 +77,15 @@ class RpcRequestHeader: public ::proto::Message {
 
 class RpcResponseHeader: public ::proto::Message {
  public:
+  enum RpcReturnCode {
+    UNKNOWN,
+    OK,
+    INVALID_RPC_PKT_HEADER,
+    REQ_LENG_MISMATCH,
+    UNKNOWN_SERVICE,
+    INTERNAL_SERVER_ERROR,
+  };
+
   // constructors and destructor //
   RpcResponseHeader();
   ~RpcResponseHeader();
@@ -96,7 +105,22 @@ class RpcResponseHeader: public ::proto::Message {
 
   // --- Field accessors --- //
 
-  // "rpc_response_length" = 1
+  // "rpc_return_code" = 1
+  bool has_rpc_return_code() const;
+  RpcResponseHeader::RpcReturnCode rpc_return_code() const;
+  void set_rpc_return_code(RpcResponseHeader::RpcReturnCode rpc_return_code);
+  void clear_rpc_return_code();
+
+  // "rpc_return_msg" = 2
+  bool has_rpc_return_msg() const;
+  const std::string& rpc_return_msg() const;
+  void set_rpc_return_msg(const std::string& rpc_return_msg);
+  void set_rpc_return_msg(const char* rpc_return_msg);
+  void set_rpc_return_msg(const char* rpc_return_msg, int size);
+  std::string mutable_rpc_return_msg();
+  void clear_rpc_return_msg();
+
+  // "rpc_response_length" = 3
   bool has_rpc_response_length() const;
   unsigned int rpc_response_length() const;
   void set_rpc_response_length(unsigned int rpc_response_length);
@@ -106,6 +130,8 @@ class RpcResponseHeader: public ::proto::Message {
   // has bits
   char has_bits_[1];
   // message fields
+  RpcResponseHeader::RpcReturnCode rpc_return_code_ = RpcResponseHeader::UNKNOWN;
+  std::string rpc_return_msg_ = "";
   unsigned int rpc_response_length_ = 0;
 
   // InitAsDefaultInstance()

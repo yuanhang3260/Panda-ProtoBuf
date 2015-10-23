@@ -52,7 +52,7 @@ class RpcServer {
   int ParseRpcRequestHeader(RpcSession* session);
   int ParseRpcRequest(RpcSession* session);
 
-  void EnqueueRpcTask(RpcSession* session);
+  void EnqueueRpcBanckendProcessing(RpcSession* session);
   void BackendRpcProcess(RpcSession* session);
   void PrepareResponseData(RpcSession* session);
 
@@ -85,8 +85,10 @@ class RpcSession {
     PARSING_REQ = 3,
     READ_DONE = 4,
     RPC_METHOD_DONE = 5,
-    WRITING = 6,
-    WRITE_DONE = 7,
+    REQUEST_ERROR = 6,
+    WRITING_SUCCESS_RES = 7,
+    WRITING_ERROR_RES = 7,
+    WRITE_DONE = 8,
   };
 
   RpcSession(int fd);

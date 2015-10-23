@@ -29,12 +29,16 @@ class HmzxStudentSystem {
   void Init();
 
   int RegisterNewStudent();
+  int RegisterNewStudentAsync();
 
   int DeRegisterStudent();
 
  private:
   Student* CreateStudent();
   void DoneRegister();
+  void DoneRegisterAsync(RPC::Rpc* rpc,
+                         StudentRequest* request,
+                         StudentResponse* response);
 
   HaiZhong::StudentManagement* sm_stub_ = nullptr;
   int port_;
@@ -61,12 +65,13 @@ int HmzxStudentSystem::RegisterNewStudent() {
   sm_stub_->AddStudent(&rpc, &request, &response,
                        new Base::Closure(&HmzxStudentSystem::DoneRegister,
                                          this));
-
   // Wait
   rpc.Wait();
 
   if (!rpc.isOk()) {
     std::cerr << "Rpc call status: " << rpc.RpcCallStatus() << std::endl;
+    std::cerr << "Rpc return code: " << rpc.RpcReturnCode() << std::endl;
+    std::cerr << "Rpc return msg: " << rpc.RpcReturnMessage() << std::endl;
     return -1;
   }
 
@@ -75,6 +80,25 @@ int HmzxStudentSystem::RegisterNewStudent() {
               << response.return_code() << std::endl;
     return -1;
   }
+  return 0;
+}
+
+int HmzxStudentSystem::RegisterNewStudentAsync() {
+  RPC::Rpc* rpc = new RPC::Rpc();
+  StudentRequest* request = new StudentRequest();
+  StudentResponse* response = new StudentResponse();
+
+  request->set_op_type(StudentRequest::ADD);
+  request->set_class_number(16);
+  request->set_student_name("hy");
+  
+  // create a student
+  request->set_allocated_student(CreateStudent());
+
+  // Rpc call
+  sm_stub_->AddStudent(rpc, request, response,
+                       new Base::Closure(&HmzxStudentSystem::DoneRegisterAsync,
+                                         this, rpc, request, response));
   return 0;
 }
 
@@ -104,6 +128,27 @@ void HmzxStudentSystem::DoneRegister() {
   std::cout << "Done register ~" << std::endl;
 }
 
+void HmzxStudentSystem::DoneRegisterAsync(
+    RPC::Rpc* rpc, StudentRequest* request, StudentResponse* response) {
+  if (!rpc->isOk()) {
+    std::cerr << "Rpc call status: " << rpc->RpcCallStatus() << std::endl;
+    std::cout << "\033[1;31mFailed***\033[0m" << std::endl;
+    exit(0);
+  }
+
+  if (response->return_code() != 0) {
+    std::cerr << "StduentResponse error code: "
+              << response->return_code() << std::endl;
+    std::cout << "\033[1;31mFailed***\033[0m" << std::endl;
+    exit(0);
+  }
+
+  delete rpc;
+  delete request;
+  delete response;
+  std::cout << "Done register async ~" << std::endl;
+}
+
 void LoadTest(int port) {
   HmzxStudentSystem hmzx;
   hmzx.SetRpcServerPort(port);
@@ -124,7 +169,7 @@ int main(int argc, char** argv) {
     port = std::stoi(argv[1]);
   }
 
-  Executors::FixedThreadPool pool(10);
+  Executors::FixedThreadPool pool(20);
   pool.Start();
 
   for (int i = 0; i < 100; i++) {
@@ -134,6 +179,6 @@ int main(int argc, char** argv) {
   pool.Stop();
   pool.AwaitTermination();
 
-  std::cout << "\033[1;32mPassed ^_^\033[0m" << std::endl;
+  std::cout << "\033[2;32mPassed ^_^\033[0m" << std::endl;
   return 0;
 }

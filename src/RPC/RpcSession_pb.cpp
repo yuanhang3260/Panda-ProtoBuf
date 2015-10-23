@@ -63,7 +63,9 @@ void static_init_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession() {
   ::proto::MessageFactory::RegisterGeneratedMessage(RpcRequestHeader_reflection_);
 
   // static init for class RpcResponseHeader
-  static const int RpcResponseHeader_offsets_[1] = {
+  static const int RpcResponseHeader_offsets_[3] = {
+    PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcResponseHeader, rpc_return_code_),
+    PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcResponseHeader, rpc_return_msg_),
     PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcResponseHeader, rpc_response_length_),
   };
   i = 0;
@@ -347,6 +349,8 @@ RpcResponseHeader& RpcResponseHeader::operator=(RpcResponseHeader&& other) {
 
 // CopyFrom()
 void RpcResponseHeader::CopyFrom(const RpcResponseHeader& other) {
+  rpc_return_code_ = other.rpc_return_code();
+  rpc_return_msg_ = other.rpc_return_msg();
   rpc_response_length_ = other.rpc_response_length();
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
     has_bits_[i] = other.has_bits_[i];
@@ -358,6 +362,8 @@ void RpcResponseHeader::MoveFrom(RpcResponseHeader&& other) {
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
     has_bits_[i] = other.has_bits_[i];
   }
+  rpc_return_code_ = other.rpc_return_code();
+  rpc_return_msg_ = std::move(other.mutable_rpc_return_msg());
   rpc_response_length_ = other.rpc_response_length();
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
     other.has_bits_[i] = 0;
@@ -370,6 +376,12 @@ bool RpcResponseHeader::Equals(const RpcResponseHeader& other) const {
     if (has_bits_[i] != other.has_bits_[i]) {
       return false;
     }
+  }
+  if (rpc_return_code_ != other.rpc_return_code_) {
+    return false;
+  }
+  if (rpc_return_msg_ != other.rpc_return_msg_) {
+    return false;
   }
   if (rpc_response_length_ != other.rpc_response_length_) {
     return false;
@@ -400,6 +412,14 @@ void RpcResponseHeader::Swap(RpcResponseHeader* other) {
     buf[i + sizeof(has_bits_)] = other->has_bits_[i];
   }
 
+  RpcResponseHeader::RpcReturnCode rpc_return_code_tmp__ = other->rpc_return_code();
+  other->set_rpc_return_code(rpc_return_code_);
+  set_rpc_return_code(rpc_return_code_tmp__);
+
+  std::string rpc_return_msg_tmp__ = std::move(other->mutable_rpc_return_msg());
+  other->mutable_rpc_return_msg() = std::move(rpc_return_msg_);
+  rpc_return_msg_ = std::move(rpc_return_msg_tmp__);
+
   unsigned int rpc_response_length_tmp__ = other->rpc_response_length();
   other->set_rpc_response_length(rpc_response_length_);
   set_rpc_response_length(rpc_response_length_tmp__);
@@ -426,9 +446,61 @@ RpcResponseHeader* RpcResponseHeader::default_instance_ = NULL;
 RpcResponseHeader::~RpcResponseHeader() {
 }
 
-// "rpc_response_length" = 1
-bool RpcResponseHeader::has_rpc_response_length() const {
+// "rpc_return_code" = 1
+bool RpcResponseHeader::has_rpc_return_code() const {
   return (has_bits_[0] & 0x2) != 0;
+}
+
+RpcResponseHeader::RpcReturnCode RpcResponseHeader::rpc_return_code() const {
+  return rpc_return_code_;
+}
+
+void RpcResponseHeader::set_rpc_return_code(RpcResponseHeader::RpcReturnCode rpc_return_code) {
+  rpc_return_code_ = rpc_return_code;
+  has_bits_[0] |= 0x2;
+}
+
+void RpcResponseHeader::clear_rpc_return_code() {
+  rpc_return_code_ = RpcResponseHeader::UNKNOWN;
+  has_bits_[0] &= (~0x2);
+}
+
+// "rpc_return_msg" = 2
+bool RpcResponseHeader::has_rpc_return_msg() const {
+  return (has_bits_[0] & 0x4) != 0;
+}
+
+const std::string& RpcResponseHeader::rpc_return_msg() const {
+  return rpc_return_msg_;
+}
+
+void RpcResponseHeader::set_rpc_return_msg(const std::string& rpc_return_msg) {
+  rpc_return_msg_ = rpc_return_msg;
+  has_bits_[0] |= 0x4;
+}
+
+void RpcResponseHeader::set_rpc_return_msg(const char* rpc_return_msg) {
+  rpc_return_msg_ = std::string(rpc_return_msg);
+  has_bits_[0] |= 0x4;
+}
+
+void RpcResponseHeader::set_rpc_return_msg(const char* rpc_return_msg, int size) {
+  rpc_return_msg_ = std::string(rpc_return_msg, size);
+  has_bits_[0] |= 0x4;
+}
+
+std::string RpcResponseHeader::mutable_rpc_return_msg() {
+  return rpc_return_msg_;
+}
+
+void RpcResponseHeader::clear_rpc_return_msg() {
+  rpc_return_msg_ = "";
+  has_bits_[0] &= (~0x4);
+}
+
+// "rpc_response_length" = 3
+bool RpcResponseHeader::has_rpc_response_length() const {
+  return (has_bits_[0] & 0x8) != 0;
 }
 
 unsigned int RpcResponseHeader::rpc_response_length() const {
@@ -437,12 +509,12 @@ unsigned int RpcResponseHeader::rpc_response_length() const {
 
 void RpcResponseHeader::set_rpc_response_length(unsigned int rpc_response_length) {
   rpc_response_length_ = rpc_response_length;
-  has_bits_[0] |= 0x2;
+  has_bits_[0] |= 0x8;
 }
 
 void RpcResponseHeader::clear_rpc_response_length() {
   rpc_response_length_ = 0;
-  has_bits_[0] &= (~0x2);
+  has_bits_[0] &= (~0x8);
 }
 
 }  // namespace RPC

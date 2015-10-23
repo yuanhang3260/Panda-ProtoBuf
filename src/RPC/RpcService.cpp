@@ -40,15 +40,16 @@ void RpcService::StartClientRpcCall(
     proto::Message* response,
     Base::Closure* cb) {
   // Init Channel
+  // TODO: Do the connect here instead of when creating the client channel.
   rpc_client_channel_->Initialize();
 
-  // Synchronous style ?
+  // Synchronous style.
   // DoRpcCall(rpc, descriptor, method_name, request, response, cb);
 
-  // Do rpc call asynchronously.
+  // Asynchronously style.
   std::thread t(&RpcService::DoRpcCall, this,
                 rpc, descriptor, method_name, request, response, cb);
-  t.join();
+  t.detach();
 }
 
 void RpcService::DoRpcCall(Rpc* rpc,
@@ -67,6 +68,8 @@ void RpcService::DoRpcCall(Rpc* rpc,
     return;
   }
 
+  rpc->set_client_status(Rpc::SUCCESS);
+
   // Run the callback
   if (cb) {
     cb->Run();
@@ -74,7 +77,6 @@ void RpcService::DoRpcCall(Rpc* rpc,
   }
 
   // Set rpc finished so that future rpc->Wait() will not block.
-  rpc->set_client_status(Rpc::SUCCESS);
   rpc->SetRpcFinished();
 }
 
@@ -114,14 +116,10 @@ int RpcService::ClientSendRequest(Rpc* rpc,
 
   rpc_client_channel_->SendData(reinterpret_cast<const char*>(&check_num),
                                 sizeof(check_num));
-  rpc_client_channel_->FlushSend();
-  std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 3));
-  
+
   rpc_client_channel_->SendData(reinterpret_cast<const char*>(&req_header_size),
                                 sizeof(req_header_size));
-  rpc_client_channel_->FlushSend();
-  std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 3));
-  
+
   rpc_client_channel_->SendData(reinterpret_cast<const char*>(&req_size),
                                 sizeof(req_size));
   rpc_client_channel_->FlushSend();
@@ -131,7 +129,7 @@ int RpcService::ClientSendRequest(Rpc* rpc,
   rpc_client_channel_->SendData(hdr_data, sdhdr->size());
   rpc_client_channel_->FlushSend();
   std::this_thread::sleep_for(std::chrono::milliseconds(rand() % 3));
-
+  
   rpc_client_channel_->SendData(req_data, sdreq->size());
 
   // Flush send channel to make sure data is sent.
@@ -202,6 +200,14 @@ int RpcService::ClientReceiveResponse(Rpc* rpc,
   if (!response_header.has_rpc_response_length() ||
       response_header.rpc_response_length() != (unsigned)res_size) {
     rpc->set_client_status(Rpc::BAD_RESPONSE_HEADER);
+    return -1;
+  }
+
+  // Check rpc response status in response header
+  rpc->SetRpcReturnCode(response_header.rpc_return_code());
+  rpc->SetRpcReturnMesssage(response_header.rpc_return_msg());
+  if (response_header.rpc_return_code() != RpcResponseHeader::OK) {
+    rpc->set_client_status(Rpc::BAD_RESPONSE);
     return -1;
   }
 

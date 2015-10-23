@@ -143,11 +143,12 @@ void test_Serialize() {
   stu2.DeSerialize(obj_data, sdmsg->size());
   
   if (!stu1.Equals(stu2)) {
-    std::cerr << "\033[1;31mERROR\033[0m: deserialized stu2 != stu1" << std::endl;
+    std::cerr << "\033[1;31mERROR\033[0m: deserialized stu2 != stu1"
+              << std::endl;
     return;
   }
   else {
-    std::cout << "\033[1;32mSUCCESS\033[0m: stu1 == stu2 ^_^" << std::endl;
+    std::cout << "\033[2;32mSUCCESS\033[0m: stu1 == stu2 ^_^" << std::endl;
   }
 
   std::cout << "deleting sdmsg ..." << std::endl;
@@ -157,11 +158,11 @@ void test_Serialize() {
   ::HaiZhong::Student* stu3 = class1.add_students();
   *stu3 = std::move(stu2);
   if (!stu1.Equals(*stu3)) {
-    std::cerr << "ERROR: moved to stu3 != stu1" << std::endl;
+    std::cerr << "\033[1;31mERROR\033[0m: moved to stu3 != stu1" << std::endl;
     return;
   }
   else {
-    std::cout << "Success: stu1 == stu3 ^_^" << std::endl;
+    std::cout << "\033[2;32mSuccess\033[0m: stu1 == stu3 ^_^" << std::endl;
   }
 
   ::HaiZhong::Student* stu4 = class1.add_students();
@@ -198,7 +199,8 @@ void test_Serialize() {
   ::HaiZhong::SchoolClass class2;
   class2.DeSerialize(obj_data2, sdmsg2->size());
   if (!class1.Equals(class2)) {
-    std::cerr << "\033[1;31mERROR\033[0m: deserialized class2 != class1" << std::endl;
+    std::cerr << "\033[1;31mERROR\033[0m: deserialized class2 != class1"
+              << std::endl;
     return;
   }
   else {

@@ -9,6 +9,17 @@ message RpcRequestHeader {
 }
 
 message RpcResponseHeader {
-	optional uint32 rpc_response_length = 1;
+	enum RpcReturnCode {
+		UNKNOWN,
+    OK,
+    INVALID_RPC_PKT_HEADER,
+    REQ_LENG_MISMATCH,
+    UNKNOWN_SERVICE,
+    INTERNAL_SERVER_ERROR,
+  }
+
+	optional RpcReturnCode rpc_return_code = 1;
+	optional string rpc_return_msg = 2;
+	optional uint32 rpc_response_length = 3;
 }
 
