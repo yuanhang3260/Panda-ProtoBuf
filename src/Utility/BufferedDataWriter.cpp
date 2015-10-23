@@ -98,4 +98,11 @@ int BufferedDataWriter::Close() {
   return 0;
 }
 
+void BufferedDataWriter::Reset() {
+  delete[] buffer;
+  buffer = new char[bufSize];
+  head = tail = 0;
+  dataLen = 0;
+}
+
 }  // namespace Utility

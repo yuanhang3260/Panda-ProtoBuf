@@ -45,8 +45,10 @@ class HmzxStudentSystem {
 };
 
 void HmzxStudentSystem::Init() {
+  RPC::RpcStubOptions options;
+  //options.keep_alive = true;
   sm_stub_ = StudentManagement::NewStub(
-      new RPC::RpcClientChannel("localhost", port_));
+      new RPC::RpcClientChannel("localhost", port_), options);
 }
 
 int HmzxStudentSystem::RegisterNewStudent() {

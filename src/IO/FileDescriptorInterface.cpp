@@ -8,7 +8,9 @@ FileDescriptorInterface::FileDescriptorInterface(
 }
 
 FileDescriptorInterface::~FileDescriptorInterface() {
-  Close();
+  if (auto_close_) {
+    Close();
+  }
 }
 
 void FileDescriptorInterface::setFd(const int fd) {
@@ -19,7 +21,7 @@ void FileDescriptorInterface::setFd(const int fd) {
 }
 
 int FileDescriptorInterface::Close() {
-  if (auto_close_ && !closed_ && fd_ > 0) {
+  if (!closed_ && fd_ > 0) {
     close(fd_);
     closed_ = true;
     return 0;

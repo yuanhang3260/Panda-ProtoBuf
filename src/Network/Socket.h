@@ -14,25 +14,28 @@ class Socket : public IO::FileDescriptorInterface {
   // construct server port
   Socket() = default;
   // construct client port
-  Socket(const std::string hostname) :
+  Socket(std::string hostname, int port) :
     IO::FileDescriptorInterface(-1, true),
-    hostname_(hostname) {}
+    hostname_(hostname),
+    port_(port) {}
   // construct from fd
   Socket(const int fd, bool auto_close=true) :
       IO::FileDescriptorInterface(fd, auto_close) {}
   virtual ~Socket() {}
 
-  static Socket* CreateClientSocket(
-      const std::string hostname, const int port, bool block=true);
-  static Socket* CreateServerSocket(const int port, bool block=true);
+  static Socket* CreateClientSocket(std::string hostname, int port);
+  int ClientConnect(bool block=true);
 
-  virtual int Read(void* buffer, const int nbytes) const;
-  virtual int Write(const void* buf, const int nbytes) const;
-  virtual int Send(void* buffer, const int nbytes) const;
-  virtual int Recv(const void* buffer, const int nbytes) const;
+  static Socket* CreateServerSocket(int port, bool block=true);
+
+  virtual int Read(void* buffer, int nbytes) const;
+  virtual int Write(const void* buf, int nbytes) const;
+  virtual int Send(void* buffer, int nbytes) const;
+  virtual int Recv(const void* buffer, int nbytes) const;
 
  private:
   std::string hostname_;
+  int port_;
 };
 
 }  // namespace Network

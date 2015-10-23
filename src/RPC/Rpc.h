@@ -54,6 +54,7 @@ class Rpc {
   int check_num() const { return check_num_; }
   void set_check_num(int num) { check_num_ = num; }
 
+  void SetRpcStart();
   void SetRpcFinished();
 
   void Wait();
@@ -69,7 +70,7 @@ class Rpc {
   proto::Message* stream_ = nullptr;
   Base::Closure* cb_final_ = nullptr;
 
-  RpcResponseHeader::RpcReturnCode rpc_return_code_ =RpcResponseHeader::UNKNOWN;
+  RpcResponseHeader::RpcReturnCode rpc_return_code_ =RpcResponseHeader::NONE;
   std::string return_msg_;
 
   // --------------- Client -------------------- //

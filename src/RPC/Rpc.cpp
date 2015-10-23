@@ -20,6 +20,10 @@ void Rpc::SetRpcFinished() {
   rpc_wait_cond_.notify_one();
 }
 
+void Rpc::SetRpcStart() {
+  rpc_finished_ = false;
+}
+
 std::string Rpc::RpcCallStatus() {
   if (client_status_ == INIT) {
     return "Init";
@@ -67,7 +71,7 @@ std::string Rpc::RpcReturnMessage() const {
     return "Internal Server Error";
   }
   else {
-    return "Unknown";
+    return "NONE";
   }
 }
 

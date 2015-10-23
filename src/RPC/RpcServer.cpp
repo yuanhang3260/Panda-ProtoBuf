@@ -174,7 +174,6 @@ void RpcServer::ReadRpcRequestHandler(int fd) {
   }
 
   // Excute the rpc method
-  // TODO: Submit it to a separate thread pool for rpc processing and reply.
   if (session->state() == RpcSession::READ_DONE) {
     EnqueueRpcBanckendProcessing(session);
   }
@@ -193,7 +192,8 @@ void RpcServer::WriteRpcResponseHandler(int fd) {
     // TODO: handle no seesion error
     std::unique_lock<std::mutex> lock(map_mutex_);
     if (sessions_map_.find(fd) == sessions_map_.end()) {
-      sessions_map_[fd] = new RpcSession(fd);
+      RemoveSession(fd);
+      return;
     }
     session = sessions_map_.at(fd);
   }
@@ -222,9 +222,9 @@ void RpcServer::WriteRpcResponseHandler(int fd) {
     }
     session->add_sent_size(nwrite);
     if (session->sent_size() == session->bufSize()) {
-      // TODO: keep-alive ?
       // Only keep-alive if last rpc call is succss.
-      if (session->state() == RpcSession::WRITING_SUCCESS_RES) {
+      if (session->keep_alive() &&
+          session->state() == RpcSession::WRITING_SUCCESS_RES) {
         session->set_state(RpcSession::INIT);
         session->ResetAll();
         recv_em_.AddTaskWaitingReadable(fd,
@@ -370,6 +370,9 @@ int RpcServer::ParseRpcRequestHeader(RpcSession* session) {
     return -1;
   }
   session->set_handler(handler);
+
+  // Check rpc options
+  session->set_keep_alive(req_hdr->keep_alive());
 
   session->SetRequestHeader(req_hdr);
   return 0;

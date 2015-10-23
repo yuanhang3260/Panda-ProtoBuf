@@ -7,8 +7,15 @@ RpcChannelBase::RpcChannelBase(Network::Socket* socket) {
 }
 
 void RpcChannelBase::Initialize() {
-  sock_reader_.reset(new Utility::BufferedDataReader(socket_.get()));
-  sock_writer_.reset(new Utility::BufferedDataWriter(socket_.get()));
+  if (!sock_reader_) {
+    sock_reader_.reset(new Utility::BufferedDataReader(socket_.get()));
+  }
+  sock_reader_->Reset();
+
+  if (!sock_writer_) {
+    sock_writer_.reset(new Utility::BufferedDataWriter(socket_.get()));
+  }
+  sock_writer_->Reset();
 }
 
 bool RpcChannelBase::IsReady() const {
@@ -41,6 +48,12 @@ void RpcChannelBase::FlushSend() {
     return;
   }
   sock_writer_->Flush();
+}
+
+void RpcChannelBase::Disconnect() {
+  socket_->Close();
+  //perror("");
+  connected_ = false;
 }
 
 }  // namespace RPC

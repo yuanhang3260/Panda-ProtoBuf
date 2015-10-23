@@ -161,6 +161,13 @@ int BufferedDataReader::Close() {
   return 0;
 }
 
+void BufferedDataReader::Reset() {
+  delete[] buffer;
+  buffer = new char[bufSize];
+  head = tail = 0;
+  dataLen = 0;
+}
+
 // Check user arguments.
 bool BufferedDataReader::checkArgs(char* buf, const int off, const int len) {
   if (buf == NULL) {

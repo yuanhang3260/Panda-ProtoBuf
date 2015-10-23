@@ -24,7 +24,7 @@ std::shared_ptr<::proto::MessageReflection> StudentResponse_reflection_;
 
 }  // namepsace
 
-void static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple() {
+void static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple() {
   if (HaiZhong::Pet::default_instance_ == NULL) {
     HaiZhong::Pet::default_instance_ = new HaiZhong::Pet();
     HaiZhong::Pet::default_instance_->InitAsDefaultInstance();
@@ -47,18 +47,18 @@ void static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simpl
   }
 }
 
-void static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple() {
+void static_init_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple() {
   static bool already_called = false;
   if (already_called) return;
   already_called = true;
 
   ::proto::ProtoParser::ProtoParser parser(
       ::proto::ProtoParser::CPP,
-      "/home/hy/Desktop/Snoopy-ProtoBuf/samples/simple.proto");
+      "/usr/local/google/home/hangyuan/Desktop/test/C++/Snoopy-ProtoBuf/samples/simple.proto");
   CHECK(parser.ParseProto(),
-        "static class initialization for /home/hy/Desktop/Snoopy-ProtoBuf/samples/simple.proto failed");
+        "static class initialization for /usr/local/google/home/hangyuan/Desktop/test/C++/Snoopy-ProtoBuf/samples/simple.proto failed");
 
-  static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+  static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple();
 
   int i = 0;
   // static init for class Pet
@@ -168,12 +168,12 @@ void static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple() {
 
 }
 
-// Force static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple() to be called at initialization time.
-struct static_init_forcer_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple {
-  static_init_forcer_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple() {
-    static_init_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+// Force static_init_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple() to be called at initialization time.
+struct static_init_forcer_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple {
+  static_init_forcer_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple() {
+    static_init_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple();
   }
-} static_init_forcer_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple_obj_;
+} static_init_forcer_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple_obj_;
 
 
 namespace HaiZhong {
@@ -292,7 +292,7 @@ void Pet::Swap(Pet* other) {
 // default_instance()
 const Pet& Pet::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+    static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple();
   }
   return *default_instance_;
 }
@@ -604,7 +604,7 @@ void Student::Swap(Student* other) {
 // default_instance()
 const Student& Student::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+    static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple();
   }
   return *default_instance_;
 }
@@ -1161,7 +1161,7 @@ void SchoolClass::Swap(SchoolClass* other) {
 // default_instance()
 const SchoolClass& SchoolClass::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+    static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple();
   }
   return *default_instance_;
 }
@@ -1454,7 +1454,7 @@ void StudentRequest::Swap(StudentRequest* other) {
 // default_instance()
 const StudentRequest& StudentRequest::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+    static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple();
   }
   return *default_instance_;
 }
@@ -1706,7 +1706,7 @@ void StudentResponse::Swap(StudentResponse* other) {
 // default_instance()
 const StudentResponse& StudentResponse::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_samples_simple();
+    static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_samples_simple();
   }
   return *default_instance_;
 }

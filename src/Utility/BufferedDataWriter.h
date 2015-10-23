@@ -34,6 +34,9 @@ class BufferedDataWriter {
   // Close the pipe
   int Close();
 
+  // Reset
+  void Reset();
+
 private:
   static const int BUFSIZE = 1024;
   static const int MAX_BUFSIZE = 4194302;

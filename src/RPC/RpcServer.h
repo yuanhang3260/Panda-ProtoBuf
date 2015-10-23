@@ -134,6 +134,9 @@ class RpcSession {
   RpcHandler* handler() const { return handler_; }
   void set_handler(RpcHandler* handler) { handler_ = handler; }
 
+  bool keep_alive() const { return keep_alive_; }
+  void set_keep_alive(bool ka) { keep_alive_ = ka; }
+
   void ResetAll();
 
   // RPC obj
@@ -161,6 +164,8 @@ class RpcSession {
   RpcState state_ = INIT;
   RpcHandler* handler_;
   std::unique_ptr<Rpc> rpc_;
+
+  bool keep_alive_ = false;
 };
 
 }  // namespace RPC

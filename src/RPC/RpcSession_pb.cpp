@@ -18,7 +18,7 @@ std::shared_ptr<::proto::MessageReflection> RpcResponseHeader_reflection_;
 
 }  // namepsace
 
-void static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession() {
+void static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession() {
   if (RPC::RpcRequestHeader::default_instance_ == NULL) {
     RPC::RpcRequestHeader::default_instance_ = new RPC::RpcRequestHeader();
     RPC::RpcRequestHeader::default_instance_->InitAsDefaultInstance();
@@ -29,25 +29,26 @@ void static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSe
   }
 }
 
-void static_init_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession() {
+void static_init_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession() {
   static bool already_called = false;
   if (already_called) return;
   already_called = true;
 
   ::proto::ProtoParser::ProtoParser parser(
       ::proto::ProtoParser::CPP,
-      "/home/hy/Desktop/Snoopy-ProtoBuf/src/RPC/RpcSession.proto");
+      "/usr/local/google/home/hangyuan/Desktop/test/C++/Snoopy-ProtoBuf/src/RPC/RpcSession.proto");
   CHECK(parser.ParseProto(),
-        "static class initialization for /home/hy/Desktop/Snoopy-ProtoBuf/src/RPC/RpcSession.proto failed");
+        "static class initialization for /usr/local/google/home/hangyuan/Desktop/test/C++/Snoopy-ProtoBuf/src/RPC/RpcSession.proto failed");
 
-  static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession();
+  static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
 
   int i = 0;
   // static init for class RpcRequestHeader
-  static const int RpcRequestHeader_offsets_[3] = {
+  static const int RpcRequestHeader_offsets_[4] = {
     PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcRequestHeader, service_name_),
     PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcRequestHeader, method_name_),
     PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcRequestHeader, rpc_request_length_),
+    PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcRequestHeader, keep_alive_),
   };
   i = 0;
   for (auto& field: parser.mutable_messages_list()[0]->mutable_fields_list()) {
@@ -83,12 +84,12 @@ void static_init_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession() {
 
 }
 
-// Force static_init_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession() to be called at initialization time.
-struct static_init_forcer_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession {
-  static_init_forcer_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession() {
-    static_init_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession();
+// Force static_init_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession() to be called at initialization time.
+struct static_init_forcer_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession {
+  static_init_forcer_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession() {
+    static_init_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
   }
-} static_init_forcer_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession_obj_;
+} static_init_forcer_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession_obj_;
 
 
 namespace RPC {
@@ -133,6 +134,7 @@ void RpcRequestHeader::CopyFrom(const RpcRequestHeader& other) {
   service_name_ = other.service_name();
   method_name_ = other.method_name();
   rpc_request_length_ = other.rpc_request_length();
+  keep_alive_ = other.keep_alive();
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
     has_bits_[i] = other.has_bits_[i];
   }
@@ -146,6 +148,7 @@ void RpcRequestHeader::MoveFrom(RpcRequestHeader&& other) {
   service_name_ = std::move(other.mutable_service_name());
   method_name_ = std::move(other.mutable_method_name());
   rpc_request_length_ = other.rpc_request_length();
+  keep_alive_ = other.keep_alive();
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
     other.has_bits_[i] = 0;
   }
@@ -165,6 +168,9 @@ bool RpcRequestHeader::Equals(const RpcRequestHeader& other) const {
     return false;
   }
   if (rpc_request_length_ != other.rpc_request_length_) {
+    return false;
+  }
+  if (keep_alive_ != other.keep_alive_) {
     return false;
   }
   return true;
@@ -205,6 +211,10 @@ void RpcRequestHeader::Swap(RpcRequestHeader* other) {
   other->set_rpc_request_length(rpc_request_length_);
   set_rpc_request_length(rpc_request_length_tmp__);
 
+  bool keep_alive_tmp__ = other->keep_alive();
+  other->set_keep_alive(keep_alive_);
+  set_keep_alive(keep_alive_tmp__);
+
   // swap has_bits
   for (unsigned int i = 0; i < sizeof(has_bits_); i++) {
     has_bits_[i] = buf[i + sizeof(has_bits_)];
@@ -216,7 +226,7 @@ void RpcRequestHeader::Swap(RpcRequestHeader* other) {
 // default_instance()
 const RpcRequestHeader& RpcRequestHeader::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession();
+    static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
   }
   return *default_instance_;
 }
@@ -310,6 +320,25 @@ void RpcRequestHeader::set_rpc_request_length(unsigned int rpc_request_length) {
 void RpcRequestHeader::clear_rpc_request_length() {
   rpc_request_length_ = 0;
   has_bits_[0] &= (~0x8);
+}
+
+// "keep_alive" = 4
+bool RpcRequestHeader::has_keep_alive() const {
+  return (has_bits_[0] & 0x10) != 0;
+}
+
+bool RpcRequestHeader::keep_alive() const {
+  return keep_alive_;
+}
+
+void RpcRequestHeader::set_keep_alive(bool keep_alive) {
+  keep_alive_ = keep_alive;
+  has_bits_[0] |= 0x10;
+}
+
+void RpcRequestHeader::clear_keep_alive() {
+  keep_alive_ = false;
+  has_bits_[0] &= (~0x10);
 }
 
 // ******************** RpcResponseHeader ******************** //
@@ -435,7 +464,7 @@ void RpcResponseHeader::Swap(RpcResponseHeader* other) {
 // default_instance()
 const RpcResponseHeader& RpcResponseHeader::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession();
+    static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
   }
   return *default_instance_;
 }
@@ -461,7 +490,7 @@ void RpcResponseHeader::set_rpc_return_code(RpcResponseHeader::RpcReturnCode rpc
 }
 
 void RpcResponseHeader::clear_rpc_return_code() {
-  rpc_return_code_ = RpcResponseHeader::UNKNOWN;
+  rpc_return_code_ = RpcResponseHeader::NONE;
   has_bits_[0] &= (~0x2);
 }
 

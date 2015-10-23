@@ -69,6 +69,8 @@ class RpcService {
                  proto::Message* response,
                  Base::Closure* cb);
 
+  void FinishRpcCall(Rpc* rpc);
+
   int ClientSendRequest(Rpc* rpc,
                         const RpcDescriptor* descriptor,
                         std::string method_name,

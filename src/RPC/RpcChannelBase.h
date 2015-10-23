@@ -26,12 +26,17 @@ class RpcChannelBase {
   int SendData(const char* buf, unsigned int size);
   void FlushSend();
 
+  bool connected() const { return connected_; }
+  void Disconnect();
+
  protected:
   std::string hostname_;
   int port_;
   std::unique_ptr<Network::Socket> socket_;
   std::unique_ptr<Utility::BufferedDataReader> sock_reader_;
   std::unique_ptr<Utility::BufferedDataWriter> sock_writer_;
+
+  bool connected_ = false;
 };
 
 }  // namespace RPC

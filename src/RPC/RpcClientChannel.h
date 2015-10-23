@@ -17,6 +17,8 @@ class RpcClientChannel : public RpcChannelBase {
   RpcClientChannel(const RpcClientChannel&) = delete;
   RpcClientChannel& operator=(const RpcClientChannel&) = delete;
 
+  int ConnectToServer();
+
  private:
   std::string hostname_;
   int port_;

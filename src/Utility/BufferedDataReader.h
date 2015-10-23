@@ -33,6 +33,9 @@ class BufferedDataReader {
   // Close the pipe
   int Close();
 
+  // Reset
+  void Reset();
+
   // Compare contents of two buffers.
   static bool dataCompare(const char* buf1,
                           const int off1,

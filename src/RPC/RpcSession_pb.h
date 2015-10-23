@@ -8,8 +8,8 @@
 #include "Proto/RepeatedFields.h"
 #include "Proto/SerializedMessage.h"
 
-void static_init_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession();
-void static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession();
+void static_init_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
+void static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
 
 namespace RPC {
 
@@ -58,6 +58,12 @@ class RpcRequestHeader: public ::proto::Message {
   void set_rpc_request_length(unsigned int rpc_request_length);
   void clear_rpc_request_length();
 
+  // "keep_alive" = 4
+  bool has_keep_alive() const;
+  bool keep_alive() const;
+  void set_keep_alive(bool keep_alive);
+  void clear_keep_alive();
+
  private:
   // has bits
   char has_bits_[1];
@@ -65,25 +71,26 @@ class RpcRequestHeader: public ::proto::Message {
   std::string service_name_ = "";
   std::string method_name_ = "";
   unsigned int rpc_request_length_ = 0;
+  bool keep_alive_ = false;
 
   // InitAsDefaultInstance()
   void InitAsDefaultInstance() override;
   // default instance
   static RpcRequestHeader* default_instance_;
 
-  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession();
-  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession();
+  friend void ::static_init_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
+  friend void ::static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
 };
 
 class RpcResponseHeader: public ::proto::Message {
  public:
   enum RpcReturnCode {
-    UNKNOWN,
     OK,
     INVALID_RPC_PKT_HEADER,
     REQ_LENG_MISMATCH,
     UNKNOWN_SERVICE,
     INTERNAL_SERVER_ERROR,
+    NONE,
   };
 
   // constructors and destructor //
@@ -130,7 +137,7 @@ class RpcResponseHeader: public ::proto::Message {
   // has bits
   char has_bits_[1];
   // message fields
-  RpcResponseHeader::RpcReturnCode rpc_return_code_ = RpcResponseHeader::UNKNOWN;
+  RpcResponseHeader::RpcReturnCode rpc_return_code_ = RpcResponseHeader::NONE;
   std::string rpc_return_msg_ = "";
   unsigned int rpc_response_length_ = 0;
 
@@ -139,8 +146,8 @@ class RpcResponseHeader: public ::proto::Message {
   // default instance
   static RpcResponseHeader* default_instance_;
 
-  friend void ::static_init_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession();
-  friend void ::static_init_default_instances_home_hy_Desktop_Snoopy_ProtoBuf_src_RPC_RpcSession();
+  friend void ::static_init_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
+  friend void ::static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
 };
 
 }  // namespace RPC

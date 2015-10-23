@@ -39,9 +39,19 @@ void RpcService::StartClientRpcCall(
     const proto::Message* request,
     proto::Message* response,
     Base::Closure* cb) {
-  // Init Channel
-  // TODO: Do the connect here instead of when creating the client channel.
+  // Sets rpc internal flag rpc_finished_ = false so that next call of
+  // rpc->Wait() may properly block.
+  rpc->SetRpcStart();
+
+  // Init Channel.
   rpc_client_channel_->Initialize();
+  // Check channel is connected.
+  if (!rpc_client_channel_->connected() &&
+      rpc_client_channel_->ConnectToServer() < 0) {
+    rpc->set_client_status(Rpc::INTERNAL_CHANNEL_ERROR);
+    rpc->SetRpcFinished();
+    return;
+  }
 
   // Synchronous style.
   // DoRpcCall(rpc, descriptor, method_name, request, response, cb);
@@ -59,12 +69,12 @@ void RpcService::DoRpcCall(Rpc* rpc,
                            proto::Message* response,
                            Base::Closure* cb) {
   if (ClientSendRequest(rpc, descriptor, method_name, request) < 0) {
-    rpc->SetRpcFinished();
+    FinishRpcCall(rpc);
     return;
   }
 
   if (ClientReceiveResponse(rpc, response, cb) < 0) {
-    rpc->SetRpcFinished();
+    FinishRpcCall(rpc);
     return;
   }
 
@@ -76,6 +86,13 @@ void RpcService::DoRpcCall(Rpc* rpc,
     delete cb;
   }
 
+  FinishRpcCall(rpc);
+}
+
+void RpcService::FinishRpcCall(Rpc* rpc) {
+  if (!options_.keep_alive) {
+    rpc_client_channel_->Disconnect();
+  }
   // Set rpc finished so that future rpc->Wait() will not block.
   rpc->SetRpcFinished();
 }
@@ -84,17 +101,16 @@ int RpcService::ClientSendRequest(Rpc* rpc,
                                   const RpcDescriptor* descriptor,
                                   std::string method_name,
                                   const proto::Message* request) {
-  // Init a request header.
-  RpcRequestHeader request_header;
-  request_header.set_service_name(descriptor->fullname());
-  request_header.set_method_name(method_name);
-
   // Serialize the request message
   proto::SerializedMessage* sdreq = request->Serialize();
   const char* req_data = sdreq->GetBytes();
 
-  // Set request size in request header
+  // Create a request header and set it properly.
+  RpcRequestHeader request_header;
+  request_header.set_service_name(descriptor->fullname());
+  request_header.set_method_name(method_name);
   request_header.set_rpc_request_length(sdreq->size());
+  request_header.set_keep_alive(options_.keep_alive);
 
   // Serialize the request header
   proto::SerializedMessage* sdhdr = request_header.Serialize();
@@ -102,6 +118,7 @@ int RpcService::ClientSendRequest(Rpc* rpc,
 
   // Begin sending data
   if (!rpc_client_channel_ || !rpc_client_channel_->IsReady()) {
+    printf("not ready\n");
     rpc->set_client_status(Rpc::INTERNAL_CHANNEL_ERROR);
     return -1;
   }

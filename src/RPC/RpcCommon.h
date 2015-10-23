@@ -60,7 +60,7 @@ class RpcMethodDescriptor {
 // ----------------------------- RpcStubOptions ----------------------------- //
 class RpcStubOptions {
  public:
-  RpcStubOptions() = default;
+  bool keep_alive = false;
 };
 
 }  // namespace RPC
