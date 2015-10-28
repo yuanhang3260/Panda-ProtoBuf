@@ -64,7 +64,7 @@ TESTEXE = test/TextPrinter_test.out \
 					test/Strings_test.out \
 					test/RepeatedField_test.out \
 
-COMPILEROBJ = $(OBJ_DIR)/Compiler/CppCompiler_main.o
+COMPILEROBJ = $(OBJ_DIR)/Compiler/ccCompiler_main.o
 
 default: full
 
@@ -80,35 +80,35 @@ proto_library: $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ)
 library: $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
 	ar cr libfull.a $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
 
-compiler: $(SRC_DIR)/Compiler/Compiler_main.cpp proto_library
-	$(CC) $(CFLAGS) $(LFLAGS) -c $(SRC_DIR)/Compiler/Compiler_main.cpp -o $(COMPILEROBJ)
+compiler: $(SRC_DIR)/Compiler/Compiler_main.cc proto_library
+	$(CC) $(CFLAGS) $(LFLAGS) -c $(SRC_DIR)/Compiler/Compiler_main.cc -o $(COMPILEROBJ)
 	$(CC) $(CFLAGS) $(LFLAGS) $(COMPILEROBJ) libproto.a -o $@
 
-$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp $(SRC_DIR)/%.h
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc $(SRC_DIR)/%.h
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/Utility/%.o: $(SRC_DIR)/Utility/%.cpp $(SRC_DIR)/Utility/%.h
+$(OBJ_DIR)/Utility/%.o: $(SRC_DIR)/Utility/%.cc $(SRC_DIR)/Utility/%.h
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/Utility/%.o: $(SRC_DIR)/Utility/%.cpp
+$(OBJ_DIR)/Utility/%.o: $(SRC_DIR)/Utility/%.cc
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/IO/%.o: $(SRC_DIR)/IO/%.cpp
+$(OBJ_DIR)/IO/%.o: $(SRC_DIR)/IO/%.cc
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/Network/%.o: $(SRC_DIR)/Network/%.cpp
+$(OBJ_DIR)/Network/%.o: $(SRC_DIR)/Network/%.cc
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/Compiler/%.o: $(SRC_DIR)/Compiler/%.cpp $(SRC_DIR)/Compiler/%.h
+$(OBJ_DIR)/Compiler/%.o: $(SRC_DIR)/Compiler/%.cc $(SRC_DIR)/Compiler/%.h
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cpp $(SRC_DIR)/Proto/%.h
+$(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cc $(SRC_DIR)/Proto/%.h
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cpp
+$(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cc
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
-$(OBJ_DIR)/RPC/%.o: $(SRC_DIR)/RPC/%.cpp $(SRC_DIR)/RPC/%.h
+$(OBJ_DIR)/RPC/%.o: $(SRC_DIR)/RPC/%.cc $(SRC_DIR)/RPC/%.h
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 test/%.out: $(OBJ_DIR)/Utility/%.o proto_library
@@ -134,23 +134,17 @@ clean:
 	rm -rf $(OBJ_DIR)/RPC/*.o
 	rm -rf test/*.out
 	rm -rf samples/*.o
+	rm -rf samples/*_pb.h
+	rm -rf samples/*_pb.cc
 	rm -rf samples/client
 	rm -rf samples/server
 	rm -rf samples/test
 	rm -rf *.output
 
-tinyclean:
-	rm -rf libproto.a
-	rm -rf libfull.a
-	rm -rf compiler
-	rm -rf $(OBJ_DIR)/*.o
-	rm -rf $(OBJ_DIR)/Compiler/*.o
-	rm -rf $(OBJ_DIR)/Proto/*.o
-	rm -rf $(OBJ_DIR)/RPC/*.o
-	rm -rf test/*.out
-	rm -rf samples/*.o
-	rm -rf *.output
-
+fullclean: clean
+	rm -rf samples/*_pb.h
+	rm -rf samples/*_pb.cc
+	
 sampleclean:
 	rm -rf samples/*.o
 

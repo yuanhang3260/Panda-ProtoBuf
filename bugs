@@ -1,6 +1,0 @@
-Reminaing bugs:
-
-(1) RPC client stub should default to non-keep-alive mode.
-(2) RPC server would close socket in case of bad request header, leaving client
-    the risk of writing to broken pipe.
-(3) Protocol message deserialization error handling - should not crash program.

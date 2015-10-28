@@ -269,7 +269,7 @@ void CppCodeGenerator::GenerateCC() {
   outfile = proto_file_.substr(0, proto_file_.length() - 6) + "_pb";
 
   // Open .cpp file
-  if (!printer.Open(outfile + ".cpp")) {
+  if (!printer.Open(outfile + ".cc")) {
     fprintf(stderr, "ERROR: Open output file %s.p failed\n", outfile.c_str());
   }
 

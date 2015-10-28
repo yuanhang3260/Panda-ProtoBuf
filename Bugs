@@ -1,0 +1,3 @@
+Reminaing bugs:
+
+(1) Protocol message deserialization error handling - should not crash program.

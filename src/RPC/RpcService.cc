@@ -118,7 +118,6 @@ int RpcService::ClientSendRequest(Rpc* rpc,
 
   // Begin sending data
   if (!rpc_client_channel_ || !rpc_client_channel_->IsReady()) {
-    printf("not ready\n");
     rpc->set_client_status(Rpc::INTERNAL_CHANNEL_ERROR);
     return -1;
   }
