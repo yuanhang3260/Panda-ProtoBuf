@@ -8,7 +8,6 @@ namespace Executors {
 
 // ---------------------------- EventManager -------------------------------- //
 EventManager::EventManager() {
-  
   thread_pool_.SetPoolSize(3);
 }
 

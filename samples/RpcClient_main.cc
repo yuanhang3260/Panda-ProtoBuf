@@ -171,10 +171,10 @@ int main(int argc, char** argv) {
     port = std::stoi(argv[1]);
   }
 
-  Executors::FixedThreadPool pool(20);
+  Executors::FixedThreadPool pool(30);
   pool.Start();
 
-  for (int i = 0; i < 100; i++) {
+  for (int i = 0; i < 1000; i++) {
     pool.AddTask(new Base::Closure(LoadTest, port));
   }
 

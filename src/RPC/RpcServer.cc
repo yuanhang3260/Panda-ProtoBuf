@@ -14,7 +14,7 @@ const char* lineseperator = "*************************************************";
 
 namespace RPC {
 
-RpcServer::RpcServer(int port) : recv_em_(5), port_(port) {
+RpcServer::RpcServer(int port) : recv_em_(7), run_em_(5), port_(port) {
 }
 
 RpcServer::RpcServer(int port, int recv_em_size) :
@@ -235,7 +235,7 @@ void RpcServer::WriteRpcResponseHandler(int fd) {
       }
     }
     else {
-      recv_em_.ModifyTaskWaitingStatus(fd, EPOLLOUT | EPOLLONESHOT,
+      run_em_.ModifyTaskWaitingStatus(fd, EPOLLOUT | EPOLLONESHOT,
           Base::NewCallBack(&RpcServer::WriteRpcResponseHandler, this, fd));
     }
   }
