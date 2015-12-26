@@ -43,6 +43,7 @@ PROTO_OBJ = \
 			$(OBJ_DIR)/Proto/SerializedPrimitive.o \
 			$(OBJ_DIR)/Proto/SerializedMessage.o \
 			$(OBJ_DIR)/Proto/WireFormat.o \
+			$(OBJ_DIR)/Proto/Message.o \
 
 RPC_OBJ = \
       $(OBJ_DIR)/RPC/Rpc.o \

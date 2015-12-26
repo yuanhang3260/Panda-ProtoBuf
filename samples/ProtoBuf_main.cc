@@ -117,6 +117,8 @@ void test_Serialize() {
   pet = stu1.add_pets();;
   pet->set_name("xiaoxiong");
   pet->set_type(::HaiZhong::Pet::PANDA);
+  pet->add_friend_to(::HaiZhong::Pet::PANDA);
+  pet->add_friend_to(::HaiZhong::Pet::DOG);
 
   ::HaiZhong::Student* partner = new ::HaiZhong::Student();
   partner->set_name("cb");
@@ -130,6 +132,8 @@ void test_Serialize() {
   partner2->add_alias("marpy");
   partner2->add_alias("pi");
   stu1.mutable_partner()->set_allocated_partner(partner2);
+
+  stu1.Print(0);
 
   ::proto::SerializedMessage* sdmsg = stu1.Serialize();
   const char* obj_data = sdmsg->GetBytes();

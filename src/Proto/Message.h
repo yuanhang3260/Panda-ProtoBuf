@@ -16,6 +16,11 @@ class Message {
   virtual SerializedMessage* Serialize() const = 0;
 
   virtual void DeSerialize(const char* buf, unsigned int size) = 0;  
+
+  virtual void Print(int indent_num=0) const {}
+
+ protected:
+  void PrintIndent(int num) const;
 };
 
 }  // namespace proto

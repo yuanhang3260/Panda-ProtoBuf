@@ -28,6 +28,13 @@ bool EnumType::ContainsEnum(std::string enum_value) const {
   return enums_set_.find(enum_value) != enums_set_.end();
 }
 
+std::string EnumType::EnumValueAsString(int value) const {
+  if (value >= (int)enums_.size()) {
+    return "";
+  }
+  return enums_[value];
+}
+
 void EnumType::Print() const {
   std::string indent = message_.length() > 0? "  " : "";
   std::cout << indent << "enum " << name_ << " {" << std::endl;

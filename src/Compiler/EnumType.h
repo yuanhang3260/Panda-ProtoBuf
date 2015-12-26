@@ -23,6 +23,7 @@ class EnumType : public PbType {
   bool ContainsEnum(std::string enum_value) const;
   void Print() const;
   const std::vector<std::string>& enums() const { return enums_; }
+  std::string EnumValueAsString(int value) const;
 
  protected:
   std::vector<std::string> enums_;

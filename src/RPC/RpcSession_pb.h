@@ -8,8 +8,8 @@
 #include "Proto/RepeatedFields.h"
 #include "Proto/SerializedMessage.h"
 
-void static_init_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
-void static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
+void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
+void static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
 
 namespace RPC {
 
@@ -78,8 +78,8 @@ class RpcRequestHeader: public ::proto::Message {
   // default instance
   static RpcRequestHeader* default_instance_;
 
-  friend void ::static_init_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
-  friend void ::static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
+  friend void ::static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
+  friend void ::static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
 };
 
 class RpcResponseHeader: public ::proto::Message {
@@ -146,8 +146,8 @@ class RpcResponseHeader: public ::proto::Message {
   // default instance
   static RpcResponseHeader* default_instance_;
 
-  friend void ::static_init_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
-  friend void ::static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_C___Snoopy_ProtoBuf_src_RPC_RpcSession();
+  friend void ::static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
+  friend void ::static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
 };
 
 }  // namespace RPC

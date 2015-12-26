@@ -212,7 +212,8 @@ void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
       "  // Serialize() and DeSerialize().\n"
       "  ::proto::SerializedMessage* Serialize() const override;\n"
       "  void DeSerialize(const char* buf, unsigned int size) override;\n"
-      "  static const ${msg_name}& default_instance();\n\n",
+      "  static const ${msg_name}& default_instance();\n"
+      "  void Print(int indent_num=0) const override;\n\n",
       msg_match);
 }
 
@@ -426,6 +427,7 @@ void CppCodeGenerator::DefineClassMethods(Message* message) {
   DefineEquals(message);
   DefineSerialize(message);
   DefineDeSerialize(message);
+  DefinePrint(message);
   DefineInitAsDefaultInstance(message);
   DefineSwapper(message);
   DefineGetDefaultInstance(message);
@@ -709,6 +711,89 @@ void CppCodeGenerator::DefineDeSerialize(Message* message) {
                 "  ${msg_name}_reflection_->DeSerialize(this, buf, size);\n"
                 "}\n\n",
                 msg_match);
+}
+
+void CppCodeGenerator::DefinePrint(Message* message) {
+  printer.Print("// Print()\n");
+
+  std::map<std::string, std::string> msg_match{
+     {"msg_name", message->name()},
+  };
+  printer.Print("void ${msg_name}::Print(int indent_num) const {\n"
+                "  PrintIndent(indent_num);\n"
+                "  std::cout << \"${msg_name} \" << \"{\" << std::endl;\n",
+                msg_match);
+
+  for (auto& field : message->fields_list()) {
+    std::map<std::string, std::string> matches =
+        GetFieldMatchMap(message, field.get());
+    if (field->IsSingularNumericType() || field->IsSingularStringType()) {
+      printer.Print("  if (has_${field_name}()) {\n"
+                    "    PrintIndent(indent_num + 1);\n",
+                    matches);
+      if (field->type() != ENUMTYPE) {
+        printer.Print("    std::cout << \"${field_name}: \" << ${field_name}_ << std::endl;\n"
+                      "  }\n",
+                      matches);
+      }
+      else {
+        // For EnumType we need to print enum value as string.
+        printer.Print("    std::string enum_value =\n"
+                      "        (reinterpret_cast<const proto::ProtoParser::EnumType*>(\n"
+                      "            ${msg_name}_descriptor_->FindFieldByName(\"${field_name}\")->type_class()))\n"
+                      "                 ->EnumValueAsString(${field_name}_);\n"
+                      "    std::cout << \"${field_name}: \" << enum_value << std::endl;\n"
+                      "  }\n",
+                      matches); 
+      }
+    }
+    else if (field->IsSingularMessageType()) {
+      printer.Print("  if (has_${field_name}()) {\n"
+                    "    PrintIndent(indent_num + 1);\n"
+                    "    std::cout << \"${field_name}: \" << \"*\" << std::endl;\n"
+                    "    ${field_name}_->Print(indent_num + 1);\n"
+                    "  }\n",
+                    matches);
+    }
+    else if (field->IsRepeatedStringType() || field->IsRepeatedNumericType()) {
+      printer.Print("  if (${field_name}_size() > 0) {\n"
+                    "    PrintIndent(indent_num + 1);\n"
+                    "    std::cout << \"${field_name}: \" << \"[\";\n",
+                    matches);
+      if (field->type() != ENUMTYPE) {
+        printer.Print("    for (const auto& ele: ${field_name}_) {\n"
+                      "        std::cout << ele << \", \";\n"
+                      "    }\n"
+                      "    std::cout << \"]\" << std::endl;\n"
+                      "  }\n",
+                      matches);
+      }
+      else {
+        printer.Print("    const auto* enum_type_descriptor =\n"
+                      "        (reinterpret_cast<const proto::ProtoParser::EnumType*>(\n"
+                      "            ${msg_name}_descriptor_->FindFieldByName(\"${field_name}\")->type_class()));\n"
+                      "    for (const auto& ele: ${field_name}_) {\n"
+                      "        std::cout << enum_type_descriptor->EnumValueAsString(ele) << \", \";\n"
+                      "    }\n"
+                      "    std::cout << \"]\" << std::endl;\n"
+                      "  }\n",
+                      matches);
+      }
+    }
+    else if (field->IsRepeatedMessageType()) {
+      printer.Print("  if (${field_name}_size() > 0) {\n"
+                    "    PrintIndent(indent_num + 1);\n"
+                    "    std::cout << \"${field_name}: \" << \"[***]\" << std::endl;\n"
+                    "    for (const auto& ele: ${field_name}_) {\n"
+                    "        ele.Print(indent_num + 1);\n"
+                    "    }\n"
+                    "  }\n",
+                    matches);
+    }
+  }
+  printer.Print("  PrintIndent(indent_num);\n"
+                "  std::cout << \"}\" << std::endl;\n"
+                "}\n\n");
 }
 
 void CppCodeGenerator::DefineInitAsDefaultInstance(Message* message) {

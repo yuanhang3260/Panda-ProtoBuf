@@ -101,6 +101,13 @@ const MessageField* Message::FindFieldByTag(const unsigned int tag) const {
   return tag_fields_map_.at(tag).get();
 }
 
+const MessageField* Message::FindFieldByName(std::string field_name) const {
+  if (fields_map_.find(field_name) == fields_map_.end()) {
+    return NULL;
+  }
+  return fields_map_.at(field_name).get();
+}
+
 EnumType* Message::FindEnumType(std::string name) const {
   if (enums_map_.find(name) == enums_map_.end()) {
     return NULL;

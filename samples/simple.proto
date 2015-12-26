@@ -9,6 +9,7 @@ message Pet {
 	}
 	optional string name = 1;
 	optional PetType type = 2;
+  repeated PetType friend_to = 3;
 }
 
 message Student {

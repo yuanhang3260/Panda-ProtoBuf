@@ -31,6 +31,7 @@ class Message : public PbType {
   MessageField* FindMessage(std::string name) const;
   EnumType* FindEnumType(std::string name) const;
   const MessageField* FindFieldByTag(const unsigned int tag) const;
+  const MessageField* FindFieldByName(std::string field_name) const;
 
   bool has_message_field() const { return has_message_field_; }
   bool has_repeated_field() const { return has_repeated_field_; }
