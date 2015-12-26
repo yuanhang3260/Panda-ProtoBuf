@@ -732,7 +732,13 @@ void CppCodeGenerator::DefinePrint(Message* message) {
                     "    PrintIndent(indent_num + 1);\n",
                     matches);
       if (field->type() != ENUMTYPE) {
-        printer.Print("    std::cout << \"${field_name}: \" << ${field_name}_ << std::endl;\n"
+        std::string print_line =
+            "    std::cout << \"${field_name}: \" << ${field_name}_ << std::endl;\n";
+        if (field->type() == STRING) {
+          print_line = "    std::cout << \"${field_name}: \" << "
+                       "\"\\\"\" << ${field_name}_ << \"\\\"\" << std::endl;\n";
+        }
+        printer.Print(print_line +
                       "  }\n",
                       matches);
       }
@@ -761,8 +767,12 @@ void CppCodeGenerator::DefinePrint(Message* message) {
                     "    std::cout << \"${field_name}: \" << \"[\";\n",
                     matches);
       if (field->type() != ENUMTYPE) {
-        printer.Print("    for (const auto& ele: ${field_name}_) {\n"
-                      "        std::cout << ele << \", \";\n"
+        std::string print_line = "        std::cout << ele << \", \";\n";
+        if (field->type() == STRING) {
+          print_line = "        std::cout << \"\\\"\" << ele << \"\\\"\" << \", \";\n";
+        }
+        printer.Print("    for (const auto& ele: ${field_name}_) {\n" +
+                      print_line +
                       "    }\n"
                       "    std::cout << \"]\" << std::endl;\n"
                       "  }\n",
