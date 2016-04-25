@@ -7,7 +7,7 @@
 #include "Proto/MessageReflection.h"
 #include "Proto/MessageFactory.h"
 
-#include "RpcSession_pb.h"
+#include "RpcPacket_pb.h"
 
 namespace {
 
@@ -18,7 +18,7 @@ std::shared_ptr<::proto::MessageReflection> RpcResponseHeader_reflection_;
 
 }  // namepsace
 
-void static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession() {
+void static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
   if (RPC::RpcRequestHeader::default_instance_ == NULL) {
     RPC::RpcRequestHeader::default_instance_ = new RPC::RpcRequestHeader();
     RPC::RpcRequestHeader::default_instance_->InitAsDefaultInstance();
@@ -29,18 +29,18 @@ void static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_Rpc
   }
 }
 
-void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession() {
+void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
   static bool already_called = false;
   if (already_called) return;
   already_called = true;
 
   ::proto::ProtoParser::ProtoParser parser(
       ::proto::ProtoParser::CPP,
-      "/home/hy/Desktop/Projects/ProtoBuf/src/RPC/RpcSession.proto");
+      "/home/hy/Desktop/Projects/ProtoBuf/src/RPC/RpcPacket.proto");
   CHECK(parser.ParseProto(),
-        "static class initialization for /home/hy/Desktop/Projects/ProtoBuf/src/RPC/RpcSession.proto failed");
+        "static class initialization for /home/hy/Desktop/Projects/ProtoBuf/src/RPC/RpcPacket.proto failed");
 
-  static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
+  static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
 
   int i = 0;
   // static init for class RpcRequestHeader
@@ -84,12 +84,12 @@ void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession() {
 
 }
 
-// Force static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession() to be called at initialization time.
-struct static_init_forcer_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession {
-  static_init_forcer_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession() {
-    static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
+// Force static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() to be called at initialization time.
+struct static_init_forcer_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket {
+  static_init_forcer_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
+    static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
   }
-} static_init_forcer_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession_obj_;
+} static_init_forcer_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket_obj_;
 
 
 namespace RPC {
@@ -186,6 +186,30 @@ void RpcRequestHeader::DeSerialize(const char* buf, unsigned int size) {
   RpcRequestHeader_reflection_->DeSerialize(this, buf, size);
 }
 
+// Print()
+void RpcRequestHeader::Print(int indent_num) const {
+  PrintIndent(indent_num);
+  std::cout << "RpcRequestHeader " << "{" << std::endl;
+  if (has_service_name()) {
+    PrintIndent(indent_num + 1);
+    std::cout << "service_name: " << "\"" << service_name_ << "\"" << std::endl;
+  }
+  if (has_method_name()) {
+    PrintIndent(indent_num + 1);
+    std::cout << "method_name: " << "\"" << method_name_ << "\"" << std::endl;
+  }
+  if (has_rpc_request_length()) {
+    PrintIndent(indent_num + 1);
+    std::cout << "rpc_request_length: " << rpc_request_length_ << std::endl;
+  }
+  if (has_keep_alive()) {
+    PrintIndent(indent_num + 1);
+    std::cout << "keep_alive: " << keep_alive_ << std::endl;
+  }
+  PrintIndent(indent_num);
+  std::cout << "}" << std::endl;
+}
+
 // InitAsDefaultInstance()
 void RpcRequestHeader::InitAsDefaultInstance() {
 }
@@ -226,7 +250,7 @@ void RpcRequestHeader::Swap(RpcRequestHeader* other) {
 // default_instance()
 const RpcRequestHeader& RpcRequestHeader::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
+    static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
   }
   return *default_instance_;
 }
@@ -428,6 +452,30 @@ void RpcResponseHeader::DeSerialize(const char* buf, unsigned int size) {
   RpcResponseHeader_reflection_->DeSerialize(this, buf, size);
 }
 
+// Print()
+void RpcResponseHeader::Print(int indent_num) const {
+  PrintIndent(indent_num);
+  std::cout << "RpcResponseHeader " << "{" << std::endl;
+  if (has_rpc_return_code()) {
+    PrintIndent(indent_num + 1);
+    std::string enum_value =
+        (reinterpret_cast<const proto::ProtoParser::EnumType*>(
+            RpcResponseHeader_descriptor_->FindFieldByName("rpc_return_code")->type_class()))
+                 ->EnumValueAsString(rpc_return_code_);
+    std::cout << "rpc_return_code: " << enum_value << std::endl;
+  }
+  if (has_rpc_return_msg()) {
+    PrintIndent(indent_num + 1);
+    std::cout << "rpc_return_msg: " << "\"" << rpc_return_msg_ << "\"" << std::endl;
+  }
+  if (has_rpc_response_length()) {
+    PrintIndent(indent_num + 1);
+    std::cout << "rpc_response_length: " << rpc_response_length_ << std::endl;
+  }
+  PrintIndent(indent_num);
+  std::cout << "}" << std::endl;
+}
+
 // InitAsDefaultInstance()
 void RpcResponseHeader::InitAsDefaultInstance() {
 }
@@ -464,7 +512,7 @@ void RpcResponseHeader::Swap(RpcResponseHeader* other) {
 // default_instance()
 const RpcResponseHeader& RpcResponseHeader::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
+    static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
   }
   return *default_instance_;
 }

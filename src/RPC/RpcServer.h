@@ -11,7 +11,7 @@
 #include "RpcHandler.h"
 #include "RpcService.h"
 #include "RpcServerChannel.h"
-#include "RpcSession_pb.h"
+#include "RpcPacket_pb.h"
 
 namespace RPC {
 

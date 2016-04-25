@@ -8,16 +8,21 @@
 
 namespace RPC {
 
+// InternalRpcMethod saved in RpcHandler maintained by RpcServer handler map.
+// This function signature takes only one parameter: Rpc, which will be
+// initialized when rpc server accepts a new rpc request packet and processes
+// it. The most critical part of a Rpc object is the internal rpc request
+// message and response messsage.
 using InternalRpcMethod = std::function<void(Rpc*)>;
 
 class RpcHandler {
  public:
   RpcHandler(std::string _fullname,
              std::string _method_name, 
-             proto::Message* _request_prototype,
-             proto::Message* _response_prototype,
-             proto::Message* _stream_prototype,
-             InternalRpcMethod* _rpc_method) :
+             const proto::Message* _request_prototype,
+             const proto::Message* _response_prototype,
+             const proto::Message* _stream_prototype,
+             InternalRpcMethod _rpc_method) :
       fullname(_fullname),
       method_name(_method_name),
       request_prototype(_request_prototype),
@@ -29,15 +34,14 @@ class RpcHandler {
     if (request_prototype) delete request_prototype;
     if (response_prototype) delete response_prototype;
     if (stream_prototype) delete stream_prototype;
-    if (rpc_method) delete rpc_method;
   }
 
   std::string fullname;
   std::string method_name;
-  proto::Message* request_prototype = nullptr;
-  proto::Message* response_prototype = nullptr;
-  proto::Message* stream_prototype = nullptr;
-  InternalRpcMethod* rpc_method = nullptr;
+  const proto::Message* request_prototype = nullptr;
+  const proto::Message* response_prototype = nullptr;
+  const proto::Message* stream_prototype = nullptr;
+  InternalRpcMethod rpc_method;
   // TODO: maybe handler executor ?
 };
 

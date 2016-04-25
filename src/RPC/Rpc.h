@@ -6,7 +6,7 @@
 
 #include "Proto/Message.h"
 #include "Utility/CallBack.h"
-#include "RpcSession_pb.h"
+#include "RpcPacket_pb.h"
 
 namespace RPC {
 
@@ -70,7 +70,7 @@ class Rpc {
   proto::Message* stream_ = nullptr;
   Base::Closure* cb_final_ = nullptr;
 
-  RpcResponseHeader::RpcReturnCode rpc_return_code_ =RpcResponseHeader::NONE;
+  RpcResponseHeader::RpcReturnCode rpc_return_code_ = RpcResponseHeader::NONE;
   std::string return_msg_;
 
   // --------------- Client -------------------- //
@@ -83,15 +83,5 @@ class Rpc {
 
 }  // namespace RPC
 
-// force initialization of RpcSession_pb protos
-static int InitRpcSessionProto() {
-  RPC::RpcResponseHeader _default_response_header__;
-  RPC::RpcRequestHeader _default_request_header__;
-  (void)_default_request_header__;
-  (void)_default_response_header__;
-  return 0;
-}
-
-static int init_rpc_session_pb = InitRpcSessionProto();
 
 #endif  /* RPC_BASE */

@@ -53,7 +53,7 @@ RPC_OBJ = \
       $(OBJ_DIR)/RPC/RpcChannelBase.o \
       $(OBJ_DIR)/RPC/RpcClientChannel.o \
       $(OBJ_DIR)/RPC/RpcServerChannel.o \
-      $(OBJ_DIR)/RPC/RpcSession_pb.o \
+      $(OBJ_DIR)/RPC/RpcPacket_pb.o \
 
 TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
           $(OBJ_DIR)/Utility/StringBuilder_test.o \

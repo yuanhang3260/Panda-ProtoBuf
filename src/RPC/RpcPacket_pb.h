@@ -1,5 +1,5 @@
-#ifndef RPCSESSION_PB_H_
-#define RPCSESSION_PB_H_
+#ifndef RPCPACKET_PB_H_
+#define RPCPACKET_PB_H_
 
 #include <string>
 #include <vector>
@@ -8,8 +8,8 @@
 #include "Proto/RepeatedFields.h"
 #include "Proto/SerializedMessage.h"
 
-void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
-void static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
+void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
+void static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
 
 namespace RPC {
 
@@ -31,6 +31,7 @@ class RpcRequestHeader: public ::proto::Message {
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
   static const RpcRequestHeader& default_instance();
+  void Print(int indent_num=0) const override;
 
   // --- Field accessors --- //
 
@@ -78,8 +79,8 @@ class RpcRequestHeader: public ::proto::Message {
   // default instance
   static RpcRequestHeader* default_instance_;
 
-  friend void ::static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
-  friend void ::static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
+  friend void ::static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
+  friend void ::static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
 };
 
 class RpcResponseHeader: public ::proto::Message {
@@ -109,6 +110,7 @@ class RpcResponseHeader: public ::proto::Message {
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
   static const RpcResponseHeader& default_instance();
+  void Print(int indent_num=0) const override;
 
   // --- Field accessors --- //
 
@@ -146,11 +148,11 @@ class RpcResponseHeader: public ::proto::Message {
   // default instance
   static RpcResponseHeader* default_instance_;
 
-  friend void ::static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
-  friend void ::static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcSession();
+  friend void ::static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
+  friend void ::static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
 };
 
 }  // namespace RPC
 
 
-#endif  /* RPCSESSION_PB_H_ */
+#endif  /* RPCPACKET_PB_H_ */

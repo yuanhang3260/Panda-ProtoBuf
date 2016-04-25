@@ -7,7 +7,6 @@
 #include "Network/Socket.h"
 #include "Utility/BufferedDataReader.h"
 #include "RpcChannelBase.h"
-#include "RpcSession_pb.h"
 
 namespace RPC {
 

@@ -5,7 +5,7 @@
 #include "Utility/Utils.h"
 #include "Proto/SerializedMessage.h"
 #include "RpcService.h"
-#include "RpcSession_pb.h"
+#include "RpcPacket_pb.h"
 
 namespace RPC {
 

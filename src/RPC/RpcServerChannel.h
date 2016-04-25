@@ -6,7 +6,6 @@
 
 #include "Network/Socket.h"
 #include "RpcChannelBase.h"
-#include "RpcSession_pb.h"
 
 namespace RPC {
 

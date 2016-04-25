@@ -173,11 +173,12 @@ void RpcServer::ReadRpcRequestHandler(int fd) {
     }
   }
 
-  // Excute the rpc method
+  // If read done, excute the rpc method in background thread pool.
   if (session->state() == RpcSession::READ_DONE) {
     EnqueueRpcBanckendProcessing(session);
   }
   else {
+    // Continue reading request.
     recv_em_.ModifyTaskWaitingStatus(fd, EPOLLIN | EPOLLONESHOT,
         Base::NewCallBack(&RpcServer::ReadRpcRequestHandler, this, fd));
   }
@@ -235,6 +236,7 @@ void RpcServer::WriteRpcResponseHandler(int fd) {
       }
     }
     else {
+      // Continue writing response.
       run_em_.ModifyTaskWaitingStatus(fd, EPOLLOUT | EPOLLONESHOT,
           Base::NewCallBack(&RpcServer::WriteRpcResponseHandler, this, fd));
     }
@@ -252,7 +254,7 @@ void RpcServer::BackendRpcProcess(RpcSession* session) {
   // Run rpc task.
   if (session->state() == RpcSession::READ_DONE &&
       session->handler()->rpc_method) {
-    (*session->handler()->rpc_method)(session->rpc());
+    (session->handler()->rpc_method)(session->rpc());
     session->rpc()->SetRpcReturnCode(RpcResponseHeader::OK);
     session->set_state(RpcSession::RPC_METHOD_DONE);
   }
@@ -359,7 +361,7 @@ int RpcServer::ParseRpcRequestHeader(RpcSession* session) {
     return -1;
   }
 
-  // Find rpc handler.
+  // Find rpc handler from handler_map.
   std::string full_service_name =
       req_hdr->service_name() + "." + req_hdr->method_name();
   RpcHandler* handler = FindRpcHandler(full_service_name);
@@ -379,10 +381,10 @@ int RpcServer::ParseRpcRequestHeader(RpcSession* session) {
 }
 
 int RpcServer::ParseRpcRequest(RpcSession* session) {
-  // Find handler
+  // Get rpc handler.
   RpcHandler* handler = session->handler();
 
-  // Create rpc obj for this session
+  // Create rpc obj for this session.
   if (handler->request_prototype) {
     session->rpc()->set_internal_request(handler->request_prototype->New());
   }
@@ -393,7 +395,7 @@ int RpcServer::ParseRpcRequest(RpcSession* session) {
     session->rpc()->set_internal_stream(handler->stream_prototype->New());
   }
 
-  // Deserialize the rpc request
+  // Deserialize the rpc request.
   session->rpc()->internal_request()->DeSerialize(session->InternalBuf(),
                                                   session->bufSize());
   // Okay, we're ready to execute the rpc method.

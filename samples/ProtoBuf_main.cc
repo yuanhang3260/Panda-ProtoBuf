@@ -155,8 +155,6 @@ void test_Serialize() {
     std::cout << "\033[2;32mSUCCESS\033[0m: stu1 == stu2 ^_^" << std::endl;
   }
 
-  std::cout << "deleting sdmsg ..." << std::endl;
-
   // mutiple students in class
   ::HaiZhong::SchoolClass class1;
   ::HaiZhong::Student* stu3 = class1.add_students();
@@ -211,22 +209,7 @@ void test_Serialize() {
     std::cout << "\033[2;32mSUCCESS\033[0m: class1 == class2 ^_^" << std::endl;
   }
 
-  std::cout << "class2.captain.name() = "
-            << class2.captain().name() << std::endl;
-  std::cout << "class2.captain.alias(0) = "
-            << class2.captain().alias(0) << std::endl;
-  std::cout << "class2.captain.partner.name() = "
-            << class2.captain().partner().name() << std::endl;
-
-  int i = 0;
-  for (const auto& student: class2.students()) {
-    std::cout << "*** student[" << i++ << "] *** ";
-    std::cout << student.name() << " " << student.age() << ", ";
-    for (const auto& alias: student.alias()) {
-      std::cout << alias << " ";
-    }
-    std::cout << std::endl;
-  }
+  class2.Print();
 
   delete sdmsg;
 }

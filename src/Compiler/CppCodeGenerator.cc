@@ -1506,12 +1506,11 @@ void CppCodeGenerator::DefineServiceClassMethods(ServiceType* service) {
                   "      std::shared_ptr<::RPC::RpcHandler>(new RPC::RpcHandler(\n"
                   "          \"${service_full_name}.${rpc_method_name}\",  // full rpc name\n"
                   "          \"${rpc_method_name}\",  // method name\n"
-                  "          new ${arg_type}(),  // request proto type\n"
-                  "          new ${return_type}(),  // response proto type\n"
+                  "          &${arg_type}::default_instance(),  // request proto type\n"
+                  "          &${return_type}::default_instance(),  // response proto type\n"
                   "          nullptr,  // TODO: stream prototype\n"
-                  "          new RPC::InternalRpcMethod(\n"
-                  "              std::bind(&${service_name}::internal_${rpc_method_name},\n"
-                  "                        this, std::placeholders::_1))\n"
+                  "          std::bind(&${service_name}::internal_${rpc_method_name},\n"
+                  "                    this, std::placeholders::_1)\n"
                   "      ));\n",
                   matches);
   }
@@ -1536,8 +1535,8 @@ void CppCodeGenerator::DefineServiceClassMethods(ServiceType* service) {
     printer.Print("void ${service_name}::internal_${rpc_method_name}(::RPC::Rpc* rpc) {\n"
                   "  ${rpc_method_name}(\n"
                   "      rpc,\n"
-                  "      (${arg_type}*)rpc->internal_request(),\n"
-                  "      (${return_type}*)rpc->internal_response(),\n"
+                  "      static_cast<${arg_type}*>(rpc->internal_request()),\n"
+                  "      static_cast<${return_type}*>(rpc->internal_response()),\n"
                   "      rpc->cb_final()\n"
                   "  );\n"
                   "}\n\n", matches);
