@@ -31,7 +31,7 @@ class MessageReflection {
       Message* defatult_instance,
       int has_bits_offset);
 
-  const ::proto::ProtoParser::Message* descriptor();
+  const ::proto::ProtoParser::Message* descriptor() const;
   const Message* defatult_instance() const;
   SerializedMessage* Serialize(const Message* message) const;
   void DeSerialize(Message* message, const char* buf, uint32 size) const;

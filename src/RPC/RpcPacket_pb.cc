@@ -61,7 +61,7 @@ void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
           RPC::RpcRequestHeader::default_instance_,
           PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcRequestHeader, has_bits_))
   );
-  ::proto::MessageFactory::RegisterGeneratedMessage(RpcRequestHeader_reflection_);
+  ::proto::MessageFactory::RegisterGeneratedMessage(RpcRequestHeader_reflection_.get());
 
   // static init for class RpcResponseHeader
   static const int RpcResponseHeader_offsets_[3] = {
@@ -80,7 +80,7 @@ void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
           RPC::RpcResponseHeader::default_instance_,
           PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcResponseHeader, has_bits_))
   );
-  ::proto::MessageFactory::RegisterGeneratedMessage(RpcResponseHeader_reflection_);
+  ::proto::MessageFactory::RegisterGeneratedMessage(RpcResponseHeader_reflection_.get());
 
 }
 

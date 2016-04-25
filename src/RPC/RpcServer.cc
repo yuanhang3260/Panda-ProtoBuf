@@ -402,25 +402,37 @@ int RpcServer::ParseRpcRequest(RpcSession* session) {
   return 0;
 }
 
-const RpcService* RpcServer::FindRpcService(std::string name) {
+const RpcService* RpcServer::FindRpcService(const std::string& name) {
   if (service_map_.find(name) != service_map_.end()) {
     return service_map_.at(name);
   }
   return nullptr;
 }
 
-void RpcServer::RegisterService(std::string name, RpcService* service) {
+void RpcServer::RegisterService(const std::string& name, RpcService* service) {
   service_map_.emplace(name, service);
 }
 
-void RpcServer::DeRegisterService(std::string name) {
+void RpcServer::DeRegisterService(const std::string& name) {
   auto it = service_map_.end();
   if ((it = service_map_.find(name)) != service_map_.end()) {
     service_map_.erase(it);
   }
 }
 
-RpcHandler* RpcServer::FindRpcHandler(std::string name) {
+void RpcServer::RegisterRpcHandler(const std::string& name,
+                                   std::shared_ptr<RpcHandler> handler) {
+  handler_map_[name] = handler;
+}
+
+void RpcServer::DeRegisterRpcHandler(const std::string& name) {
+  auto it = handler_map_.find(name);
+  if (it != handler_map_.end()) {
+    handler_map_.erase(it);
+  }
+}
+
+RpcHandler* RpcServer::FindRpcHandler(const std::string& name) {
   if (handler_map_.find(name) != handler_map_.end()) {
     return handler_map_.at(name).get();
   }

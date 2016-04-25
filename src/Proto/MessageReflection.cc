@@ -23,7 +23,7 @@ MessageReflection::MessageReflection(
 }
 
 const ::proto::ProtoParser::Message*
-MessageReflection::descriptor() {
+MessageReflection::descriptor() const {
   return message_descirptor_.get();
 }
 

@@ -10,8 +10,7 @@ namespace proto {
 class MessageFactory {
  public:
   static MessageFactory* instance();
-  static void RegisterGeneratedMessage(
-    std::shared_ptr<MessageReflection> reflection);
+  static void RegisterGeneratedMessage(MessageReflection* reflection);
 
   static int NumMessagesRegistered();
 
@@ -19,15 +18,14 @@ class MessageFactory {
 
  private:
   MessageFactory();
-  ~MessageFactory();
+  // Disallow copy - message factory is singleton.
   MessageFactory(const MessageFactory&) = delete;
   MessageFactory& operator=(const MessageFactory&) = delete;
 
-  static std::map<std::string, std::shared_ptr<MessageReflection>>&
-  message_map();
+  static std::map<std::string, const MessageReflection*>& message_map();
 
   static MessageFactory* instance_;
-  std::map<std::string, std::shared_ptr<MessageReflection>> message_map_;
+  std::map<std::string, const MessageReflection*> message_map_;
 };
 
 }//  namespace proto

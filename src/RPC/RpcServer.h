@@ -32,16 +32,20 @@ class RpcServer {
   // Get Service Map
   RpcServiceMap* service_map() { return &service_map_; }
   // Find Service
-  const RpcService* FindRpcService(std::string name);
+  const RpcService* FindRpcService(const std::string& name);
   // Register service
-  void RegisterService(std::string name, RpcService* service);
+  void RegisterService(const std::string& name, RpcService* service);
   // DeRegister service
-  void DeRegisterService(std::string name);
+  void DeRegisterService(const std::string& name);
+  // Register rpc handler
+  void RegisterRpcHandler(const std::string& name, std::shared_ptr<RpcHandler>);
+  // DeRegister rpc handler.
+  void DeRegisterRpcHandler(const std::string& name);
 
   // Get internal handler_map.
   RpcHandlerMap* handler_map() { return &handler_map_; }
   // Look up RpcHandler by fullname. Returns nullptr if non-existent.
-  RpcHandler* FindRpcHandler(std::string name);
+  RpcHandler* FindRpcHandler(const std::string& name);
 
  private:
   void RpcConnectionListenerHandler();

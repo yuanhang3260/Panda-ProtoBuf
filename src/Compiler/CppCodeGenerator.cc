@@ -146,8 +146,8 @@ void CppCodeGenerator::DeclareRpcMethodClass(ServiceType* service) {
                 "  virtual void RegisterToServer(::RPC::RpcServer* server);\n"
                 "  virtual void DeRegisterFromServer(::RPC::RpcServer* server);\n"
                 "\n"
-                "  virtual void InternalRegisterHandlers(::RPC::RpcHandlerMap* handler_map);\n"
-                "  virtual void InternalDeRegisterHandlers(::RPC::RpcHandlerMap* handler_map);\n"
+                "  virtual void InternalRegisterHandlers(::RPC::RpcServer* server);\n"
+                "  virtual void InternalDeRegisterHandlers(::RPC::RpcServer* server);\n"
                 "\n", matches);
   for (const auto& rpc_service: service->RpcMethods()) {
     matches["rpc_method_name"] = rpc_service->name();
@@ -390,7 +390,7 @@ void CppCodeGenerator::DefineStaticInit() {
                   "          ${whole_msg_name}::default_instance_,\n"
                   "          PROTO_MESSAGE_FIELD_OFFSET(${whole_msg_name}, has_bits_))\n"
                   "  );\n"
-                  "  ::proto::MessageFactory::RegisterGeneratedMessage(${msg_name}_reflection_);\n"
+                  "  ::proto::MessageFactory::RegisterGeneratedMessage(${msg_name}_reflection_.get());\n"
                   "\n",
                   matches);
   }
@@ -1491,19 +1491,19 @@ void CppCodeGenerator::DefineServiceClassMethods(ServiceType* service) {
   // Register and De-Register service.
   printer.Print("void ${service_name}::RegisterToServer(::RPC::RpcServer* server) {\n"
                 "  server->RegisterService(\"${service_name}\", this);\n"
-                "  InternalRegisterHandlers(server->handler_map());\n"
+                "  InternalRegisterHandlers(server);\n"
                 "}\n\n", matches);
   printer.Print("void ${service_name}::DeRegisterFromServer(::RPC::RpcServer* server) {\n"
                 "  server->DeRegisterService(\"${service_name}\");\n"
-                "  InternalDeRegisterHandlers(server->handler_map());\n"
+                "  InternalDeRegisterHandlers(server);\n"
                 "}\n\n", matches);
   // Internal register handler to server's handler_map
-  printer.Print("void ${service_name}::InternalRegisterHandlers(::RPC::RpcHandlerMap* handler_map) {\n",
+  printer.Print("void ${service_name}::InternalRegisterHandlers(::RPC::RpcServer* server) {\n",
                 matches);
   for (auto rpc_method: service->RpcMethods()) {
     matches = GetRpcMatchMap(service, rpc_method.get());
-    printer.Print("  (*handler_map)[\"${service_full_name}.${rpc_method_name}\"] =\n"
-                  "      std::shared_ptr<::RPC::RpcHandler>(new RPC::RpcHandler(\n"
+    printer.Print("  server->RegisterRpcHandler(\"${service_full_name}.${rpc_method_name}\",\n"
+                  "      std::make_shared<::RPC::RpcHandler>(\n"
                   "          \"${service_full_name}.${rpc_method_name}\",  // full rpc name\n"
                   "          \"${rpc_method_name}\",  // method name\n"
                   "          &${arg_type}::default_instance(),  // request proto type\n"
@@ -1511,21 +1511,18 @@ void CppCodeGenerator::DefineServiceClassMethods(ServiceType* service) {
                   "          nullptr,  // TODO: stream prototype\n"
                   "          std::bind(&${service_name}::internal_${rpc_method_name},\n"
                   "                    this, std::placeholders::_1)\n"
-                  "      ));\n",
+                  "      )\n"
+                  "  );\n",
                   matches);
   }
   printer.Print("}\n\n");
 
   // Internal de-register handler from server's handler_map
-  printer.Print("void ${service_name}::InternalDeRegisterHandlers(::RPC::RpcHandlerMap* handler_map) {\n"
-                "  auto it = handler_map->end();\n",
+  printer.Print("void ${service_name}::InternalDeRegisterHandlers(::RPC::RpcServer* server) {\n",
                 matches);
   for (const auto rpc_method: service->RpcMethods()) {
     matches = GetRpcMatchMap(service, rpc_method.get());
-    printer.Print("  if ((it = handler_map->find(\"${service_full_name}.${rpc_method_name}\")) != handler_map->end()) {\n"
-                  "    handler_map->erase(it);\n"
-                  "  }\n",
-                  matches);
+    printer.Print("  server->DeRegisterRpcHandler(\"${service_full_name}.${rpc_method_name}\");\n", matches);
   }
   printer.Print("}\n\n");
 
