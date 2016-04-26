@@ -229,7 +229,7 @@ void CppCodeGenerator::DeclarePrivateFields(Message* message) {
     std::map<std::string, std::string> matches =
         GetFieldMatchMap(message, field.get());
     // repeated fields are "vector<Bar>* foo" type
-    if (field->modifier() == MessageField::REPEATED) {
+    if (field->modifier() == REPEATED) {
       if (field->IsPrimitiveType()) {
         matches["type_name"] =
             "::proto::RepeatedField<" + matches["type_name"] + ">";
@@ -449,7 +449,7 @@ void CppCodeGenerator::DefineDestructor(Message* message) {
     for (auto& field : message->fields_list()) {
       matches["field_name"] = field->name();
       if (field->type() == MESSAGETYPE &&
-          field->modifier() != MessageField::REPEATED) {
+          field->modifier() != REPEATED) {
         printer.Print("  if (${field_name}_) {\n"
                       "    delete ${field_name}_;\n"
                       "  }\n", matches);
@@ -546,7 +546,7 @@ void CppCodeGenerator::PrintMoveClassCode(Message* message) {
     std::map<std::string, std::string> matches =
         GetFieldMatchMap(message, field.get());
 
-    if (field->modifier() == MessageField::REPEATED ||
+    if (field->modifier() == REPEATED ||
         field->type() == STRING) {
       printer.Print(
         "  ${field_name}_ = std::move(other.mutable_${field_name}());\n",
@@ -861,7 +861,7 @@ void CppCodeGenerator::DefineSwapper(Message* message) {
     std::map<std::string, std::string> matches =
         GetFieldMatchMap(message, field.get());
     // repeated field should have std::vector<Bar> type
-    if (field->modifier() == MessageField::REPEATED) {
+    if (field->modifier() == REPEATED) {
       if (field->IsPrimitiveType()) {
         matches["type_name"] =
             "::proto::RepeatedField<" + matches["type_name"] + ">";
@@ -872,7 +872,7 @@ void CppCodeGenerator::DefineSwapper(Message* message) {
       }
     }
 
-    if (field->modifier() == MessageField::REPEATED ||
+    if (field->modifier() == REPEATED ||
         field->type() == STRING) {  // repeated type / string type
       printer.Print(
           "  ${type_name} ${field_name}_tmp__ = std::move(other->mutable_${field_name}());\n"

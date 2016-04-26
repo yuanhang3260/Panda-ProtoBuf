@@ -30,12 +30,6 @@ class RpcHandler {
       stream_prototype(_stream_prototype),
       rpc_method(_rpc_method) {}
 
-  ~RpcHandler() {
-    if (request_prototype) delete request_prototype;
-    if (response_prototype) delete response_prototype;
-    if (stream_prototype) delete stream_prototype;
-  }
-
   std::string fullname;
   std::string method_name;
   const proto::Message* request_prototype = nullptr;

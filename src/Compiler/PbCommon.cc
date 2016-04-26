@@ -1,5 +1,5 @@
 #include "PbCommon.h"
-#include "../Utility/Strings.h"
+#include "Utility/Strings.h"
 
 namespace proto {
 namespace ProtoParser {

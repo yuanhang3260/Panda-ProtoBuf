@@ -3,8 +3,8 @@
 namespace proto {
 namespace ProtoParser {
 
-MessageField::MessageField(FIELD_MODIFIER modifier,
-                           FIELD_TYPE type,
+MessageField::MessageField(FieldLabel modifier,
+                           FieldType type,
                            PbType* type_class,
                            std::string name,
                            int tag,
@@ -58,29 +58,27 @@ MessageField::MessageField(FIELD_MODIFIER modifier,
 
 MessageField::~MessageField() {}
 
-MessageField::FIELD_MODIFIER
-MessageField::GetMessageFieldModifier(std::string line) {
+FieldLabel MessageField::GetMessageFieldModifier(std::string line) {
   if (line == "optional") {
-    return MessageField::OPTIONAL;
+    return OPTIONAL;
   }
   if (line == "required") {
-    return MessageField::REQUIRED;
+    return REQUIRED;
   }
   if (line == "repeated") {
-    return MessageField::REPEATED;
+    return REPEATED;
   }
-  return MessageField::UNKNOWN_MODIFIER;
+  return UNKNOWN_MODIFIER;
 }
 
-std::string
-MessageField::GetModifierAsString(FIELD_MODIFIER modifier) {
-  if (modifier == MessageField::OPTIONAL) {
+std::string MessageField::GetModifierAsString(FieldLabel modifier) {
+  if (modifier == OPTIONAL) {
     return "optional";
   }
-  if (modifier == MessageField::REQUIRED) {
+  if (modifier == REQUIRED) {
     return "required";
   }
-  if (modifier == MessageField::REPEATED) {
+  if (modifier == REPEATED) {
     return "repeated";
   }
   return "unknown_modifer";
@@ -95,42 +93,42 @@ bool MessageField::IsMessageType() const {
 }
 
 bool MessageField::IsRepeatedType() const {
-  return modifier_ == MessageField::REPEATED;
+  return modifier_ == REPEATED;
 }
 
 bool MessageField::IsSingularType() const {
-  return modifier_ != MessageField::REPEATED;
+  return modifier_ != REPEATED;
 }
 
 bool MessageField::IsSingularNumericType() const {
-  return modifier_ != MessageField::REPEATED &&
+  return modifier_ != REPEATED &&
          type_ != MESSAGETYPE &&
          type_ != STRING;
 }
 
 bool MessageField::IsSingularStringType() const {
-  return modifier_ != MessageField::REPEATED &&
+  return modifier_ != REPEATED &&
          type_ == STRING;
 }
 
 bool MessageField::IsSingularMessageType() const {
-  return modifier_ != MessageField::REPEATED &&
+  return modifier_ != REPEATED &&
          type_ == MESSAGETYPE;
 }
 
 bool MessageField::IsRepeatedNumericType() const {
-  return modifier_ == MessageField::REPEATED &&
+  return modifier_ == REPEATED &&
          type_ != MESSAGETYPE &&
          type_ != STRING;
 }
 
 bool MessageField::IsRepeatedStringType() const {
-  return modifier_ == MessageField::REPEATED &&
+  return modifier_ == REPEATED &&
          type_ == STRING;
 }
 
 bool MessageField::IsRepeatedMessageType() const {
-  return modifier_ == MessageField::REPEATED &&
+  return modifier_ == REPEATED &&
          type_ == MESSAGETYPE;
 }
 

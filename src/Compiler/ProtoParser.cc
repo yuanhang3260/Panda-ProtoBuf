@@ -301,9 +301,9 @@ bool ProtoParser::ParseMessageField(std::string line) {
     return false;
   }
   // Parse field modifier.
-  MessageField::FIELD_MODIFIER modifier;
+  FieldLabel modifier;
   if ((modifier = MessageField::GetMessageFieldModifier(result[0])) ==
-      MessageField::UNKNOWN_MODIFIER) {
+      UNKNOWN_MODIFIER) {
     LogError("Unknown modifier \"%s\"", result[0].c_str());
     return false;
   }

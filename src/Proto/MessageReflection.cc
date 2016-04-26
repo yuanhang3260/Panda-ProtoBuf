@@ -174,28 +174,28 @@ MessageReflection::CreateSerializedSingularPrimitive(
   SerializedPrimitive* sdprim = new SerializedPrimitive(field->type());
   const char* msg_addr = reinterpret_cast<const char*>(message);
   switch (field->type()) {
-    case ProtoParser::UINT32:
+    case UINT32:
       ENCODE_SINGULAR_PRITIMIVE(uint32, UInt32)
       break;
-    case ProtoParser::UINT64:
+    case UINT64:
       ENCODE_SINGULAR_PRITIMIVE(uint64, UInt64)
       break;
-    case ProtoParser::INT32:
+    case INT32:
       ENCODE_SINGULAR_PRITIMIVE(int32, SInt32)
       break;
-    case ProtoParser::INT64:
+    case INT64:
       ENCODE_SINGULAR_PRITIMIVE(int64, SInt64)
       break;
-    case ProtoParser::BOOL:
+    case BOOL:
       ENCODE_SINGULAR_PRITIMIVE(bool, Bool)
       break;
-    case ProtoParser::DOUBLE:
+    case DOUBLE:
       ENCODE_SINGULAR_PRITIMIVE(double, Double)
       break;
-    case ProtoParser::STRING:
+    case STRING:
       ENCODE_SINGULAR_PRITIMIVE(std::string, String)
       break;
-    case ProtoParser::ENUMTYPE:
+    case ENUMTYPE:
       ENCODE_SINGULAR_PRITIMIVE(uint32, UInt32)
       break;
     default:
@@ -232,31 +232,31 @@ MessageReflection::CreateSerializedRepeatedPrimitive(
   const char* field_addr =
       reinterpret_cast<const char*>(message) + field->field_offset();
   switch (field->type()) {
-    case ProtoParser::UINT32: {
+    case UINT32: {
       ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_VARIANT, uint32, UInt32)
       break;
     }
-    case ProtoParser::UINT64: {
+    case UINT64: {
       ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_VARIANT, uint64, UInt64)
       break;
     }
-    case ProtoParser::INT32: {
+    case INT32: {
       ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_VARIANT, int32, SInt32)
       break;
     }
-    case ProtoParser::INT64: {
+    case INT64: {
       ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_VARIANT, int64, SInt64)
       break;
     }
-    case ProtoParser::BOOL:{
+    case BOOL:{
       ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_VARIANT, bool, Bool)
       break;
     }
-    case ProtoParser::DOUBLE: {
+    case DOUBLE: {
       ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_FIXD64, double, Double)
       break;
     }
-    case ProtoParser::STRING: {
+    case STRING: {
       // String is special because it's stored in RepeatedPtrField.
       WireFormat::EncodeTag(field->tag(), WireFormat::WIRETYPE_LENGTH_DELIMITED,
                             sdprim->mutable_ostream());
@@ -268,7 +268,7 @@ MessageReflection::CreateSerializedRepeatedPrimitive(
       }
       break;
     }
-    case ProtoParser::ENUMTYPE: {
+    case ENUMTYPE: {
       // Enum is speical because we can't cast field_field_addr raw pointer to
       // the templated RepeatedField. So instead we directly cast enum value to
       // uint32 by manipulating the underlying pointer.
@@ -389,21 +389,20 @@ void MessageReflection::SetHasBit(Message* message, const uint32 tag) const {
 
 void MessageReflection::CheckWireType(
     WireFormat::WireType wire_type,
-    ProtoParser::FIELD_TYPE type,
-    ProtoParser::MessageField::FIELD_MODIFIER modifier) const {
-  if (type == ProtoParser::UINT32 || type == ProtoParser::UINT64 ||
-      type == ProtoParser::INT32  || type == ProtoParser::INT64  ||
-      type == ProtoParser::BOOL   || type == ProtoParser::ENUMTYPE) {
+    FieldType type,
+    FieldLabel modifier) const {
+  if (type == UINT32 || type == UINT64 || type == INT32  || type == INT64  ||
+      type == BOOL   || type == ENUMTYPE) {
     if (wire_type == WireFormat::WIRETYPE_VARIANT) {
       return;
     }
   }
-  else if (type == ProtoParser::DOUBLE) {
+  else if (type == DOUBLE) {
     if (wire_type == WireFormat::WIRETYPE_FIXD64) {
       return;
     }
   }
-  else if (type == ProtoParser::STRING || type == ProtoParser::MESSAGETYPE) {
+  else if (type == STRING || type == MESSAGETYPE) {
     if (wire_type == WireFormat::WIRETYPE_LENGTH_DELIMITED) {
       return;
     }
@@ -537,35 +536,35 @@ uint32 MessageReflection::DeSerializeSingularPrimitive(
   //std::cout << indent() << "DeSerializing singular primitive " << std::endl;
   indent_num++;
   switch (field->type()) {
-    case ProtoParser::UINT32: {
+    case UINT32: {
       offset = SetUInt32(message, field, buf);
       break;
     }
-    case ProtoParser::UINT64: {
+    case UINT64: {
       offset = SetUInt64(message, field, buf);
       break;
     }
-    case ProtoParser::INT32: {
+    case INT32: {
       offset = SetSInt32(message, field, buf);
       break;
     }
-    case ProtoParser::INT64: {
+    case INT64: {
       offset = SetSInt64(message, field, buf);
       break;
     }
-    case ProtoParser::BOOL:{
+    case BOOL:{
       offset = SetBool(message, field, buf);
       break;
     }
-    case ProtoParser::DOUBLE: {
+    case DOUBLE: {
       offset = SetDouble(message, field, buf);
       break;
     }
-    case ProtoParser::ENUMTYPE: {
+    case ENUMTYPE: {
       offset = SetUInt32(message, field, buf);
       break;
     }
-    case ProtoParser::STRING: {
+    case STRING: {
       offset = SetString(message, field, buf);
       break;
     }
@@ -589,49 +588,49 @@ uint32 MessageReflection::DeSerializeRepeatedPrimitive(
   uint32 offset = 0;
   uint32 list_size = WireFormat::DecodeUInt32(buf, &offset);
   switch (field->type()) {
-    case ProtoParser::UINT32: {
+    case UINT32: {
       for (uint32 i = 0; i < list_size; i++) {
         offset += AddUInt32(message, field, buf + offset);
       }
       break;
     }
-    case ProtoParser::UINT64: {
+    case UINT64: {
       for (uint32 i = 0; i < list_size; i++) {
         offset += AddUInt64(message, field, buf + offset);
       }
       break;
     }
-    case ProtoParser::INT32: {
+    case INT32: {
       for (uint32 i = 0; i < list_size; i++) {
         offset += AddSInt32(message, field, buf + offset);
       }
       break;
     }
-    case ProtoParser::INT64: {
+    case INT64: {
       for (uint32 i = 0; i < list_size; i++) {
         offset += AddSInt64(message, field, buf + offset);
       }
       break;
     }
-    case ProtoParser::BOOL:{
+    case BOOL:{
       for (uint32 i = 0; i < list_size; i++) {
         offset += AddBool(message, field, buf + offset);
       }
       break;
     }
-    case ProtoParser::DOUBLE: {
+    case DOUBLE: {
       for (uint32 i = 0; i < list_size; i++) {
         offset += AddDouble(message, field, buf + offset);
       }
       break;
     }
-    case ProtoParser::ENUMTYPE: {
+    case ENUMTYPE: {
       for (uint32 i = 0; i < list_size; i++) {
         offset += AddUInt32(message, field, buf + offset);
       }
       break;
     }
-    case ProtoParser::STRING: {
+    case STRING: {
       for (uint32 i = 0; i < list_size; i++) {
         offset += AddString(message, field, buf + offset);
       }

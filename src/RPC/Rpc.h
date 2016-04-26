@@ -1,9 +1,11 @@
 #ifndef RPC_BASE
 #define RPC_BASE
 
+#include <memory>
 #include <mutex>
 #include <condition_variable>
 
+#include "Base/MacroUtils.h"
 #include "Proto/Message.h"
 #include "Utility/CallBack.h"
 #include "RpcPacket_pb.h"
@@ -24,7 +26,7 @@ class Rpc {
   };
 
   Rpc() = default;
-  virtual ~Rpc();
+  virtual ~Rpc() {}
 
   void SetRpcReturnCode(RpcResponseHeader::RpcReturnCode code) {
     rpc_return_code_ = code;
@@ -32,20 +34,21 @@ class Rpc {
   RpcResponseHeader::RpcReturnCode RpcReturnCode() const {
     return rpc_return_code_;
   }
+
   std::string RpcReturnMessage() const;
   void SetRpcReturnMesssage(std::string msg) { return_msg_ = msg; }
 
-  proto::Message* internal_request() { return request_; }
-  void set_internal_request(proto::Message* req) { request_ = req; }
+  proto::Message* internal_request() { return request_.get(); }
+  void set_internal_request(proto::Message* req) { request_.reset(req); }
 
-  proto::Message* internal_response() { return response_; }
-  void set_internal_response(proto::Message* res) { response_ = res; }
+  proto::Message* internal_response() { return response_.get(); }
+  void set_internal_response(proto::Message* res) { response_.reset(res); }
 
-  proto::Message* internal_stream() { return stream_; }
-  void set_internal_stream(proto::Message* stream) { stream_ = stream; }
+  proto::Message* internal_stream() { return stream_.get(); }
+  void set_internal_stream(proto::Message* stream) { stream_.reset(stream); }
 
-  Base::Closure* cb_final() { return cb_final_; }
-  void set_cb_final(Base::Closure* cb_final) { cb_final_ = cb_final; }
+  Base::Closure* cb_final() { return cb_final_.get(); }
+  void set_cb_final(Base::Closure* cb_final) { cb_final_.reset(cb_final); }
 
   ClientStatus client_status() const { return client_status_; }
   void set_client_status(ClientStatus status) { client_status_ = status; }
@@ -62,13 +65,14 @@ class Rpc {
   std::string RpcCallStatus();
 
  private:
+  FORBID_COPY_AND_ASSIGN(Rpc);
   int check_num_;
 
   // --------------- server -------------------- //
-  proto::Message* request_ = nullptr;
-  proto::Message* response_ = nullptr;
-  proto::Message* stream_ = nullptr;
-  Base::Closure* cb_final_ = nullptr;
+  std::unique_ptr<proto::Message> request_;
+  std::unique_ptr<proto::Message> response_;
+  std::unique_ptr<proto::Message> stream_;
+  std::unique_ptr<Base::Closure> cb_final_;
 
   RpcResponseHeader::RpcReturnCode rpc_return_code_ = RpcResponseHeader::NONE;
   std::string return_msg_;

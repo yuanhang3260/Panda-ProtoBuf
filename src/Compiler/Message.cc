@@ -43,7 +43,7 @@ bool Message::AddField(std::shared_ptr<MessageField> field) {
   if (field->type() == STRING) {
     has_string_field_  = true;
   }
-  if (field->modifier() == MessageField::REPEATED) {
+  if (field->modifier() == REPEATED) {
     has_repeated_field_ = true;
   }
   return true;

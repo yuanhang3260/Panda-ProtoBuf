@@ -9,7 +9,7 @@ namespace proto {
 
 class SerializedPrimitive: public SerializedObjectInterface {
  public:
-  SerializedPrimitive(::proto::ProtoParser::FIELD_TYPE type): type_(type) {}
+  SerializedPrimitive(FieldType type): type_(type) {}
   SerializedPrimitive(const SerializedPrimitive& other) = delete;
   SerializedPrimitive operator=(const SerializedPrimitive& other) = delete;
 
@@ -20,7 +20,7 @@ class SerializedPrimitive: public SerializedObjectInterface {
   unsigned int size() const override { return internal_buf_.size(); }
 
  private:
-  ::proto::ProtoParser::FIELD_TYPE type_;
+  FieldType type_;
   ::Utility::StringBuilder internal_buf_;
 };
 

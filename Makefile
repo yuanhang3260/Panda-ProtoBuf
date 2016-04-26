@@ -12,7 +12,9 @@ SRC_DIR=src
 OBJ_DIR=lib
 VPATH=$(SOURCE)
       
-OBJ = $(OBJ_DIR)/Utility/BufferedDataReader.o \
+OBJ = $(OBJ_DIR)/Base/Log.o \
+			$(OBJ_DIR)/Base/Utils.o \
+			$(OBJ_DIR)/Utility/BufferedDataReader.o \
       $(OBJ_DIR)/Utility/BufferedDataWriter.o \
       $(OBJ_DIR)/Utility/Strings.o \
       $(OBJ_DIR)/Utility/StringBuilder.o \
@@ -103,6 +105,12 @@ $(OBJ_DIR)/Network/%.o: $(SRC_DIR)/Network/%.cc
 $(OBJ_DIR)/Compiler/%.o: $(SRC_DIR)/Compiler/%.cc $(SRC_DIR)/Compiler/%.h
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
+$(OBJ_DIR)/Base/%.o: $(SRC_DIR)/Base/%.cc $(SRC_DIR)/Base/%.h
+	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/Base/%.o: $(SRC_DIR)/Base/%.cc
+	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
+
 $(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cc $(SRC_DIR)/Proto/%.h
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
@@ -120,6 +128,7 @@ test/%.out: $(OBJ_DIR)/Proto/%.o proto_library
 
 test/%.out: $(OBJ_DIR)/IO/%.o proto_library
 	$(CC) $(CFLAGS) $(LFLAGS) $< libproto.a -lssl -lcrypto -o $@
+
 
 clean:
 	rm -rf libproto.a

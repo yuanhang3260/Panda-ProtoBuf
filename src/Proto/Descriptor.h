@@ -1,26 +1,23 @@
-#ifndef MESSAGE_FIELD_
-#define MESSAGE_FIELD_
+#ifndef PROTO_DESCRIPTOR_
+#define PROTO_DESCRIPTOR_
 
 #include <string>
-#include "PbCommon.h"
-#include "Type.h"
-#include "EnumType.h"
+//#include "EnumType.h"
 
 namespace proto {
-namespace ProtoParser {
 
-class MessageField {
+class FieldDescriptor {
  public:
-  MessageField(FIELD_MODIFIER modifier, FIELD_TYPE type, PbType* type_class,
-               std::string name, int tag, std::string default_value);
-  virtual ~MessageField();
+  FieldDescriptor(FieldLabel modifier, FieldType type, /* PbType* type_class , */
+                  std::string name, int tag, std::string default_value);
+  virtual ~FieldDescriptor();
 
-  static FIELD_MODIFIER GetMessageFieldModifier(std::string modifier);
-  static std::string GetModifierAsString(FIELD_MODIFIER modifier);
+  static FieldLabel GetMessageFieldModifier(std::string modifier);
+  static std::string GetModifierAsString(FieldLabel modifier);
 
-  FIELD_MODIFIER modifier() const { return modifier_; }
-  FIELD_TYPE type() const { return type_; }
-  const PbType* type_class() const { return type_class_; }
+  FieldLabel modifier() const { return modifier_; }
+  FieldType type() const { return type_; }
+  //const PbType* type_class() const { return type_class_; }
   std::string name() const { return name_; }
   unsigned int tag() const { return tag_; }
   std::string default_value() const { return default_value_; }
@@ -43,9 +40,9 @@ class MessageField {
   bool IsRepeatedMessageType() const;
 
  private:
-  FIELD_MODIFIER modifier_;
-  FIELD_TYPE type_;
-  const PbType* type_class_;
+  FieldLabel modifier_;
+  FieldType type_;
+  //const PbType* type_class_;
   std::string name_;
   unsigned int tag_;
   std::string default_value_;
@@ -54,7 +51,6 @@ class MessageField {
   int field_offset_ = -1;
 };
 
-}  // namespace ProtoParser
-}  // namespace Proto
+}
 
-#endif /* MESSAGE_FIELD_ */
+#endif  /* PROTO_DESCRIPTOR_ */

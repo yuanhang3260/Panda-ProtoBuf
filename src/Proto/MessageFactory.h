@@ -19,8 +19,7 @@ class MessageFactory {
  private:
   MessageFactory();
   // Disallow copy - message factory is singleton.
-  MessageFactory(const MessageFactory&) = delete;
-  MessageFactory& operator=(const MessageFactory&) = delete;
+  FORBID_COPY_AND_ASSIGN(MessageFactory);
 
   static std::map<std::string, const MessageReflection*>& message_map();
 

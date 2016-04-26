@@ -3,6 +3,8 @@
 
 #include <string>
 
+#include "../Proto/Common.h"
+
 namespace proto {
 namespace ProtoParser {
 
@@ -11,19 +13,6 @@ enum LANGUAGE {
   PYTHON,
   JAVA,
   UNKNOWN_LANGUAGE,
-};
-
-enum FIELD_TYPE {
-  UNDETERMINED,
-  INT32,
-  INT64,
-  UINT32,
-  UINT64,
-  DOUBLE,
-  BOOL,
-  STRING,
-  ENUMTYPE,
-  MESSAGETYPE,
 };
 
 class PbCommon {

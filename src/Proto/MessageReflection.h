@@ -4,11 +4,13 @@
 #include <memory>
 #include <stdexcept>
 
-#include "../Compiler/Message.h"
-#include "../Compiler/PbCommon.h"
+#include "Base/MacroUtils.h"
+#include "Compiler/Message.h"
+#include "Compiler/PbCommon.h"
 #include "WireFormat.h"
 #include "SerializedMessage.h"
 #include "SerializedPrimitive.h"
+#include "Descriptor.h"
 #include "Message.h"
 
 namespace proto {
@@ -19,10 +21,6 @@ namespace proto {
           &reinterpret_cast<const TYPE*>(16)->FIELD) -         \
       reinterpret_cast<const char*>(16))
 
-#define CHECK(condition, error_msg)            \
-  if (!condition) {                            \
-    throw std::runtime_error(error_msg);       \
-  }
 
 class MessageReflection {
  public:
@@ -38,56 +36,6 @@ class MessageReflection {
 
  private:
   bool HasField(const Message* message, int tag) const;
-
-  // Create a serialized singular message object.
-  std::shared_ptr<SerializedObjectInterface>
-  CreateSerializedSingularMessage(
-    const Message* message,
-    const ProtoParser::MessageField* field)  const;
-
-  // Create a serialized repeated message object.
-  std::shared_ptr<SerializedObjectInterface>
-  CreateSerializedRepeatedMessage(
-    const Message* message,
-    const ProtoParser::MessageField* field)  const;
-
-  // Create a serialized singular primitive object.
-  std::shared_ptr<SerializedObjectInterface>
-  CreateSerializedSingularPrimitive(
-    const Message* message,
-    const ProtoParser::MessageField* field) const;
-
-  // Create a repeated singular primitive object.
-  std::shared_ptr<SerializedObjectInterface>
-  CreateSerializedRepeatedPrimitive(
-    const Message* message,
-    const ProtoParser::MessageField* field) const;
-
-
-  // Deserialize a singular primitive field.
-  uint32 DeSerializeSingularPrimitive(
-    Message* message,
-    const ProtoParser::MessageField* field,
-    const char* buf) const;
-
-  // Deserialize a repeated primitive field.
-  uint32 DeSerializeRepeatedPrimitive(
-    Message* message,
-    const ProtoParser::MessageField* field,
-    const char* buf) const;
-
-  // Deserialize a singular message field.
-  uint32 DeSerializeSingularMessage(
-    Message* message,
-    const ProtoParser::MessageField* field,
-    const char* buf) const;
-
-  // Deserialize a repeated message field.
-  uint32 DeSerializeRepeatedMessage(
-    Message* message,
-    const ProtoParser::MessageField* field,
-    const char* buf) const;
-
 
   // Get mutable raw field ptr from message.
   template <typename T>
@@ -172,10 +120,58 @@ class MessageReflection {
 
   // Check wire type matches field type
   void CheckWireType(WireFormat::WireType wire_type,
-                     ProtoParser::FIELD_TYPE type,
-                     ProtoParser::MessageField::FIELD_MODIFIER modifier) const;
+                     FieldType type, FieldLabel modifier) const;
 
   //std::string indent() const;
+
+  // Create a serialized singular message object.
+  std::shared_ptr<SerializedObjectInterface>
+  CreateSerializedSingularMessage(
+    const Message* message,
+    const ProtoParser::MessageField* field)  const;
+
+  // Create a serialized repeated message object.
+  std::shared_ptr<SerializedObjectInterface>
+  CreateSerializedRepeatedMessage(
+    const Message* message,
+    const ProtoParser::MessageField* field)  const;
+
+  // Create a serialized singular primitive object.
+  std::shared_ptr<SerializedObjectInterface>
+  CreateSerializedSingularPrimitive(
+    const Message* message,
+    const ProtoParser::MessageField* field) const;
+
+  // Create a repeated singular primitive object.
+  std::shared_ptr<SerializedObjectInterface>
+  CreateSerializedRepeatedPrimitive(
+    const Message* message,
+    const ProtoParser::MessageField* field) const;
+
+
+  // Deserialize a singular primitive field.
+  uint32 DeSerializeSingularPrimitive(
+    Message* message,
+    const ProtoParser::MessageField* field,
+    const char* buf) const;
+
+  // Deserialize a repeated primitive field.
+  uint32 DeSerializeRepeatedPrimitive(
+    Message* message,
+    const ProtoParser::MessageField* field,
+    const char* buf) const;
+
+  // Deserialize a singular message field.
+  uint32 DeSerializeSingularMessage(
+    Message* message,
+    const ProtoParser::MessageField* field,
+    const char* buf) const;
+
+  // Deserialize a repeated message field.
+  uint32 DeSerializeRepeatedMessage(
+    Message* message,
+    const ProtoParser::MessageField* field,
+    const char* buf) const;
 
  private:
   std::shared_ptr<::proto::ProtoParser::Message> message_descirptor_;
