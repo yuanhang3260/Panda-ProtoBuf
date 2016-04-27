@@ -11,15 +11,15 @@ namespace ProtoParser {
 
 class MessageField {
  public:
-  MessageField(FIELD_MODIFIER modifier, FIELD_TYPE type, PbType* type_class,
+  MessageField(FieldLabel modifier, FieldType type, PbType* type_class,
                std::string name, int tag, std::string default_value);
   virtual ~MessageField();
 
-  static FIELD_MODIFIER GetMessageFieldModifier(std::string modifier);
-  static std::string GetModifierAsString(FIELD_MODIFIER modifier);
+  static FieldLabel GetMessageFieldModifier(std::string modifier);
+  static std::string GetModifierAsString(FieldLabel modifier);
 
-  FIELD_MODIFIER modifier() const { return modifier_; }
-  FIELD_TYPE type() const { return type_; }
+  FieldLabel modifier() const { return modifier_; }
+  FieldType type() const { return type_; }
   const PbType* type_class() const { return type_class_; }
   std::string name() const { return name_; }
   unsigned int tag() const { return tag_; }
@@ -43,8 +43,8 @@ class MessageField {
   bool IsRepeatedMessageType() const;
 
  private:
-  FIELD_MODIFIER modifier_;
-  FIELD_TYPE type_;
+  FieldLabel modifier_;
+  FieldType type_;
   const PbType* type_class_;
   std::string name_;
   unsigned int tag_;

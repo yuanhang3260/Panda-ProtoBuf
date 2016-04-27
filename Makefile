@@ -135,6 +135,7 @@ clean:
 	rm -rf libfull.a
 	rm -rf compiler
 	rm -rf $(OBJ_DIR)/*.o
+	rm -rf $(OBJ_DIR)/Base/*.o
 	rm -rf $(OBJ_DIR)/Utility/*.o
 	rm -rf $(OBJ_DIR)/IO/*.o
 	rm -rf $(OBJ_DIR)/Network/*.o

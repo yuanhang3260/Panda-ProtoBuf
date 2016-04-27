@@ -18,7 +18,7 @@ std::shared_ptr<::proto::MessageReflection> RpcResponseHeader_reflection_;
 
 }  // namepsace
 
-void static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
+void static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_ProtoBuf_src_RPC_RpcPacket() {
   if (RPC::RpcRequestHeader::default_instance_ == NULL) {
     RPC::RpcRequestHeader::default_instance_ = new RPC::RpcRequestHeader();
     RPC::RpcRequestHeader::default_instance_->InitAsDefaultInstance();
@@ -29,18 +29,18 @@ void static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_Rpc
   }
 }
 
-void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
+void static_init_usr_local_google_home_hangyuan_Desktop_test_ProtoBuf_src_RPC_RpcPacket() {
   static bool already_called = false;
   if (already_called) return;
   already_called = true;
 
   ::proto::ProtoParser::ProtoParser parser(
       ::proto::ProtoParser::CPP,
-      "/home/hy/Desktop/Projects/ProtoBuf/src/RPC/RpcPacket.proto");
+      "/usr/local/google/home/hangyuan/Desktop/test/ProtoBuf/src/RPC/RpcPacket.proto");
   CHECK(parser.ParseProto(),
-        "static class initialization for /home/hy/Desktop/Projects/ProtoBuf/src/RPC/RpcPacket.proto failed");
+        "static class initialization for /usr/local/google/home/hangyuan/Desktop/test/ProtoBuf/src/RPC/RpcPacket.proto failed");
 
-  static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
+  static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_ProtoBuf_src_RPC_RpcPacket();
 
   int i = 0;
   // static init for class RpcRequestHeader
@@ -84,12 +84,12 @@ void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
 
 }
 
-// Force static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() to be called at initialization time.
-struct static_init_forcer_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket {
-  static_init_forcer_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
-    static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
+// Force static_init_usr_local_google_home_hangyuan_Desktop_test_ProtoBuf_src_RPC_RpcPacket() to be called at initialization time.
+struct static_init_forcer_usr_local_google_home_hangyuan_Desktop_test_ProtoBuf_src_RPC_RpcPacket {
+  static_init_forcer_usr_local_google_home_hangyuan_Desktop_test_ProtoBuf_src_RPC_RpcPacket() {
+    static_init_usr_local_google_home_hangyuan_Desktop_test_ProtoBuf_src_RPC_RpcPacket();
   }
-} static_init_forcer_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket_obj_;
+} static_init_forcer_usr_local_google_home_hangyuan_Desktop_test_ProtoBuf_src_RPC_RpcPacket_obj_;
 
 
 namespace RPC {
@@ -250,7 +250,7 @@ void RpcRequestHeader::Swap(RpcRequestHeader* other) {
 // default_instance()
 const RpcRequestHeader& RpcRequestHeader::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
+    static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_ProtoBuf_src_RPC_RpcPacket();
   }
   return *default_instance_;
 }
@@ -512,7 +512,7 @@ void RpcResponseHeader::Swap(RpcResponseHeader* other) {
 // default_instance()
 const RpcResponseHeader& RpcResponseHeader::default_instance() {
   if (default_instance_ == NULL) {
-    static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
+    static_init_default_instances_usr_local_google_home_hangyuan_Desktop_test_ProtoBuf_src_RPC_RpcPacket();
   }
   return *default_instance_;
 }
