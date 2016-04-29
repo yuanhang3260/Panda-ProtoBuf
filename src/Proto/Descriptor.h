@@ -2,10 +2,17 @@
 #define PROTO_DESCRIPTOR_
 
 #include <string>
+#include <memory>
+#include <map>
+#include <set>
+#include <vector>
+
+#include "Base/BaseTypes.h"
+#include "Proto/Common.h"
 
 namespace proto {
 
-// Forward declarations.
+/// Forward declarations.
 class MessageDescriptor;
 class EnumDescriptor;
 class FieldDescriptor;
@@ -13,7 +20,7 @@ class ServiceDescriptor;
 class FieldDescriptor;
 
 
-// ProtoFileDescriptor
+/// ProtoFileDescriptor
 class ProtoFileDescriptorImpl;
 class ProtoFileDescriptor {
  public:
@@ -29,7 +36,7 @@ class ProtoFileDescriptor {
 };
 
 
-// TypeDescriptor is the base class of Message, Enum and Service Descriptors.
+/// TypeDescriptor is the base class of Message, Enum and Service Descriptors.
 class TypeDescriptor {
  public:
   TypeDescriptor(const ProtoFileDescriptor* file,
@@ -45,13 +52,13 @@ class TypeDescriptor {
   std::string full_name() const;
 
  protected:
+  const ProtoFileDescriptor* file_;
   std::string name_;
   std::string package_;
-  const ProtoFileDescriptor* file_;
 };
 
 
-// MessageDescriptor
+/// MessageDescriptor
 class MessageDescriptorImpl;
 class MessageDescriptor: public TypeDescriptor {
  public:
@@ -62,7 +69,7 @@ class MessageDescriptor: public TypeDescriptor {
   FieldType type() override { return MESSAGETYPE; }
 
   // Find field descriptor.
-  const FieldDescriptor* FindFieldByTag(unsigned int tag) const;
+  const FieldDescriptor* FindFieldByTag(uint32 tag) const;
   const FieldDescriptor* FindFieldByName(const std::string& field_name) const;
 
   // Find nested defined enum types in the message.
@@ -75,13 +82,15 @@ class MessageDescriptor: public TypeDescriptor {
 using Descriptor = MessageDescriptor;
 
 
-// EnumDescriptor
+/// EnumDescriptor
 class EnumDescriptorImpl;
 class EnumDescriptor: public TypeDescriptor {
  public:
   EnumDescriptor(const ProtoFileDescriptor* file,
                  const std::string& name, const std::string& package,
                  bool nested);
+
+  FieldType type() override { return ENUMTYPE; }
 
   int NumberEnums() const;
   bool ContainsEnum(const std::string& enum_value) const;
@@ -91,43 +100,45 @@ class EnumDescriptor: public TypeDescriptor {
   std::string EnumValueAsString(int value) const;
 
  protected:
-  std::map<int, std::string> enums_map_;
-  std::set<std::string> enums_set_;
+  std::unique_ptr<EnumDescriptorImpl> impl_;
 };
 
-
-// ServiceDescriptor
+/// ServiceDescriptor
 class ServiceDescriptorImpl;
 class ServiceDescriptor: public TypeDescriptor {
  public:
   ServiceDescriptor(const ProtoFileDescriptor* file,
                     const std::string& name, const std::string& package);
+
+  FieldType type() override { return SERVICETYPE; }
 };
 
-
-// MessageField descriptor.
+/// MessageField descriptor.
 class FieldDescriptor {
  public:
-  FieldDescriptor(std::string name, int tag, std::string default_value,
-                  FieldLabel label, FieldType type,
+  FieldDescriptor(std::string name, FieldLabel label, FieldType type,
+                  int tag, std::string default_value,
                   const MessageDescriptor* container_message,
-                  const TypeDescriptor* descriptor);
+                  const TypeDescriptor* type_descriptor,
+                  int field_offset);
   virtual ~FieldDescriptor();
 
-  std::string name() const { return name_; }
+  // full_name() is really odd. For example, if container_message is "Foo.Bar"
+  // and field name is "hostname", fullname will be "Foo.Bar.hostname". It's a
+  // combination of message package path plus field name, which looks a bit
+  // unreasonable. But it's useful because it can uniquely identify a message
+  // field within global scope.
   std::string full_name() const;
-  std::string type_name() const { return type_name_; }
+  std::string name() const;
+  FieldLabel label() const;
+  FieldType type() const;
+  uint32 tag() const;
+  std::string default_value() const;
+  const MessageDescriptor* container_message() const;
+  const TypeDescriptor* type_descriptor() const;
 
-  FieldLabel label() const { return modifier_; }
-  FieldType type() const { return type_; }
-
-  const PbType* type_class() const { return type_class_; }
-
-  unsigned int tag() const { return tag_; }
-  std::string default_value() const { return default_value_; }
-
-  int field_offset() const { return field_offset_; }
-  bool has_default_value() const { return has_user_default_value_; }
+  int field_offset() const;
+  bool has_default_value() const;
 
   bool IsPrimitiveType() const;
   bool IsMessageType() const;
@@ -141,21 +152,19 @@ class FieldDescriptor {
   bool IsRepeatedMessageType() const;
 
  private:
-  void set_field_offset(const int offset) { field_offset_ = offset; }
-  void set_type_name(std::string type_name) { type_name_ = type_name; }
-
   std::string name_;
   FieldLabel label_;
   FieldType type_;
-  unsigned int tag_;
-
-  // Type descriptor for enum or message type of this field.
-  // If it's a primitive field (string included), type_descriptor is nullptr.
-  const TypeDescriptor* type_descriptor;
-
+  uint32 tag_;
   std::string default_value_;
+
+  // Parent message of this field.
+  const MessageDescriptor* container_message_;
+  // Type descriptor for enum or message type of this field.
+  // For primitive fields (string included), type_descriptor is nullptr.
+  const TypeDescriptor* type_descriptor_;
+
   bool has_default_value_ = false;
-  std::string parent_field_path_
   int field_offset_ = -1;
 };
 

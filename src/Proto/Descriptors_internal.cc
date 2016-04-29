@@ -20,6 +20,8 @@ void AddServiceDescriptor(ServiceDescriptor* descriptor) {
 /// MessageDescriptorImpl
 
 /// EnumDescriptorImpl
-EnumDescriptorImpl::EnumDescriptorImpl(bool nested) : is_nested_(nested) {}
+EnumDescriptorImpl::EnumDescriptorImpl(bool nested) : is_nested_(nested) {
 
 }
+
+}  // namespace proto

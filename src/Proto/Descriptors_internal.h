@@ -7,6 +7,9 @@
 #include <string>
 #include <memory>
 
+#include "Base/BaseTypes.h"
+#include "Base/MacroUtils.h"
+
 namespace proto {
 
 // Forward declarations.
@@ -47,7 +50,7 @@ class MessageDescriptorImpl {
 
  private:
   std::map<std::string, std::shared_ptr<FieldDescriptor>> fields_map_;
-  std::map<unsigned int, std::shared_ptr<FieldDescriptor>> tag_fields_map_;
+  std::map<uint32, std::shared_ptr<FieldDescriptor>> tag_fields_map_;
   std::map<std::string, std::shared_ptr<EnumDescriptor>> enums_map_;
 
   friend class MessageDescriptor;
@@ -55,7 +58,7 @@ class MessageDescriptorImpl {
 };
 
 
-class EnumDescriptorImpl: public TypeDescriptor {
+class EnumDescriptorImpl {
  public:
   EnumDescriptorImpl(bool nested);
 

@@ -21,6 +21,7 @@ enum FieldType {
   STRING,
   ENUMTYPE,
   MESSAGETYPE,
+  SERVICETYPE,
 };
 
 using FIELD_TYPE = FieldType;

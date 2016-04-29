@@ -2,8 +2,8 @@
 #include <algorithm>
 #include <vector>
 
-#include "../Utility/Strings.h"
-#include "../Utility/Utils.h"
+#include "Utility/Strings.h"
+#include "Utility/Utils.h"
 #include "Message.h"
 
 namespace proto {
