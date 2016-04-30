@@ -105,8 +105,9 @@ bool EnumDescriptor::is_nested() const {
 }
 
 std::string EnumDescriptor::EnumValueAsString(int value) const {
-  if (impl_->enums_map_.find(value) != impl_->enums_map_.end()) {
-    return impl_->enums_map_.at(value);
+  auto it = impl_->enums_map_.find(value);
+  if (it != impl_->enums_map_.end()) {
+    return it->second;
   }
   return "";
 }
@@ -135,7 +136,7 @@ DEFINE_CONST_PTR_GETTER(FieldDescriptor, container_message, MessageDescriptor);
 DEFINE_CONST_PTR_GETTER(FieldDescriptor, type_descriptor, TypeDescriptor);
 
 std::string FieldDescriptor::full_name() const {
-  return container_message_->full_name() + "." + name_;
+  return type_descriptor_->package() + "." + name_;
 }
 
 bool FieldDescriptor::IsPrimitiveType() const {
