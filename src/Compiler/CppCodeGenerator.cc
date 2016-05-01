@@ -1,7 +1,8 @@
 #include <iostream>
-#include "../Utility/Strings.h"
-#include "../Utility/Utils.h"
-#include "../IO/FileUtils.h"
+
+#include "Utility/Strings.h"
+#include "Utility/Utils.h"
+#include "IO/FileUtils.h"
 #include "CppCodeGenerator.h"
 
 namespace proto {
@@ -311,7 +312,7 @@ void CppCodeGenerator::DefineStaticMetadata() {
     std::map<std::string, std::string> matches {
       {"msg_name", message->name()},
     };
-    printer.Print("std::shared_ptr<::proto::ProtoParser::Message> ${msg_name}_descriptor_;\n"
+    printer.Print("std::shared_ptr<::proto::Parser::Message> ${msg_name}_descriptor_;\n"
                   "std::shared_ptr<::proto::MessageReflection> ${msg_name}_reflection_;\n",
                   matches);
   }
@@ -350,7 +351,7 @@ void CppCodeGenerator::DefineStaticInit() {
                 "  if (already_called) return;\n"
                 "  already_called = true;\n"
                 "\n"
-                "  ::proto::ProtoParser::ProtoParser parser(\n"
+                "  ::proto::ProtoParser::Parser parser(\n"
                 "      ::proto::ProtoParser::CPP,\n"
                 "      \"${proto_file_}\");\n"
                 "  CHECK(parser.ParseProto(),\n"

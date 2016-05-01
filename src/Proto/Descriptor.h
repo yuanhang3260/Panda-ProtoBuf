@@ -18,6 +18,7 @@ class EnumDescriptor;
 class FieldDescriptor;
 class ServiceDescriptor;
 class FieldDescriptor;
+class DescriptorsBuilder;
 
 
 /// ProtoFileDescriptor
@@ -31,8 +32,18 @@ class ProtoFileDescriptor {
   int num_nested_enums() const;
   int num_services() const;
 
+  const EnumDescriptor*
+  FindEnumTypeByName(const string& enum_name) const;
+  
+  const MessageDescriptor*
+  FindMessageTypeByName(const string& message_name) const;
+  
+  const ServiceDescriptor*
+  FindSeriveTypeByName(const string& service_name) const;
+
  private:
   std::unique_ptr<ProtoFileDescriptorImpl> impl_;
+  friend class DescriptorsBuilder;
 };
 
 
@@ -55,6 +66,7 @@ class TypeDescriptor {
   const ProtoFileDescriptor* file_;
   std::string name_;
   std::string package_;
+  friend class DescriptorsBuilder;
 };
 
 
@@ -77,6 +89,7 @@ class MessageDescriptor: public TypeDescriptor {
 
  private:
   std::unique_ptr<MessageDescriptorImpl> impl_;
+  friend class DescriptorsBuilder;
 };
 
 using Descriptor = MessageDescriptor;
@@ -101,6 +114,7 @@ class EnumDescriptor: public TypeDescriptor {
 
  protected:
   std::unique_ptr<EnumDescriptorImpl> impl_;
+  friend class DescriptorsBuilder;
 };
 
 /// ServiceDescriptor
@@ -111,6 +125,9 @@ class ServiceDescriptor: public TypeDescriptor {
                     const std::string& name, const std::string& package);
 
   FieldType type() override { return SERVICETYPE; }
+
+ private:
+  friend class DescriptorsBuilder;
 };
 
 /// MessageField descriptor.
@@ -123,7 +140,7 @@ class FieldDescriptor {
                   int field_offset);
   virtual ~FieldDescriptor();
 
-  // full_name() is really odd. For example, if container_message is "Foo.Bar"
+  // full_name() is really odd. For example, if type_descriptor is "Foo.Bar"
   // and field name is "hostname", fullname will be "Foo.Bar.hostname". It's a
   // combination of message package path plus field name, which looks a bit
   // unreasonable. But it's useful because it can uniquely identify a message
@@ -164,10 +181,11 @@ class FieldDescriptor {
   // For primitive fields (string included), type_descriptor is nullptr.
   const TypeDescriptor* type_descriptor_;
 
-  bool has_default_value_ = false;
   int field_offset_ = -1;
+
+  friend class DescriptorsBuilder;
 };
 
 }
 
-#endif  /* PROTO_DESCRIPTOR_ */
+#endif  // PROTO_DESCRIPTOR_

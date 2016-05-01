@@ -1,15 +1,15 @@
-#ifndef CPP_CODE_GENERATOR_
-#define CPP_CODE_GENERATOR_
+#ifndef COMPILER_CPP_CODE_GENERATOR_
+#define COMPILER_CPP_CODE_GENERATOR_
 
-#include "ProtoParser.h"
-#include "../IO/TextPrinter.h"
+#include "Compiler/ProtoParser.h"
+#include "IO/TextPrinter.h"
 
 namespace proto {
 namespace ProtoParser {
 
-class CppCodeGenerator : public ProtoParser {
+class CppCodeGenerator : public Parser {
  public:
-  CppCodeGenerator(std::string file) : ProtoParser(CPP, file) {}
+  CppCodeGenerator(std::string file) : Parser(CPP, file) {}
   ~CppCodeGenerator() {}
   CppCodeGenerator(const CppCodeGenerator&) = delete;
   CppCodeGenerator& operator=(const CppCodeGenerator&) = delete;
@@ -152,6 +152,6 @@ class CppCodeGenerator : public ProtoParser {
 };
 
 }  // Compiler
-}  // PandaProto
+}  // proto
 
-#endif  /* CPP_CODE_GENERATOR_ */
+#endif  /* COMPILER_CPP_CODE_GENERATOR_ */

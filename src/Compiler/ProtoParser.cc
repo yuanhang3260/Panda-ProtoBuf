@@ -12,7 +12,7 @@
 namespace proto {
 namespace ProtoParser {
 
-ProtoParser::ProtoParser(LANGUAGE lang, std::string file) :
+Parser::Parser(LANGUAGE lang, std::string file) :
     lang_(lang),
     proto_file_(file) {
   if (!StringUtils::EndWith(proto_file_, ".proto")) {
@@ -23,9 +23,9 @@ ProtoParser::ProtoParser(LANGUAGE lang, std::string file) :
   init_success_ = true;
 }
 
-ProtoParser::~ProtoParser() {}
+Parser::~Parser() {}
 
-bool ProtoParser::ReadProtoFile() {
+bool Parser::ReadProtoFile() {
   if (!init_success_) {
     return false;
   }
@@ -209,7 +209,7 @@ bool ProtoParser::ReadProtoFile() {
   return true;
 }
 
-bool ProtoParser::ParsePackageName(std::string line) {
+bool Parser::ParsePackageName(std::string line) {
   if (line[line.length()-1] != ';') {
     LogError("Expect \";\" at line end");
     return false;
@@ -238,7 +238,7 @@ bool ProtoParser::ParsePackageName(std::string line) {
   return true;
 }
 
-bool ProtoParser::ParseMessageName(std::string line) {
+bool Parser::ParseMessageName(std::string line) {
   std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
   if (result.size() != 2 && result.size() != 3) {
     LogError("Expect 2 or 3 tokens, actual %d", result.size());
@@ -288,7 +288,7 @@ bool ProtoParser::ParseMessageName(std::string line) {
   return true;
 }
 
-bool ProtoParser::ParseMessageField(std::string line) {
+bool Parser::ParseMessageField(std::string line) {
   if (line[line.length()-1] != ';') {
     LogError("Expect \";\" at line end");
     return false;
@@ -381,7 +381,7 @@ bool ProtoParser::ParseMessageField(std::string line) {
   return true;
 }
 
-bool ProtoParser::ParseEnumName(std::string line) {
+bool Parser::ParseEnumName(std::string line) {
   std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
   if (result.size() != 2 && result.size() != 3) {
     LogError("Expect 2 or 3 least tokens, actual %d", result.size());
@@ -442,7 +442,7 @@ bool ProtoParser::ParseEnumName(std::string line) {
   return true;
 }
 
-bool ProtoParser::ParseServiceName(std::string line) {
+bool Parser::ParseServiceName(std::string line) {
   std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
   if (result.size() != 2 && result.size() != 3) {
     LogError("Expect 2 or 3 least tokens, actual %d", result.size());
@@ -486,7 +486,7 @@ bool ProtoParser::ParseServiceName(std::string line) {
   return true;
 }
 
-bool ProtoParser::ParseRpcName(std::string line) {
+bool Parser::ParseRpcName(std::string line) {
   std::vector<std::string> rpc_params =
       StringUtils::ExtractTokens(&line, '(', ')');
   if (rpc_params.size() != 2) {
@@ -564,7 +564,7 @@ bool ProtoParser::ParseRpcName(std::string line) {
   return true;
 }
 
-bool ProtoParser::ParseRpcOption(std::string line) {
+bool Parser::ParseRpcOption(std::string line) {
   if (line[line.length()-1] != ';') {
     LogError("Expect \";\" at line end");
     return false;
@@ -583,7 +583,7 @@ bool ProtoParser::ParseRpcOption(std::string line) {
   return true;
 }
 
-bool ProtoParser::ParseEnumValue(std::string line) {
+bool Parser::ParseEnumValue(std::string line) {
   if (line[line.length()-1] != ',') {
     LogError("Expect \",\" at line end");
     return false;
@@ -597,13 +597,13 @@ bool ProtoParser::ParseEnumValue(std::string line) {
   return true;
 }
 
-bool ProtoParser::IsMessageFiledLine(std::string line) {
+bool Parser::IsMessageFiledLine(std::string line) {
   return StringUtils::StartWith(line, "optional ") ||
          StringUtils::StartWith(line, "required ") ||
          StringUtils::StartWith(line, "repeated ");
 }
 
-bool ProtoParser::ParseAssignExpression(std::string line,
+bool Parser::ParseAssignExpression(std::string line,
                                         std::string* left,
                                         std::string* right,
                                         FIELD_TYPE type) const {
@@ -701,7 +701,7 @@ bool ProtoParser::ParseAssignExpression(std::string line,
   return true;
 }
 
-bool ProtoParser::ParseProto() {
+bool Parser::ParseProto() {
   if (!ReadProtoFile()) {
     fprintf(stderr, "ERROR: Can't parse proto %s\n", proto_file_.c_str());
     return false;
@@ -710,7 +710,7 @@ bool ProtoParser::ParseProto() {
   return true;
 }
 
-void ProtoParser::PrintParsedProto() const {
+void Parser::PrintParsedProto() const {
   for (auto& message : messages_list_) {
     message->Print();
     std::cout << std::endl << std::endl;
@@ -725,7 +725,7 @@ void ProtoParser::PrintParsedProto() const {
   }
 }
 
-bool ProtoParser::IsValidVariableName(std::string str) {
+bool Parser::IsValidVariableName(std::string str) {
   if (str.length() == 0) {
     return false;
   }
@@ -737,7 +737,7 @@ bool ProtoParser::IsValidVariableName(std::string str) {
   return true;
 }
 
-bool ProtoParser::IsValidPrimitiveTypeName(std::string str) {
+bool Parser::IsValidPrimitiveTypeName(std::string str) {
   if (str.length() == 0) {
     return false;
   }
@@ -747,7 +747,7 @@ bool ProtoParser::IsValidPrimitiveTypeName(std::string str) {
          str == "string";
 }
 
-PbType* ProtoParser::FindParsedMessageOrEnumType(std::string type_name) const {
+PbType* Parser::FindParsedMessageOrEnumType(std::string type_name) const {
   const std::string& as_global_name = type_name;
   const std::string& as_nested_name =
       current_package_ + "." + type_name;
@@ -802,7 +802,7 @@ PbType* ProtoParser::FindParsedMessageOrEnumType(std::string type_name) const {
   return type_class;
 }
 
-LANGUAGE ProtoParser::GetLanguageFromString(std::string lang) {
+LANGUAGE Parser::GetLanguageFromString(std::string lang) {
   if (lang == "cpp") {
     return CPP;
   }
@@ -815,11 +815,11 @@ LANGUAGE ProtoParser::GetLanguageFromString(std::string lang) {
   return UNKNOWN_LANGUAGE;
 }
 
-void ProtoParser::PrintToken(std::string description, std::string str) {
+void Parser::PrintToken(std::string description, std::string str) {
   std::cout << "[" << description << "] = \"" << str << "\"" << std::endl;
 }
 
-void ProtoParser::LogError(const char* error_msg, ...) const {
+void Parser::LogError(const char* error_msg, ...) const {
   fprintf(stderr, "%s:%d: ", proto_file_.c_str(), line_number_);
   va_list args;
   va_start(args, error_msg);
@@ -828,7 +828,7 @@ void ProtoParser::LogError(const char* error_msg, ...) const {
   fprintf(stderr, ".\n");
 }
 
-void ProtoParser::PrintParseState() const {
+void Parser::PrintParseState() const {
   switch (state_) {
     case GLOBAL:
       std::cout << "State: Global" << std::endl;
@@ -847,7 +847,7 @@ void ProtoParser::PrintParseState() const {
   }
 }
 
-std::vector<std::shared_ptr<Message>>& ProtoParser::mutable_messages_list() {
+std::vector<std::shared_ptr<Message>>& Parser::mutable_messages_list() {
   return messages_list_;
 }
 

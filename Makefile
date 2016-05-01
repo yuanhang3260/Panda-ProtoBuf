@@ -48,6 +48,7 @@ PROTO_OBJ = \
 			$(OBJ_DIR)/Proto/Message.o \
 			$(OBJ_DIR)/Proto/Descriptor.o \
 			$(OBJ_DIR)/Proto/Descriptors_internal.o \
+			$(OBJ_DIR)/Proto/DescriptorsBuilder.o \
 
 RPC_OBJ = \
       $(OBJ_DIR)/RPC/Rpc.o \
@@ -86,7 +87,7 @@ library: $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
 	ar cr libfull.a $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
 
 compiler: $(SRC_DIR)/Compiler/Compiler_main.cc proto_library
-	$(CC) $(CFLAGS) $(LFLAGS) -c $(SRC_DIR)/Compiler/Compiler_main.cc -o $(COMPILEROBJ)
+	$(CC) $(CFLAGS) $(IFLAGS) -c $(SRC_DIR)/Compiler/Compiler_main.cc -o $(COMPILEROBJ)
 	$(CC) $(CFLAGS) $(LFLAGS) $(COMPILEROBJ) libproto.a -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc $(SRC_DIR)/%.h
@@ -102,6 +103,9 @@ $(OBJ_DIR)/IO/%.o: $(SRC_DIR)/IO/%.cc
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Network/%.o: $(SRC_DIR)/Network/%.cc
+	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
+
+$(OBJ_DIR)/Compiler/%.o: $(SRC_DIR)/Compiler/%.cc
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Compiler/%.o: $(SRC_DIR)/Compiler/%.cc $(SRC_DIR)/Compiler/%.h
@@ -143,6 +147,22 @@ clean:
 	rm -rf $(OBJ_DIR)/Network/*.o
 	rm -rf $(OBJ_DIR)/Compiler/*.o
 	rm -rf $(OBJ_DIR)/Log/*.o
+	rm -rf $(OBJ_DIR)/Proto/*.o
+	rm -rf $(OBJ_DIR)/RPC/*.o
+	rm -rf test/*.out
+	rm -rf samples/*.o
+	rm -rf samples/*_pb.h
+	rm -rf samples/*_pb.cc
+	rm -rf samples/client
+	rm -rf samples/server
+	rm -rf samples/test
+	rm -rf *.output
+
+tinyclean:
+	rm -rf libproto.a
+	rm -rf libfull.a
+	rm -rf compiler
+	rm -rf $(OBJ_DIR)/Compiler/*.o
 	rm -rf $(OBJ_DIR)/Proto/*.o
 	rm -rf $(OBJ_DIR)/RPC/*.o
 	rm -rf test/*.out

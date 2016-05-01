@@ -1,6 +1,7 @@
 #include "Proto/Descriptor.h"
 #include "Proto/Descriptors_internal.h"
 
+#include "Base/Log.h"
 #include "Base/MacroUtils.h"
 
 namespace proto {
@@ -13,7 +14,7 @@ ProtoFileDescriptor::ProtoFileDescriptor(const std::string& path) :
 std::string ProtoFileDescriptor::path() const {
   return impl_->path_;
 }
-  
+
 int ProtoFileDescriptor::num_messages() const {
   return impl_->messages_map_.size();
 }
@@ -30,6 +31,32 @@ int ProtoFileDescriptor::num_services() const {
   return impl_->services_map_.size();
 }
 
+const EnumDescriptor*
+ProtoFileDescriptor::FindEnumTypeByName(const string& enum_name) const {
+  auto it = impl_->enums_map_.find(enum_name);
+  if (it != impl_->enums_map_.end()) {
+    return it->second.get();
+  }
+  return nullptr;
+}
+
+const MessageDescriptor*
+ProtoFileDescriptor::FindMessageTypeByName(const string& message_name) const {
+  auto it = impl_->messages_map_.find(message_name);
+  if (it != impl_->messages_map_.end()) {
+    return it->second.get();
+  }
+  return nullptr;
+}
+
+const ServiceDescriptor*
+ProtoFileDescriptor::FindSeriveTypeByName(const string& service_name) const {
+  auto it = impl_->services_map_.find(service_name);
+  if (it != impl_->services_map_.end()) {
+    return it->second.get();
+  }
+  return nullptr;
+}
 
 /// TypeDescriptor
 TypeDescriptor::TypeDescriptor(const ProtoFileDescriptor* file,
@@ -132,11 +159,16 @@ DEFINE_GETTER(FieldDescriptor, label, FieldLabel);
 DEFINE_GETTER(FieldDescriptor, type, FieldType);
 DEFINE_GETTER(FieldDescriptor, tag, uint32);
 DEFINE_GETTER(FieldDescriptor, default_value, std::string);
+DEFINE_GETTER(FieldDescriptor, field_offset, int);
 DEFINE_CONST_PTR_GETTER(FieldDescriptor, container_message, MessageDescriptor);
 DEFINE_CONST_PTR_GETTER(FieldDescriptor, type_descriptor, TypeDescriptor);
 
 std::string FieldDescriptor::full_name() const {
   return type_descriptor_->package() + "." + name_;
+}
+
+bool FieldDescriptor::has_default_value() const {
+  return !default_value_.empty();
 }
 
 bool FieldDescriptor::IsPrimitiveType() const {

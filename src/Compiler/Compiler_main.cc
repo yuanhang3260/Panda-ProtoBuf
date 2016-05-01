@@ -16,9 +16,9 @@ int main(int argc, char** argv) {
 
 // for (int i = 0; i < 10000; i++) {
   LANGUAGE lang =
-      ProtoParser::GetLanguageFromString(std::string(argv[1]));
+      Parser::GetLanguageFromString(std::string(argv[1]));
   std::string proto = std::string(argv[2]);
-  ProtoParser* compiler = NULL;
+  Parser* compiler = NULL;
   switch (lang) {
     case CPP:
       compiler = new CppCodeGenerator(proto);

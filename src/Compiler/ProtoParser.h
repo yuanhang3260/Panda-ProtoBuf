@@ -1,5 +1,5 @@
-#ifndef PROTO_PARSER_
-#define PROTO_PARSER_
+#ifndef COMPILER_PROTO_PARSER_
+#define COMPILER_PROTO_PARSER_
 
 #include <string>
 #include <vector>
@@ -11,11 +11,12 @@
 #include "ServiceType.h"
 
 namespace proto {
-namespace ProtoParser {
+class DescriptorsBuilder;
 
+namespace ProtoParser {
 class CppGeneratorImpl;
 
-class ProtoParser {
+class Parser {
  public:
   enum ParseState {
     GLOBAL,
@@ -26,10 +27,10 @@ class ProtoParser {
     PARSERPC,
   };
 
-  ProtoParser(LANGUAGE lang, std::string file);
-  virtual ~ProtoParser();
-  ProtoParser(const ProtoParser&) = delete;
-  ProtoParser& operator=(const ProtoParser&) = delete;
+  Parser(LANGUAGE lang, std::string file);
+  virtual ~Parser();
+  Parser(const Parser&) = delete;
+  Parser& operator=(const Parser&) = delete;
 
   bool ParseProto();
   void PrintParsedProto() const;
@@ -84,9 +85,11 @@ class ProtoParser {
   PbType* FindParsedMessageOrEnumType(std::string type_name) const;
 
   bool init_success_ = false;
+
+  friend class ::proto::DescriptorsBuilder;
 };
 
 }  // namespace ProtoParser
 }  // namespace Proto
 
-#endif /* PROTO_PARSER_ */
+#endif  // COMPILER_PROTO_PARSER_

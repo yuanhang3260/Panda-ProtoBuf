@@ -1,6 +1,8 @@
 #ifndef PROTO_COMMON_
 #define PROTO_COMMON_
 
+#include <string>
+
 namespace proto {
 
 enum FieldLabel {
@@ -26,8 +28,8 @@ enum FieldType {
 
 using FIELD_TYPE = FieldType;
 using FIELD_MODIFIER = FieldLabel;
-
+using string = std::string;
 }
 
 
-#endif  /* PROTO_COMMON_ */
+#endif  // PROTO_COMMON_
