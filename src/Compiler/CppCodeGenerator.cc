@@ -281,8 +281,8 @@ void CppCodeGenerator::GenerateCC() {
   printer.Print("#include <memory>\n");
   printer.Print("#include <mutex>\n");
   printer.Print("#include <map>\n\n");
-  printer.Print("#include \"Compiler/Message.h\"\n");
-  printer.Print("#include \"Compiler/ProtoParser.h\"\n");
+  printer.Print("#include \"Proto/Descriptor.h\"\n");
+  printer.Print("#include \"Proto/DescriptorsBuilder.h\"\n");
   printer.Print("#include \"Proto/MessageReflection.h\"\n");
   printer.Print("#include \"Proto/MessageFactory.h\"\n\n");
   printer.Print("#include \"" + filename + ".h\"\n\n");
@@ -312,8 +312,8 @@ void CppCodeGenerator::DefineStaticMetadata() {
     std::map<std::string, std::string> matches {
       {"msg_name", message->name()},
     };
-    printer.Print("std::shared_ptr<::proto::Parser::Message> ${msg_name}_descriptor_;\n"
-                  "std::shared_ptr<::proto::MessageReflection> ${msg_name}_reflection_;\n",
+    printer.Print("const ::proto::MessageDescriptor* ${msg_name}_descriptor_ = nullptr;\n"
+                  "const ::proto::MessageReflection* ${msg_name}_reflection_ = nullptr;\n",
                   matches);
   }
   printer.Print("\n}  // namepsace\n\n");
@@ -329,7 +329,7 @@ void CppCodeGenerator::DefineStaticInitDefaultInstances() {
     std::string prefix = GetNameSpacePrefix(std::vector<std::string>(),
                                             message->pkg_stack());
     matches["whole_msg_name"] = prefix + message->name();
-    printer.Print("  if (${whole_msg_name}::default_instance_ == NULL) {\n"
+    printer.Print("  if (${whole_msg_name}::default_instance_ == nullptr) {\n"
                   "    ${whole_msg_name}::default_instance_ = new ${whole_msg_name}();\n"
                   "    ${whole_msg_name}::default_instance_->InitAsDefaultInstance();\n"
                   "  }\n",
@@ -351,21 +351,19 @@ void CppCodeGenerator::DefineStaticInit() {
                 "  if (already_called) return;\n"
                 "  already_called = true;\n"
                 "\n"
-                "  ::proto::ProtoParser::Parser parser(\n"
-                "      ::proto::ProtoParser::CPP,\n"
+                "  ::proto::DescriptorsBuilder descriptors_builder(\n"
                 "      \"${proto_file_}\");\n"
-                "  CHECK(parser.ParseProto(),\n"
+                "  auto file_dscpt = parser.BuildDescriptors();\n"
+                "  CHECK(file_dscpt.get() != nullptr,\n"
                 "        \"static class initialization for ${proto_file_} failed\");\n"
                 "\n",
                 matches);
   printer.Print("  static_init_default_instances${proto_path_name}();\n\n",
                 matches);
-  if (!messages_list_.empty()) {
-    printer.Print("  int i = 0;\n");
-  }
   int message_index = 0;
   for (const auto& message: messages_list_) {
     matches["msg_name"] = message->name();
+    matches["msg_full_name"] = message->FullNameWithPackagePrefix();
     matches["msg_index"] = std::to_string(message_index++);
     matches["number_fields"] = std::to_string(message->fields_list().size());
     printer.Print("  // static init for class ${msg_name}\n"
@@ -380,15 +378,14 @@ void CppCodeGenerator::DefineStaticInit() {
                     matches);
     }
     printer.Print("  };\n");
-    printer.Print("  i = 0;\n"
-                  "  for (auto& field: parser.mutable_messages_list()[${msg_index}]->mutable_fields_list()) {\n"
-                  "    field->set_field_offset(${msg_name}_offsets_[i++]);\n"
-                  "  }\n"
-                  "  ${msg_name}_descriptor_ = parser.mutable_messages_list()[${msg_index}];\n"
+    printer.Print("  ${msg_name}_descriptor_ = file_dscpt->FindMessageTypeByName(\"${msg_full_name}\"));\n"
+                  "  CHECK(${msg_name}_descriptor_ != nullptr, \n"
+                  "        \"Can't find message descriptor for ${msg_full_name}\");\n"
                   "  ${msg_name}_reflection_.reset(\n"
                   "      new ::proto::MessageReflection(\n"
                   "          ${msg_name}_descriptor_,\n"
                   "          ${whole_msg_name}::default_instance_,\n"
+                  "          ${msg_name}_offsets_,\n"
                   "          PROTO_MESSAGE_FIELD_OFFSET(${whole_msg_name}, has_bits_))\n"
                   "  );\n"
                   "  ::proto::MessageFactory::RegisterGeneratedMessage(${msg_name}_reflection_.get());\n"
@@ -833,12 +830,12 @@ void CppCodeGenerator::DefineGetDefaultInstance(Message* message) {
      {"proto_path_name", proto_path_name_}
   };
   printer.Print("const ${msg_name}& ${msg_name}::default_instance() {\n"
-                "  if (default_instance_ == NULL) {\n"
+                "  if (default_instance_ == nullptr) {\n"
                 "    static_init_default_instances${proto_path_name}();\n"
                 "  }\n"
                 "  return *default_instance_;\n"
                 "}\n\n"
-                "${msg_name}* ${msg_name}::default_instance_ = NULL;\n\n",
+                "${msg_name}* ${msg_name}::default_instance_ = nullptr;\n\n",
                 matches);
 }
 

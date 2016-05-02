@@ -64,11 +64,13 @@ TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
           $(OBJ_DIR)/Utility/StringBuilder_test.o \
           $(OBJ_DIR)/Utility/Strings_test.o \
           $(OBJ_DIR)/Proto/RepeatedField_test.o \
+          $(OBJ_DIR)/Proto/DescriptorsBuilder_test.o \
 
 TESTEXE = test/TextPrinter_test.out \
 					test/StringBuilder_test.out \
 					test/Strings_test.out \
 					test/RepeatedField_test.out \
+					test/DescriptorsBuilder_test.out \
 
 COMPILEROBJ = $(OBJ_DIR)/Compiler/ccCompiler_main.o
 
@@ -78,7 +80,7 @@ full: proto_library library compiler
 
 proto: proto_library compiler
 
-test: $(TESTEXE) proto_library library
+test: $(TESTEXE) proto_library
 
 proto_library: $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ)
 	ar cr libproto.a $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ)

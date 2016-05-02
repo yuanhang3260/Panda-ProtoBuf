@@ -19,7 +19,7 @@ class FieldDescriptor;
 class ServiceDescriptor;
 class FieldDescriptor;
 class DescriptorsBuilder;
-
+class MessageReflection;
 
 /// ProtoFileDescriptor
 class ProtoFileDescriptorImpl;
@@ -76,9 +76,11 @@ class MessageDescriptor: public TypeDescriptor {
  public:
   MessageDescriptor(const ProtoFileDescriptor* file,
                     const std::string& name, const std::string& package);
-  virtual ~MessageDescriptor();
+  virtual ~MessageDescriptor() {}
 
   FieldType type() override { return MESSAGETYPE; }
+  int num_fields() const;
+  int num_nested_enums() const;
 
   // Find field descriptor.
   const FieldDescriptor* FindFieldByTag(uint32 tag) const;
@@ -137,8 +139,8 @@ class FieldDescriptor {
                   int tag, std::string default_value,
                   const MessageDescriptor* container_message,
                   const TypeDescriptor* type_descriptor,
-                  int field_offset);
-  virtual ~FieldDescriptor();
+                  int parse_index);
+  virtual ~FieldDescriptor() {}
 
   // full_name() is really odd. For example, if type_descriptor is "Foo.Bar"
   // and field name is "hostname", fullname will be "Foo.Bar.hostname". It's a
@@ -182,8 +184,10 @@ class FieldDescriptor {
   const TypeDescriptor* type_descriptor_;
 
   int field_offset_ = -1;
+  int parse_index_ = -1;
 
   friend class DescriptorsBuilder;
+  friend class MessageReflection;
 };
 
 }

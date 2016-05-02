@@ -34,6 +34,7 @@ class ProtoFileDescriptorImpl {
 
  private:
   std::string path_;
+  int num_nested_enums_ = 0;
 
   std::map<std::string, std::shared_ptr<MessageDescriptor>> messages_map_;
   std::map<std::string, std::shared_ptr<EnumDescriptor>> enums_map_;

@@ -347,6 +347,15 @@ bool Parser::ParseMessageField(std::string line) {
   // Parse default block.
   std::string default_name, default_value = "";
   if (defaultblock.length() > 0) {
+    if (type == MESSAGETYPE) {
+      LogError("message type cannot have default value");
+      return false;
+    }
+    if (modifier == REPEATED) {
+      LogError("message type cannot have default value");
+      return false;
+    }
+
     // Value is validated inside ParseAssignExpression(), except for enum type.
     if (!ParseAssignExpression(defaultblock, &default_name, &default_value,
                                type)) {

@@ -32,6 +32,7 @@ class DescriptorsBuilder {
 
   std::shared_ptr<FieldDescriptor> BuildFieldDescriptor(
                       const ProtoParser::MessageField* field,
+                      int parse_index,
                       const ProtoFileDescriptor* file,
                       const MessageDescriptor* container_message);
 

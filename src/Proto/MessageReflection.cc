@@ -14,16 +14,27 @@ std::string indent(){
 }
 
 MessageReflection::MessageReflection(
-    std::shared_ptr<::proto::ProtoParser::Message> message_descirptor,
+    const MessageDescriptor* message_descirptor,
     Message* defatult_instance,
+    int* fields_offset,
     int has_bits_offset) :
   message_descirptor_(message_descirptor),
   defatult_instance_(defatult_instance),
   has_bits_offset_(has_bits_offset) {
+  int num_fields = message_descirptor->num_fields();
+  fields_offset_ = new int[num_fields];
+  for (int i = 0; i < num_fields; i++) {
+    fields_offset_[i] = fields_offset[i];
+  }
 }
 
-const ::proto::ProtoParser::Message*
-MessageReflection::descriptor() const {
+~MessageReflection() {
+  if (fields_offset_) {
+    delete[] fields_offset_;
+  }
+}
+
+const MessageDescriptor* MessageReflection::descriptor() const {
   return message_descirptor_.get();
 }
 
@@ -36,7 +47,7 @@ const Message* MessageReflection::defatult_instance() const {
 // -------------------------------------------------------------------------- //
 bool MessageReflection::RepeatedFieldEmpty(
     const Message* message,
-    const ProtoParser::MessageField* field) const {
+    const FieldDescriptor* field) const {
   const char* ptr =
       reinterpret_cast<const char*>(message) + field->field_offset();
   return reinterpret_cast<const RepeatedFieldBase*>(ptr) -> size() == 0;
@@ -77,7 +88,7 @@ SerializedMessage* MessageReflection::Serialize(const Message* message) const {
 std::shared_ptr<SerializedObjectInterface>
 MessageReflection::CreateSerializedSingularMessage(
     const Message* message,
-    const ProtoParser::MessageField* field)  const {
+    const FieldDescriptor* field)  const {
   // Serialize a singular nested message
   // std::cout << indent() << "serializing singular nested message: "
   //           << field->type_class()->FullNameWithPackagePrefix()
@@ -110,7 +121,7 @@ MessageReflection::CreateSerializedSingularMessage(
 std::shared_ptr<SerializedObjectInterface>
 MessageReflection::CreateSerializedRepeatedMessage(
     const Message* message,
-    const ProtoParser::MessageField* field)  const {
+    const FieldDescriptor* field)  const {
   // std::cout << indent() << "serializing repeated nested message: "
   //           << field->name() << std::endl;
   indent_num++;
@@ -167,7 +178,7 @@ MessageReflection::CreateSerializedRepeatedMessage(
 std::shared_ptr<SerializedObjectInterface>
 MessageReflection::CreateSerializedSingularPrimitive(
     const Message* message,
-    const ProtoParser::MessageField* field)  const {
+    const FieldDescriptor* field)  const {
   // std::cout << indent() << "serializing singular primitive: "
   //           << field->name() << std::endl;
   indent_num++;
@@ -224,7 +235,7 @@ MessageReflection::CreateSerializedSingularPrimitive(
 std::shared_ptr<SerializedObjectInterface>
 MessageReflection::CreateSerializedRepeatedPrimitive(
     const Message* message,
-    const ProtoParser::MessageField* field)  const {
+    const FieldDescriptor* field)  const {
   // std::cout << indent() << "serializing repeated primitive: "
   //           << field->name() << std::endl;
   indent_num++;
@@ -308,7 +319,7 @@ bool MessageReflection::HasField(const Message* message, int tag) const {
 template <typename T>
 inline T* MessageReflection::Mutable_Raw(
     Message* message,
-    const ProtoParser::MessageField* field) const {
+    const FieldDescriptor* field) const {
   char* ptr = reinterpret_cast<char*>(message) + field->field_offset();
   return reinterpret_cast<T*>(ptr);
 }
@@ -316,21 +327,21 @@ inline T* MessageReflection::Mutable_Raw(
 template <typename T>
 inline void MessageReflection::SetField(
     Message* message,
-    const ProtoParser::MessageField* field, T value) const {
+    const FieldDescriptor* field, T value) const {
   *Mutable_Raw<T>(message, field) = value;
 }
 
 template <typename T>
 inline void MessageReflection::AddField(
     Message* message,
-    const ProtoParser::MessageField* field, T value) const {
+    const FieldDescriptor* field, T value) const {
   Mutable_Raw<RepeatedField<T>>(message, field) -> Add(value);
 }
 
 #define DEFINE_PRIMITIVE_ACCESSORS(CPP_TYPE, WIRE_TYPENAME)                \
   inline uint32 MessageReflection::Set##WIRE_TYPENAME(                     \
       Message* message,                                                    \
-      const ProtoParser::MessageField* field,                              \
+      const FieldDescriptor* field,                              \
       const char* buf) const {                                             \
     uint32 parsed_size;                                                    \
     CPP_TYPE value = WireFormat::Decode##WIRE_TYPENAME(buf, &parsed_size); \
@@ -341,7 +352,7 @@ inline void MessageReflection::AddField(
                                                                            \
   inline uint32 MessageReflection::Add##WIRE_TYPENAME(                     \
       Message* message,                                                    \
-      const ProtoParser::MessageField* field,                              \
+      const FieldDescriptor* field,                              \
       const char* buf) const {                                             \
     uint32 parsed_size;                                                    \
     CPP_TYPE value = WireFormat::Decode##WIRE_TYPENAME(buf, &parsed_size); \
@@ -361,7 +372,7 @@ DEFINE_PRIMITIVE_ACCESSORS(double, Double)
 // is allocated in RepeatedPtrField rather than RepeatedField.
 inline uint32 MessageReflection::SetString(
     Message* message,
-    const ProtoParser::MessageField* field,
+    const FieldDescriptor* field,
     const char* buf) const {
   uint32 parsed_size;
   std::string value = WireFormat::DecodeString(buf, &parsed_size);
@@ -372,7 +383,7 @@ inline uint32 MessageReflection::SetString(
 
 inline uint32 MessageReflection::AddString(
     Message* message,
-    const ProtoParser::MessageField* field,
+    const FieldDescriptor* field,
     const char* buf) const {
   uint32 parsed_size;
   std::string value = WireFormat::DecodeString(buf, &parsed_size);
@@ -410,7 +421,7 @@ void MessageReflection::CheckWireType(
   throw std::runtime_error(
       "WireType " + WireFormat::WireTypeAsString(wire_type) +
       " mismatch with  " +
-      ProtoParser::MessageField::GetModifierAsString(modifier) + " "
+      FieldDescriptor::GetModifierAsString(modifier) + " "
       " FieldType " + ProtoParser::PbCommon::GetTypeAsString(type));
 }
 
@@ -428,7 +439,7 @@ void MessageReflection::DeSerialize(
     offset += parsed_size;
     //std::cout << indent() << "tag = " << tag << std::endl;
     //std::cout << "tag parsed_size = " << parsed_size << std::endl;
-    const ProtoParser::MessageField* field =
+    const FieldDescriptor* field =
         message_descirptor_->FindFieldByTag(tag);
     if (!field) {
       throw std::runtime_error(
@@ -464,7 +475,7 @@ void MessageReflection::DeSerialize(
 
 uint32 MessageReflection::DeSerializeSingularMessage(
     Message* message,
-    const ProtoParser::MessageField* field,
+    const FieldDescriptor* field,
     const char* buf) const {
   // std::cout << indent() << "DeSerializing singular nested message " << std::endl;
   indent_num++;
@@ -491,7 +502,7 @@ uint32 MessageReflection::DeSerializeSingularMessage(
 
 uint32 MessageReflection::DeSerializeRepeatedMessage(
     Message* message,
-    const ProtoParser::MessageField* field,
+    const FieldDescriptor* field,
     const char* buf) const {
   // std::cout << indent() << "DeSerializing repeated nested message " << std::endl;
   indent_num++;
@@ -530,7 +541,7 @@ uint32 MessageReflection::DeSerializeRepeatedMessage(
 
 uint32 MessageReflection::DeSerializeSingularPrimitive(
     Message* message,
-    const ProtoParser::MessageField* field,
+    const FieldDescriptor* field,
     const char* buf) const {
   int offset = 0;
   //std::cout << indent() << "DeSerializing singular primitive " << std::endl;
@@ -581,7 +592,7 @@ uint32 MessageReflection::DeSerializeSingularPrimitive(
 
 uint32 MessageReflection::DeSerializeRepeatedPrimitive(
     Message* message,
-    const ProtoParser::MessageField* field,
+    const FieldDescriptor* field,
     const char* buf) const {
   //std::cout << indent() << "DeSerializing repeated primitive " << std::endl;
   indent_num++;

@@ -23,35 +23,35 @@ MessageField::MessageField(FieldLabel modifier,
   }
 
   // Set default value.
-  if (modifier_ != REPEATED) {
-    if (default_value_.empty()) {
-      has_user_default_value_ = false;
-       // They are system default value for different types.
-      if (IsPrimitiveType()) {
-        if (type_ == BOOL) {
-          default_value_ = "false";
-        }
-        else if (type_ == ENUMTYPE) {
-          default_value_ = (static_cast<EnumType*>(type_class))->enums()[0];
-        }
-        else {
-          default_value_ = "0";
-        }
+  has_user_default_value_ = false;
+  if (modifier_ == REPEATED) {
+    default_value  = "";
+    return;
+  }
+  if (default_value_.empty()) {
+     // They are system default value for different types.
+    if (IsPrimitiveType()) {
+      if (type_ == BOOL) {
+        default_value_ = "false";
       }
-      else if (type_ == STRING) {
-        default_value_ = "\"\"";
+      else if (type_ == ENUMTYPE) {
+        default_value_ = (static_cast<EnumType*>(type_class))->enums()[0];
       }
-      else {  // Message Type
-        default_value_ = "nullptr";
-        // we force message type has default value = nullptr.
-        has_user_default_value_ = true;
+      else {
+        default_value_ = "0";
       }
     }
-    else {
-      if (type_ == STRING) {
-        default_value_ = "\"" + default_value_ + "\"";
-      }
-      has_user_default_value_ = true;
+    else if (type_ == STRING) {
+      default_value_ = "\"\"";
+    }
+    else {  // Message Type
+      default_value_ = "nullptr";
+    }
+  }
+  else {
+    has_user_default_value_ = true;
+    if (type_ == STRING) {
+      default_value_ = "\"" + default_value_ + "\"";
     }
   }
 }

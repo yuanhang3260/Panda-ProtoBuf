@@ -24,7 +24,7 @@ int ProtoFileDescriptor::num_enums() const {
 }
 
 int ProtoFileDescriptor::num_nested_enums() const {
-  return impl_->enums_map_.size();
+  return impl_->num_nested_enums_;
 }
 
 int ProtoFileDescriptor::num_services() const {
@@ -80,6 +80,14 @@ MessageDescriptor::MessageDescriptor(const ProtoFileDescriptor* file,
                                      const std::string& package) :
     TypeDescriptor(file, name, package),
     impl_(new MessageDescriptorImpl()) {
+}
+
+int MessageDescriptor::num_fields() const {
+  return impl_->fields_map_.size();
+}
+
+int MessageDescriptor::num_nested_enums() const {
+  return impl_->enums_map_.size();
 }
 
 const FieldDescriptor* MessageDescriptor::FindFieldByTag(
@@ -146,12 +154,12 @@ FieldDescriptor::FieldDescriptor(std::string name,
                                  int tag, std::string default_value,
                                  const MessageDescriptor* container_message,
                                  const TypeDescriptor* type_descriptor,
-                                 int field_offset) :
+                                 int parse_index) :
     name_(name), label_(label), type_(type),
     tag_(tag), default_value_(default_value),
     container_message_(container_message),
     type_descriptor_(type_descriptor),
-    field_offset_(field_offset) {
+    parse_index_(parse_index) {
 }
 
 DEFINE_GETTER(FieldDescriptor, name, std::string);

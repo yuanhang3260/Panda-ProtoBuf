@@ -61,6 +61,7 @@ std::shared_ptr<ProtoFileDescriptor> DescriptorsBuilder::BuildDescriptors() {
       // Add to file-level and message-level enum maps.
       file_dscpt->impl_->AddEnumDescriptor(enum_dscpt);
       msg_dscpt->impl_->AddNestedEnumDescriptor(enum_dscpt);
+      file_dscpt->impl_->num_nested_enums_++;
     }
   }
 
@@ -74,8 +75,9 @@ std::shared_ptr<ProtoFileDescriptor> DescriptorsBuilder::BuildDescriptors() {
       LogFATAL("Can't find generated message descriptor - Where is it ??");
     }
     auto msg_dscpt = it->second.get();
+    int parse_index = 0;
     for (auto& field: message_type->fields_list()) {
-      auto field_dscpt = BuildFieldDescriptor(field.get(),
+      auto field_dscpt = BuildFieldDescriptor(field.get(), parse_index++,
                                               file_dscpt.get(), msg_dscpt);
       std::string field_name = field_dscpt->name();
       msg_dscpt->impl_->fields_map_.emplace(field_name, field_dscpt);
@@ -104,6 +106,7 @@ std::shared_ptr<EnumDescriptor> DescriptorsBuilder::BuildEnumDescriptor(
 
 std::shared_ptr<FieldDescriptor> DescriptorsBuilder::BuildFieldDescriptor(
     const ProtoParser::MessageField* field,
+    int parse_index,
     const ProtoFileDescriptor* file,
     const MessageDescriptor* container_message) {
   const TypeDescriptor* type_descriptor = nullptr;
@@ -112,17 +115,24 @@ std::shared_ptr<FieldDescriptor> DescriptorsBuilder::BuildFieldDescriptor(
     if ((type_descriptor = file->FindMessageTypeByName(type_name)) == nullptr &&
         (type_descriptor = file->FindEnumTypeByName(type_name)) == nullptr) {
       LogFATAL("Can't find message or enum descriptor for "
-               "field %s in message %s",
+               "field %s in message %s - What ??",
                field->name().c_str(), container_message->full_name().c_str());
     }
   }
 
   // field offset waits to be set.
+  std::string default_value = field->default_value();
+  if (!field->has_user_default_value()) {
+    // Message field default value in ProtoParser::MessageField is set as
+    // "nullptr" for code generator to use.
+    default_value.clear();
+  }
   auto field_dscpt = new FieldDescriptor(field->name(), field->modifier(),
                                          field->type(), field->tag(),
-                                         field->default_value(),
+                                         default_value,
                                          container_message,
-                                         type_descriptor, -1);
+                                         type_descriptor,
+                                         parse_index);
 
   return std::shared_ptr<FieldDescriptor>(field_dscpt);
 }

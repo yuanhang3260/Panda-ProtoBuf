@@ -7,6 +7,11 @@ message FamilyInfo {
 	optional int32 numberdogs = 2 [default=0];
 }
 
+enum FriendType{
+  Human,
+  Animal,
+}
+
 package AA.BB;
 
 message DogInfo {
@@ -17,9 +22,10 @@ message DogInfo {
   optional int32 age =1;
   optional string name= 3;
   repeated string alias = 18;
-  repeated double weights = 5;
+  repeated double weight = 5;
   optional AA.FamilyInfo family = 13;
   repeated AA.FamilyInfo neighbors = 25;
-  repeated Sex sex = 4;
+  optional Sex sex = 4;
+  optional AA.FriendType friend_type = 10;
 }
 
