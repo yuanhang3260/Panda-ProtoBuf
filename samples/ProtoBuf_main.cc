@@ -1,7 +1,6 @@
 #include <iostream>
 #include <memory>
 
-#include "Compiler/Message.h"
 #include "Compiler/ProtoParser.h"
 #include "Proto/MessageReflection.h"
 #include "Proto/MessageFactory.h"
