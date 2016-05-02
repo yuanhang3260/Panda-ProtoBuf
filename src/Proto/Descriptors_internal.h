@@ -9,23 +9,17 @@
 
 #include "Base/BaseTypes.h"
 #include "Base/MacroUtils.h"
+#include "Proto/Descriptor.h"
 
 namespace proto {
 
 // Forward declarations.
-class ProtoFileDescriptor;
-class MessageDescriptor;
-class EnumDescriptor;
-class FieldDescriptor;
-class ServiceDescriptor;
-class FieldDescriptor;
 class DescriptorsBuilder;
 
-/// ProtoFileDescriptorImpl
-
-class ProtoFileDescriptorImpl {
+class ProtoFileDescriptor::ProtoFileDescriptorImpl {
  public:
   ProtoFileDescriptorImpl(std::string path) : path_(path) {}
+  ~ProtoFileDescriptorImpl() {}
 
   // Add descriptors.
   void AddMessageDescriptor(std::shared_ptr<MessageDescriptor> descriptor);
@@ -48,9 +42,10 @@ class ProtoFileDescriptorImpl {
 
 
 /// MessageDescriptorImpl
-class MessageDescriptorImpl {
+class MessageDescriptor::MessageDescriptorImpl {
  public:
   MessageDescriptorImpl() = default;
+  ~MessageDescriptorImpl() {}
 
   void AddNestedEnumDescriptor(std::shared_ptr<EnumDescriptor> descriptor);
 
@@ -67,9 +62,10 @@ class MessageDescriptorImpl {
 };
 
 
-class EnumDescriptorImpl {
+class EnumDescriptor::EnumDescriptorImpl {
  public:
   EnumDescriptorImpl(bool nested);
+  ~EnumDescriptorImpl() {}
 
  protected:
   bool is_nested_;

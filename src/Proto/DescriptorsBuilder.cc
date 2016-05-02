@@ -30,8 +30,8 @@ ProtoFileDescriptor* DescriptorsBuilder::BuildDescriptors() {
     return file_dscpt;
   }
 
-  parser_.reset(new Parser(ProtoParser::CPP, proto_file_));
-  if (!parser_->ParseProto()) {
+  std::unique_ptr<Parser> parser(new Parser(ProtoParser::CPP, proto_file_));
+  if (!parser->ParseProto()) {
     LogERROR("Failed to parse proto file %s", proto_file_.c_str());
     return file_dscpt;
   }
@@ -39,14 +39,14 @@ ProtoFileDescriptor* DescriptorsBuilder::BuildDescriptors() {
   file_dscpt = new ProtoFileDescriptor(proto_file_);
 
   // Build file-level enum descriptors.
-  for (auto& enum_type: parser_->enums_map_) {
+  for (auto& enum_type: parser->enums_map_) {
     auto enum_dscpt = BuildEnumDescriptor(enum_type.second.get(),
                                           file_dscpt, false);
     file_dscpt->impl_->AddEnumDescriptor(enum_dscpt);
   }
 
   // Build message descriptors.
-  for (auto& message_type: parser_->messages_list_) {
+  for (auto& message_type: parser->messages_list_) {
     MessageDescriptor* msg_dscpt = new MessageDescriptor(
         file_dscpt, message_type->name(), message_type->package()
     );
@@ -69,7 +69,7 @@ ProtoFileDescriptor* DescriptorsBuilder::BuildDescriptors() {
   // TODO(hangyuan): Build RPC service descriptors.
 
   // Add field descriptors to message descriptors.
-  for (auto& message_type: parser_->messages_list_) {
+  for (auto& message_type: parser->messages_list_) {
     auto it = file_dscpt->impl_->messages_map_.find(
                         message_type->FullNameWithPackagePrefix());
     if (it == file_dscpt->impl_->messages_map_.end()) {

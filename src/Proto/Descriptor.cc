@@ -11,6 +11,8 @@ ProtoFileDescriptor::ProtoFileDescriptor(const std::string& path) :
     impl_(new ProtoFileDescriptorImpl(path)) {
 }
 
+ProtoFileDescriptor::~ProtoFileDescriptor() {}
+
 std::string ProtoFileDescriptor::path() const {
   return impl_->path_;
 }
@@ -65,6 +67,8 @@ TypeDescriptor::TypeDescriptor(const ProtoFileDescriptor* file,
     file_(file), name_(name), package_(package) {
 }
 
+TypeDescriptor::~TypeDescriptor() {}
+
 
 DEFINE_GETTER(TypeDescriptor, name, std::string);
 DEFINE_GETTER(TypeDescriptor, package, std::string);
@@ -81,6 +85,8 @@ MessageDescriptor::MessageDescriptor(const ProtoFileDescriptor* file,
     TypeDescriptor(file, name, package),
     impl_(new MessageDescriptorImpl()) {
 }
+
+MessageDescriptor::~MessageDescriptor() {}
 
 int MessageDescriptor::num_fields() const {
   return impl_->fields_map_.size();
@@ -127,6 +133,8 @@ EnumDescriptor::EnumDescriptor(const ProtoFileDescriptor* file,
     impl_(new EnumDescriptorImpl(nested)) {
 }
 
+EnumDescriptor::~EnumDescriptor() {}
+
 int EnumDescriptor::NumberEnums() const {
   return impl_->enums_map_.size();
 }
@@ -147,6 +155,9 @@ std::string EnumDescriptor::EnumValueAsString(int value) const {
   return "";
 }
 
+
+/// ServiceDescriptor
+ServiceDescriptor::~ServiceDescriptor() {}
 
 /// FieldDescriptor
 FieldDescriptor::FieldDescriptor(std::string name,

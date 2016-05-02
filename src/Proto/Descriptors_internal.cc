@@ -6,7 +6,7 @@
 namespace proto {
 
 /// ProtoFileDescriptorImpl
-void ProtoFileDescriptorImpl::AddMessageDescriptor(
+void ProtoFileDescriptor::ProtoFileDescriptorImpl::AddMessageDescriptor(
           std::shared_ptr<MessageDescriptor> descriptor) {
   auto it = messages_map_.emplace(descriptor->full_name(), descriptor);
   if (!it.second) {
@@ -14,7 +14,7 @@ void ProtoFileDescriptorImpl::AddMessageDescriptor(
   }
 }
 
-void ProtoFileDescriptorImpl::AddEnumDescriptor(
+void ProtoFileDescriptor::ProtoFileDescriptorImpl::AddEnumDescriptor(
          std::shared_ptr<EnumDescriptor> descriptor) {
   auto it = enums_map_.emplace(descriptor->full_name(), descriptor);
   if (!it.second) {
@@ -22,7 +22,7 @@ void ProtoFileDescriptorImpl::AddEnumDescriptor(
   }
 }
 
-void ProtoFileDescriptorImpl::AddServiceDescriptor(
+void ProtoFileDescriptor::ProtoFileDescriptorImpl::AddServiceDescriptor(
          std::shared_ptr<ServiceDescriptor> descriptor) {
   auto it = services_map_.emplace(descriptor->full_name(), descriptor);
   if (!it.second) {
@@ -32,7 +32,7 @@ void ProtoFileDescriptorImpl::AddServiceDescriptor(
 
 
 /// MessageDescriptorImpl
-void MessageDescriptorImpl::AddNestedEnumDescriptor(
+void MessageDescriptor::MessageDescriptorImpl::AddNestedEnumDescriptor(
          std::shared_ptr<EnumDescriptor> descriptor) {
   auto it = enums_map_.emplace(descriptor->name(), descriptor);
   if (!it.second) {
@@ -41,8 +41,8 @@ void MessageDescriptorImpl::AddNestedEnumDescriptor(
 }
 
 /// EnumDescriptorImpl
-EnumDescriptorImpl::EnumDescriptorImpl(bool nested) : is_nested_(nested) {
-
+EnumDescriptor::EnumDescriptorImpl::EnumDescriptorImpl(bool nested) :
+    is_nested_(nested) {
 }
 
 }  // namespace proto

@@ -216,5 +216,7 @@ void test_Serialize() {
 int main() {
   std::cout << "-------------------- Test ----------------------" << std::endl;
   test_Serialize();
+
+  std::cout << "\033[2;32mAll Passed ^_^\033[0m" << std::endl;
   return 0;
 }

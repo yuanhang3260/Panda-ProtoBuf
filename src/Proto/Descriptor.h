@@ -22,10 +22,11 @@ class DescriptorsBuilder;
 class MessageReflection;
 
 /// ProtoFileDescriptor
-class ProtoFileDescriptorImpl;
 class ProtoFileDescriptor {
  public:
   ProtoFileDescriptor(const std::string& path);
+  ~ProtoFileDescriptor();
+
   std::string path() const;
   int num_messages() const;
   int num_enums() const;
@@ -42,6 +43,7 @@ class ProtoFileDescriptor {
   FindSeriveTypeByName(const string& service_name) const;
 
  private:
+  class ProtoFileDescriptorImpl;
   std::unique_ptr<ProtoFileDescriptorImpl> impl_;
   friend class DescriptorsBuilder;
   friend class MessageReflection;
@@ -53,7 +55,7 @@ class TypeDescriptor {
  public:
   TypeDescriptor(const ProtoFileDescriptor* file,
                  const std::string& name, const std::string& package);
-  virtual ~TypeDescriptor() {}
+  virtual ~TypeDescriptor();
 
   virtual void Print() {}
   virtual FieldType type() = 0;
@@ -73,12 +75,11 @@ class TypeDescriptor {
 
 
 /// MessageDescriptor
-class MessageDescriptorImpl;
 class MessageDescriptor: public TypeDescriptor {
  public:
   MessageDescriptor(const ProtoFileDescriptor* file,
                     const std::string& name, const std::string& package);
-  virtual ~MessageDescriptor() {}
+  virtual ~MessageDescriptor();
 
   FieldType type() override { return MESSAGETYPE; }
   int num_fields() const;
@@ -92,6 +93,7 @@ class MessageDescriptor: public TypeDescriptor {
   const EnumDescriptor* FindNestedEnumTypeByName(const std::string& name) const;
 
  private:
+  class MessageDescriptorImpl;
   std::unique_ptr<MessageDescriptorImpl> impl_;
   friend class DescriptorsBuilder;
   friend class MessageReflection;
@@ -101,12 +103,12 @@ using Descriptor = MessageDescriptor;
 
 
 /// EnumDescriptor
-class EnumDescriptorImpl;
 class EnumDescriptor: public TypeDescriptor {
  public:
   EnumDescriptor(const ProtoFileDescriptor* file,
                  const std::string& name, const std::string& package,
                  bool nested);
+  virtual ~EnumDescriptor();
 
   FieldType type() override { return ENUMTYPE; }
 
@@ -117,22 +119,25 @@ class EnumDescriptor: public TypeDescriptor {
 
   std::string EnumValueAsString(int value) const;
 
- protected:
+ private:
+  class EnumDescriptorImpl;
   std::unique_ptr<EnumDescriptorImpl> impl_;
   friend class DescriptorsBuilder;
   friend class MessageReflection;
 };
 
 /// ServiceDescriptor
-class ServiceDescriptorImpl;
 class ServiceDescriptor: public TypeDescriptor {
  public:
   ServiceDescriptor(const ProtoFileDescriptor* file,
                     const std::string& name, const std::string& package);
 
+  virtual ~ServiceDescriptor();
+
   FieldType type() override { return SERVICETYPE; }
 
  private:
+  class ServiceDescriptorImpl;
   friend class DescriptorsBuilder;
   friend class MessageReflection;
 };

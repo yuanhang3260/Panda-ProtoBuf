@@ -97,16 +97,16 @@ MessageReflection::CreateSerializedSingularMessage(
     const FieldDescriptor* field)  const {
   // Serialize a singular nested message
   // std::cout << indent() << "serializing singular nested message: "
-  //           << field->container_message()->full_name()
+  //           << field->type_descriptor()->full_name()
   //           << std::endl;
   indent_num++;
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(
-          field->container_message()->full_name());
+          field->type_descriptor()->full_name());
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        field->container_message()->full_name() +
+        field->type_descriptor()->full_name() +
         " exists.");
   }
   SerializedMessage* nested_sdmsg = nested_msg_reflection->Serialize(
@@ -136,11 +136,11 @@ MessageReflection::CreateSerializedRepeatedMessage(
   // get reflection
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(
-          field->container_message()->full_name());
+          field->type_descriptor()->full_name());
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        field->container_message()->full_name() +
+        field->type_descriptor()->full_name() +
         " exists.");
   }
   // Get RepeatedMessagePtr
@@ -488,14 +488,12 @@ uint32 MessageReflection::DeSerializeSingularMessage(
   uint32 offset = 0;
   uint32 obj_size = WireFormat::DecodeUInt32(buf, &offset);
   std::string class_name = 
-      field->container_message()->full_name();
+      field->type_descriptor()->full_name();
   const MessageReflection* nested_msg_reflection = 
       MessageFactory::GetMessageReflection(class_name);
   if (!nested_msg_reflection) {
     throw std::runtime_error(
-        "No cpp generated class type " +
-        field->container_message()->full_name() +
-        " exists.");
+        "No cpp generated class type " + class_name + " exists.");
   }
   Message* new_obj = nested_msg_reflection->defatult_instance()->New();
   nested_msg_reflection->DeSerialize(new_obj, buf + offset, obj_size);
@@ -515,14 +513,12 @@ uint32 MessageReflection::DeSerializeRepeatedMessage(
   uint32 offset = 0;
   uint32 list_size = WireFormat::DecodeUInt32(buf, &offset);
   std::string class_name = 
-      field->container_message()->full_name();
+      field->type_descriptor()->full_name();
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(class_name);
   if (!nested_msg_reflection) {
     throw std::runtime_error(
-        "No cpp generated class type " +
-        field->container_message()->full_name() +
-        " exists.");
+        "No cpp generated class type " + class_name + " exists.");
   }
 
   char* field_addr = reinterpret_cast<char*>(message) + FieldOffset(field);

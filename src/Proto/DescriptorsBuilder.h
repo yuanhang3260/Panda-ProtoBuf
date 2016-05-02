@@ -5,7 +5,6 @@
 #include <memory>
 
 #include "Base/MacroUtils.h"
-#include "Compiler/ProtoParser.h"
 #include "Proto/Descriptor.h"
 
 namespace proto {
@@ -37,7 +36,6 @@ class DescriptorsBuilder {
                       const MessageDescriptor* container_message);
 
   std::string proto_file_;
-  std::unique_ptr<ProtoParser::Parser> parser_;
 
   FORBID_COPY_AND_ASSIGN(DescriptorsBuilder);
 };
