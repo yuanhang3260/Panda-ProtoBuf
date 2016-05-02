@@ -5,8 +5,8 @@
 #include <memory>
 
 #include "Base/MacroUtils.h"
+#include "Compiler/ProtoParser.h"
 #include "Proto/Descriptor.h"
-#include "Proto/Descriptors_internal.h"
 
 namespace proto {
 
@@ -22,7 +22,7 @@ class DescriptorsBuilder {
   DescriptorsBuilder() = default;
   DescriptorsBuilder(const std::string& proto_file);
 
-  std::shared_ptr<ProtoFileDescriptor> BuildDescriptors();
+  ProtoFileDescriptor* BuildDescriptors();
 
  private:
   std::shared_ptr<EnumDescriptor>

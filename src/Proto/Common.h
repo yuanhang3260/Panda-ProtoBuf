@@ -26,10 +26,13 @@ enum FieldType {
   SERVICETYPE,
 };
 
+std::string GetLabelAsString(FieldLabel label);
+
 using FIELD_TYPE = FieldType;
 using FIELD_MODIFIER = FieldLabel;
 using string = std::string;
-}
+
+}  // namespace proto
 
 
 #endif  // PROTO_COMMON_

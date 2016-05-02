@@ -42,6 +42,7 @@ class ProtoFileDescriptorImpl {
 
   friend class ProtoFileDescriptor;
   friend class DescriptorsBuilder;
+  friend class MessageReflection;
   FORBID_COPY_AND_ASSIGN(ProtoFileDescriptorImpl);
 };
 
@@ -61,6 +62,7 @@ class MessageDescriptorImpl {
 
   friend class MessageDescriptor;
   friend class DescriptorsBuilder;
+  friend class MessageReflection;
   FORBID_COPY_AND_ASSIGN(MessageDescriptorImpl);
 };
 
@@ -76,6 +78,7 @@ class EnumDescriptorImpl {
 
   friend class EnumDescriptor;
   friend class DescriptorsBuilder;
+  friend class MessageReflection;
   FORBID_COPY_AND_ASSIGN(EnumDescriptorImpl);
 };
 

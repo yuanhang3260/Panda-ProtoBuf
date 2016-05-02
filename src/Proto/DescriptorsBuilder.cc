@@ -13,6 +13,7 @@
 #include "Compiler/ProtoParser.h"
 #include "Compiler/ServiceType.h"
 #include "Compiler/Type.h"
+#include "Proto/Descriptors_internal.h"
 
 namespace proto {
 
@@ -22,8 +23,8 @@ DescriptorsBuilder::DescriptorsBuilder(const std::string& proto_file) :
     proto_file_(proto_file) {
 }
 
-std::shared_ptr<ProtoFileDescriptor> DescriptorsBuilder::BuildDescriptors() {
-  std::shared_ptr<ProtoFileDescriptor> file_dscpt;
+ProtoFileDescriptor* DescriptorsBuilder::BuildDescriptors() {
+  ProtoFileDescriptor* file_dscpt = nullptr;
   if (proto_file_.empty()) {
     LogERROR("No proto file path specified");
     return file_dscpt;
@@ -35,19 +36,19 @@ std::shared_ptr<ProtoFileDescriptor> DescriptorsBuilder::BuildDescriptors() {
     return file_dscpt;
   }
 
-  file_dscpt.reset(new ProtoFileDescriptor(proto_file_));
+  file_dscpt = new ProtoFileDescriptor(proto_file_);
 
   // Build file-level enum descriptors.
   for (auto& enum_type: parser_->enums_map_) {
     auto enum_dscpt = BuildEnumDescriptor(enum_type.second.get(),
-                                          file_dscpt.get(), false);
+                                          file_dscpt, false);
     file_dscpt->impl_->AddEnumDescriptor(enum_dscpt);
   }
 
   // Build message descriptors.
   for (auto& message_type: parser_->messages_list_) {
     MessageDescriptor* msg_dscpt = new MessageDescriptor(
-        file_dscpt.get(), message_type->name(), message_type->package()
+        file_dscpt, message_type->name(), message_type->package()
     );
     file_dscpt->impl_->messages_map_.emplace(
         message_type->FullNameWithPackagePrefix(),
@@ -57,7 +58,7 @@ std::shared_ptr<ProtoFileDescriptor> DescriptorsBuilder::BuildDescriptors() {
     // Nested enum types.
     for (auto& nested_enum: message_type->enums_map()) {
       auto enum_dscpt = BuildEnumDescriptor(nested_enum.second.get(),
-                                            file_dscpt.get(), true);
+                                            file_dscpt, true);
       // Add to file-level and message-level enum maps.
       file_dscpt->impl_->AddEnumDescriptor(enum_dscpt);
       msg_dscpt->impl_->AddNestedEnumDescriptor(enum_dscpt);
@@ -78,7 +79,7 @@ std::shared_ptr<ProtoFileDescriptor> DescriptorsBuilder::BuildDescriptors() {
     int parse_index = 0;
     for (auto& field: message_type->fields_list()) {
       auto field_dscpt = BuildFieldDescriptor(field.get(), parse_index++,
-                                              file_dscpt.get(), msg_dscpt);
+                                              file_dscpt, msg_dscpt);
       std::string field_name = field_dscpt->name();
       msg_dscpt->impl_->fields_map_.emplace(field_name, field_dscpt);
       msg_dscpt->impl_->fields_list_.emplace_back(field_dscpt);

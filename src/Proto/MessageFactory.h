@@ -1,30 +1,44 @@
 #ifndef PROTO_MESSAGE_FACTORY_
 #define PROTO_MESSAGE_FACTORY_
 
-#include "map"
+#include <map>
 #include <memory>
-#include "MessageReflection.h"
+
+#include "Proto/Descriptor.h"
+#include "Proto/MessageReflection.h"
 
 namespace proto {
 
 class MessageFactory {
  public:
   static MessageFactory* instance();
-  static void RegisterGeneratedMessage(MessageReflection* reflection);
+  // Register a generated message reflection (takes ownership).
+  static void RegisterGeneratedMessage(const MessageReflection* reflection);
+  // Register a parsed proto file (takes ownership).
+  static void RegisterParsedProtoFile(const ProtoFileDescriptor* file);
 
   static int NumMessagesRegistered();
 
+  using ReflectionMap =
+    std::map<std::string, std::shared_ptr<const MessageReflection>>;
+
+  using ProtoFileMap = 
+    std::map<std::string, std::shared_ptr<const ProtoFileDescriptor>>;
+
   static const MessageReflection* GetMessageReflection(std::string name);
+  static const ProtoFileDescriptor* GetParsedProtoFile(std::string name);
 
  private:
   MessageFactory();
   // Disallow copy - message factory is singleton.
   FORBID_COPY_AND_ASSIGN(MessageFactory);
 
-  static std::map<std::string, const MessageReflection*>& message_map();
-
+  static ReflectionMap& message_map();
+  static ProtoFileMap& file_map();
   static MessageFactory* instance_;
-  std::map<std::string, const MessageReflection*> message_map_;
+
+  ReflectionMap message_map_;
+  ProtoFileMap file_map_;
 };
 
 }//  namespace proto

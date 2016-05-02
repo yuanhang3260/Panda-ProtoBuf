@@ -2,8 +2,8 @@
 #include <mutex>
 #include <map>
 
-#include "Compiler/Message.h"
-#include "Compiler/ProtoParser.h"
+#include "Proto/Descriptor.h"
+#include "Proto/DescriptorsBuilder.h"
 #include "Proto/MessageReflection.h"
 #include "Proto/MessageFactory.h"
 
@@ -11,19 +11,19 @@
 
 namespace {
 
-std::shared_ptr<::proto::ProtoParser::Message> RpcRequestHeader_descriptor_;
-std::shared_ptr<::proto::MessageReflection> RpcRequestHeader_reflection_;
-std::shared_ptr<::proto::ProtoParser::Message> RpcResponseHeader_descriptor_;
-std::shared_ptr<::proto::MessageReflection> RpcResponseHeader_reflection_;
+const ::proto::MessageDescriptor* RpcRequestHeader_descriptor_ = nullptr;
+const ::proto::MessageReflection* RpcRequestHeader_reflection_ = nullptr;
+const ::proto::MessageDescriptor* RpcResponseHeader_descriptor_ = nullptr;
+const ::proto::MessageReflection* RpcResponseHeader_reflection_ = nullptr;
 
 }  // namepsace
 
 void static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
-  if (RPC::RpcRequestHeader::default_instance_ == NULL) {
+  if (RPC::RpcRequestHeader::default_instance_ == nullptr) {
     RPC::RpcRequestHeader::default_instance_ = new RPC::RpcRequestHeader();
     RPC::RpcRequestHeader::default_instance_->InitAsDefaultInstance();
   }
-  if (RPC::RpcResponseHeader::default_instance_ == NULL) {
+  if (RPC::RpcResponseHeader::default_instance_ == nullptr) {
     RPC::RpcResponseHeader::default_instance_ = new RPC::RpcResponseHeader();
     RPC::RpcResponseHeader::default_instance_->InitAsDefaultInstance();
   }
@@ -34,15 +34,15 @@ void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
   if (already_called) return;
   already_called = true;
 
-  ::proto::ProtoParser::ProtoParser parser(
-      ::proto::ProtoParser::CPP,
+  ::proto::DescriptorsBuilder descriptors_builder(
       "/home/hy/Desktop/Projects/ProtoBuf/src/RPC/RpcPacket.proto");
-  CHECK(parser.ParseProto(),
-        "static class initialization for /home/hy/Desktop/Projects/ProtoBuf/src/RPC/RpcPacket.proto failed");
+  auto file_dscpt = descriptors_builder.BuildDescriptors();
+  CHECK(file_dscpt != nullptr, "static class initialization for "
+        "/home/hy/Desktop/Projects/ProtoBuf/src/RPC/RpcPacket.proto failed");
+  ::proto::MessageFactory::RegisterParsedProtoFile(file_dscpt);
 
   static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
 
-  int i = 0;
   // static init for class RpcRequestHeader
   static const int RpcRequestHeader_offsets_[4] = {
     PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcRequestHeader, service_name_),
@@ -50,18 +50,16 @@ void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
     PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcRequestHeader, rpc_request_length_),
     PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcRequestHeader, keep_alive_),
   };
-  i = 0;
-  for (auto& field: parser.mutable_messages_list()[0]->mutable_fields_list()) {
-    field->set_field_offset(RpcRequestHeader_offsets_[i++]);
-  }
-  RpcRequestHeader_descriptor_ = parser.mutable_messages_list()[0];
-  RpcRequestHeader_reflection_.reset(
+  RpcRequestHeader_descriptor_ = file_dscpt->FindMessageTypeByName("RPC.RpcRequestHeader");
+  CHECK(RpcRequestHeader_descriptor_ != nullptr, 
+        "Can't find message descriptor for RPC.RpcRequestHeader");
+  RpcRequestHeader_reflection_ = 
       new ::proto::MessageReflection(
           RpcRequestHeader_descriptor_,
           RPC::RpcRequestHeader::default_instance_,
-          PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcRequestHeader, has_bits_))
-  );
-  ::proto::MessageFactory::RegisterGeneratedMessage(RpcRequestHeader_reflection_.get());
+          RpcRequestHeader_offsets_,
+          PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcRequestHeader, has_bits_));
+  ::proto::MessageFactory::RegisterGeneratedMessage(RpcRequestHeader_reflection_);
 
   // static init for class RpcResponseHeader
   static const int RpcResponseHeader_offsets_[3] = {
@@ -69,18 +67,16 @@ void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
     PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcResponseHeader, rpc_return_msg_),
     PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcResponseHeader, rpc_response_length_),
   };
-  i = 0;
-  for (auto& field: parser.mutable_messages_list()[1]->mutable_fields_list()) {
-    field->set_field_offset(RpcResponseHeader_offsets_[i++]);
-  }
-  RpcResponseHeader_descriptor_ = parser.mutable_messages_list()[1];
-  RpcResponseHeader_reflection_.reset(
+  RpcResponseHeader_descriptor_ = file_dscpt->FindMessageTypeByName("RPC.RpcResponseHeader");
+  CHECK(RpcResponseHeader_descriptor_ != nullptr, 
+        "Can't find message descriptor for RPC.RpcResponseHeader");
+  RpcResponseHeader_reflection_ = 
       new ::proto::MessageReflection(
           RpcResponseHeader_descriptor_,
           RPC::RpcResponseHeader::default_instance_,
-          PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcResponseHeader, has_bits_))
-  );
-  ::proto::MessageFactory::RegisterGeneratedMessage(RpcResponseHeader_reflection_.get());
+          RpcResponseHeader_offsets_,
+          PROTO_MESSAGE_FIELD_OFFSET(RPC::RpcResponseHeader, has_bits_));
+  ::proto::MessageFactory::RegisterGeneratedMessage(RpcResponseHeader_reflection_);
 
 }
 
@@ -249,13 +245,13 @@ void RpcRequestHeader::Swap(RpcRequestHeader* other) {
 
 // default_instance()
 const RpcRequestHeader& RpcRequestHeader::default_instance() {
-  if (default_instance_ == NULL) {
+  if (default_instance_ == nullptr) {
     static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
   }
   return *default_instance_;
 }
 
-RpcRequestHeader* RpcRequestHeader::default_instance_ = NULL;
+RpcRequestHeader* RpcRequestHeader::default_instance_ = nullptr;
 
 // destructor
 RpcRequestHeader::~RpcRequestHeader() {
@@ -459,8 +455,8 @@ void RpcResponseHeader::Print(int indent_num) const {
   if (has_rpc_return_code()) {
     PrintIndent(indent_num + 1);
     std::string enum_value =
-        (reinterpret_cast<const proto::ProtoParser::EnumType*>(
-            RpcResponseHeader_descriptor_->FindFieldByName("rpc_return_code")->type_class()))
+        (reinterpret_cast<const proto::EnumDescriptor*>(
+            RpcResponseHeader_descriptor_->FindFieldByName("rpc_return_code")->type_descriptor()))
                  ->EnumValueAsString(rpc_return_code_);
     std::cout << "rpc_return_code: " << enum_value << std::endl;
   }
@@ -511,13 +507,13 @@ void RpcResponseHeader::Swap(RpcResponseHeader* other) {
 
 // default_instance()
 const RpcResponseHeader& RpcResponseHeader::default_instance() {
-  if (default_instance_ == NULL) {
+  if (default_instance_ == nullptr) {
     static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
   }
   return *default_instance_;
 }
 
-RpcResponseHeader* RpcResponseHeader::default_instance_ = NULL;
+RpcResponseHeader* RpcResponseHeader::default_instance_ = nullptr;
 
 // destructor
 RpcResponseHeader::~RpcResponseHeader() {

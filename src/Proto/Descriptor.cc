@@ -167,7 +167,6 @@ DEFINE_GETTER(FieldDescriptor, label, FieldLabel);
 DEFINE_GETTER(FieldDescriptor, type, FieldType);
 DEFINE_GETTER(FieldDescriptor, tag, uint32);
 DEFINE_GETTER(FieldDescriptor, default_value, std::string);
-DEFINE_GETTER(FieldDescriptor, field_offset, int);
 DEFINE_CONST_PTR_GETTER(FieldDescriptor, container_message, MessageDescriptor);
 DEFINE_CONST_PTR_GETTER(FieldDescriptor, type_descriptor, TypeDescriptor);
 

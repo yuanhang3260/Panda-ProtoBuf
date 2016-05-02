@@ -26,7 +26,7 @@ class DescriptorsBuilderTest: public UnitTest {
     const char* const kProtoFilePath = "samples/tiny.proto";
     builder_.reset(new DescriptorsBuilder(kProtoFilePath));
 
-    std::shared_ptr<ProtoFileDescriptor> file_ = builder_->BuildDescriptors();
+    std::shared_ptr<ProtoFileDescriptor> file_(builder_->BuildDescriptors());
     AssertTrue(file_.get() != nullptr);
     AssertEqual(2, file_->num_enums(), "num_enums");
     AssertEqual(1, file_->num_nested_enums(), "num_nested_enums");
@@ -115,7 +115,7 @@ class DescriptorsBuilderTest: public UnitTest {
     const char* const kProtoFilePath = "samples/simple.proto";
     builder_.reset(new DescriptorsBuilder(kProtoFilePath));
 
-    std::shared_ptr<ProtoFileDescriptor> file_ = builder_->BuildDescriptors();
+    std::shared_ptr<ProtoFileDescriptor> file_(builder_->BuildDescriptors());
     AssertTrue(file_.get() != nullptr);
     AssertEqual(3, file_->num_enums(), "num_enums");
     AssertEqual(3, file_->num_nested_enums(), "num_nested_enums");

@@ -25,9 +25,9 @@ namespace proto {
 class MessageReflection {
  public:
   MessageReflection(
-      std::shared_ptr<MessageDescriptor> message_descirptor,
-      Message* defatult_instance,
-      int* fields_offset,
+      const MessageDescriptor* message_descirptor,
+      const Message* defatult_instance,
+      const int* fields_offset,
       int has_bits_offset);
 
   ~MessageReflection();
@@ -177,8 +177,10 @@ class MessageReflection {
     const char* buf) const;
 
  private:
+  int FieldOffset(const FieldDescriptor* field) const;
+
   std::shared_ptr<const ::proto::MessageDescriptor> message_descirptor_;
-  Message* defatult_instance_;
+  const Message* defatult_instance_;
   int* fields_offset_ = nullptr;
   int has_bits_offset_;
 

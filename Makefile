@@ -39,6 +39,7 @@ COMPILER_OBJ = \
       $(OBJ_DIR)/Compiler/Type.o \
       
 PROTO_OBJ = \
+			$(OBJ_DIR)/Proto/Common.o \
 			$(OBJ_DIR)/Proto/MessageReflection.o \
 			$(OBJ_DIR)/Proto/MessageDescriptor.o \
 			$(OBJ_DIR)/Proto/MessageFactory.o \

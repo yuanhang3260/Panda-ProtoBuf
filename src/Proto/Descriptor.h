@@ -44,6 +44,7 @@ class ProtoFileDescriptor {
  private:
   std::unique_ptr<ProtoFileDescriptorImpl> impl_;
   friend class DescriptorsBuilder;
+  friend class MessageReflection;
 };
 
 
@@ -67,6 +68,7 @@ class TypeDescriptor {
   std::string name_;
   std::string package_;
   friend class DescriptorsBuilder;
+  friend class MessageReflection;
 };
 
 
@@ -92,6 +94,7 @@ class MessageDescriptor: public TypeDescriptor {
  private:
   std::unique_ptr<MessageDescriptorImpl> impl_;
   friend class DescriptorsBuilder;
+  friend class MessageReflection;
 };
 
 using Descriptor = MessageDescriptor;
@@ -117,6 +120,7 @@ class EnumDescriptor: public TypeDescriptor {
  protected:
   std::unique_ptr<EnumDescriptorImpl> impl_;
   friend class DescriptorsBuilder;
+  friend class MessageReflection;
 };
 
 /// ServiceDescriptor
@@ -130,6 +134,7 @@ class ServiceDescriptor: public TypeDescriptor {
 
  private:
   friend class DescriptorsBuilder;
+  friend class MessageReflection;
 };
 
 /// MessageField descriptor.
@@ -183,7 +188,7 @@ class FieldDescriptor {
   // For primitive fields (string included), type_descriptor is nullptr.
   const TypeDescriptor* type_descriptor_;
 
-  int field_offset_ = -1;
+  //int field_offset_ = -1;
   int parse_index_ = -1;
 
   friend class DescriptorsBuilder;

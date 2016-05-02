@@ -41,6 +41,7 @@ void CppCodeGenerator::GenerateHeader() {
   printer.Print("#include <string>\n");
   printer.Print("#include <vector>\n\n");
   printer.Print("#include \"Proto/Message.h\"\n");
+  printer.Print("#include \"Proto/Descriptor.h\"\n");
   printer.Print("#include \"Proto/RepeatedFields.h\"\n");
   printer.Print("#include \"Proto/SerializedMessage.h\"\n");
   if (!services_map_.empty()) {
@@ -353,9 +354,10 @@ void CppCodeGenerator::DefineStaticInit() {
                 "\n"
                 "  ::proto::DescriptorsBuilder descriptors_builder(\n"
                 "      \"${proto_file_}\");\n"
-                "  auto file_dscpt = parser.BuildDescriptors();\n"
-                "  CHECK(file_dscpt.get() != nullptr,\n"
-                "        \"static class initialization for ${proto_file_} failed\");\n"
+                "  auto file_dscpt = descriptors_builder.BuildDescriptors();\n"
+                "  CHECK(file_dscpt != nullptr, \"static class initialization for \"\n"
+                "        \"${proto_file_} failed\");\n"
+                "  ::proto::MessageFactory::RegisterParsedProtoFile(file_dscpt);\n"
                 "\n",
                 matches);
   printer.Print("  static_init_default_instances${proto_path_name}();\n\n",
@@ -378,17 +380,16 @@ void CppCodeGenerator::DefineStaticInit() {
                     matches);
     }
     printer.Print("  };\n");
-    printer.Print("  ${msg_name}_descriptor_ = file_dscpt->FindMessageTypeByName(\"${msg_full_name}\"));\n"
+    printer.Print("  ${msg_name}_descriptor_ = file_dscpt->FindMessageTypeByName(\"${msg_full_name}\");\n"
                   "  CHECK(${msg_name}_descriptor_ != nullptr, \n"
                   "        \"Can't find message descriptor for ${msg_full_name}\");\n"
-                  "  ${msg_name}_reflection_.reset(\n"
+                  "  ${msg_name}_reflection_ = \n"
                   "      new ::proto::MessageReflection(\n"
                   "          ${msg_name}_descriptor_,\n"
                   "          ${whole_msg_name}::default_instance_,\n"
                   "          ${msg_name}_offsets_,\n"
-                  "          PROTO_MESSAGE_FIELD_OFFSET(${whole_msg_name}, has_bits_))\n"
-                  "  );\n"
-                  "  ::proto::MessageFactory::RegisterGeneratedMessage(${msg_name}_reflection_.get());\n"
+                  "          PROTO_MESSAGE_FIELD_OFFSET(${whole_msg_name}, has_bits_));\n"
+                  "  ::proto::MessageFactory::RegisterGeneratedMessage(${msg_name}_reflection_);\n"
                   "\n",
                   matches);
   }
@@ -743,8 +744,8 @@ void CppCodeGenerator::DefinePrint(Message* message) {
       else {
         // For EnumType we need to print enum value as string.
         printer.Print("    std::string enum_value =\n"
-                      "        (reinterpret_cast<const proto::ProtoParser::EnumType*>(\n"
-                      "            ${msg_name}_descriptor_->FindFieldByName(\"${field_name}\")->type_class()))\n"
+                      "        (reinterpret_cast<const proto::EnumDescriptor*>(\n"
+                      "            ${msg_name}_descriptor_->FindFieldByName(\"${field_name}\")->type_descriptor()))\n"
                       "                 ->EnumValueAsString(${field_name}_);\n"
                       "    std::cout << \"${field_name}: \" << enum_value << std::endl;\n"
                       "  }\n",
@@ -778,8 +779,8 @@ void CppCodeGenerator::DefinePrint(Message* message) {
       }
       else {
         printer.Print("    const auto* enum_type_descriptor =\n"
-                      "        (reinterpret_cast<const proto::ProtoParser::EnumType*>(\n"
-                      "            ${msg_name}_descriptor_->FindFieldByName(\"${field_name}\")->type_class()));\n"
+                      "        (reinterpret_cast<const proto::EnumDescriptor*>(\n"
+                      "            ${msg_name}_descriptor_->FindFieldByName(\"${field_name}\")->type_descriptor()));\n"
                       "    for (const auto& ele: ${field_name}_) {\n"
                       "        std::cout << enum_type_descriptor->EnumValueAsString(ele) << \", \";\n"
                       "    }\n"

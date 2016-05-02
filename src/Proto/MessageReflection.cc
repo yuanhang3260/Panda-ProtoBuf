@@ -1,6 +1,8 @@
-#include "RepeatedFields.h"
-#include "MessageFactory.h"
-#include "MessageReflection.h"
+#include "Proto/Common.h"
+#include "Proto/RepeatedFields.h"
+#include "Proto/MessageFactory.h"
+#include "Proto/MessageReflection.h"
+#include "Proto/Descriptors_internal.h"
 
 namespace proto {
 
@@ -15,8 +17,8 @@ std::string indent(){
 
 MessageReflection::MessageReflection(
     const MessageDescriptor* message_descirptor,
-    Message* defatult_instance,
-    int* fields_offset,
+    const Message* defatult_instance,
+    const int* fields_offset,
     int has_bits_offset) :
   message_descirptor_(message_descirptor),
   defatult_instance_(defatult_instance),
@@ -28,7 +30,7 @@ MessageReflection::MessageReflection(
   }
 }
 
-~MessageReflection() {
+MessageReflection::~MessageReflection() {
   if (fields_offset_) {
     delete[] fields_offset_;
   }
@@ -42,6 +44,10 @@ const Message* MessageReflection::defatult_instance() const {
   return defatult_instance_;
 }
 
+int MessageReflection::FieldOffset(const FieldDescriptor* field) const {
+  return fields_offset_[field->parse_index_];
+}
+
 // -------------------------------------------------------------------------- //
 // ---------------------------- Serialize routines -------------------------- //
 // -------------------------------------------------------------------------- //
@@ -49,14 +55,14 @@ bool MessageReflection::RepeatedFieldEmpty(
     const Message* message,
     const FieldDescriptor* field) const {
   const char* ptr =
-      reinterpret_cast<const char*>(message) + field->field_offset();
-  return reinterpret_cast<const RepeatedFieldBase*>(ptr) -> size() == 0;
+      reinterpret_cast<const char*>(message) + FieldOffset(field);
+  return (reinterpret_cast<const RepeatedFieldBase*>(ptr)) -> size() == 0;
 }
 
 SerializedMessage* MessageReflection::Serialize(const Message* message) const {
   SerializedMessage* sdmsg = new SerializedMessage();
   // Begin serializing a message
-  for (const auto& field: message_descirptor_->fields_list()) {
+  for (const auto& field: message_descirptor_->impl_->fields_list_) {
     if ((field->IsSingularType() && !HasField(message, field->tag())) ||
         (field->IsRepeatedType() && RepeatedFieldEmpty(message, field.get()))) {
       continue;
@@ -91,21 +97,21 @@ MessageReflection::CreateSerializedSingularMessage(
     const FieldDescriptor* field)  const {
   // Serialize a singular nested message
   // std::cout << indent() << "serializing singular nested message: "
-  //           << field->type_class()->FullNameWithPackagePrefix()
+  //           << field->container_message()->full_name()
   //           << std::endl;
   indent_num++;
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(
-          field->type_class()->FullNameWithPackagePrefix());
+          field->container_message()->full_name());
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        field->type_class()->FullNameWithPackagePrefix() +
+        field->container_message()->full_name() +
         " exists.");
   }
   SerializedMessage* nested_sdmsg = nested_msg_reflection->Serialize(
     *reinterpret_cast<Message* const*>(
-      (reinterpret_cast<const char*>(message) + field->field_offset())
+      (reinterpret_cast<const char*>(message) + FieldOffset(field))
     )
   );
   // Encdoe meta data:
@@ -130,16 +136,16 @@ MessageReflection::CreateSerializedRepeatedMessage(
   // get reflection
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(
-          field->type_class()->FullNameWithPackagePrefix());
+          field->container_message()->full_name());
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        field->type_class()->FullNameWithPackagePrefix() +
+        field->container_message()->full_name() +
         " exists.");
   }
   // Get RepeatedMessagePtr
   const char* field_addr =
-      reinterpret_cast<const char*>(message) + field->field_offset();
+      reinterpret_cast<const char*>(message) + FieldOffset(field);
   const auto repeated_field =
       reinterpret_cast<const RepeatedFieldBase*>(field_addr);
   // Serialize repeated messages one by one.
@@ -171,7 +177,7 @@ MessageReflection::CreateSerializedRepeatedMessage(
 #define ENCODE_SINGULAR_PRITIMIVE(CPP_TYPE, WIRE_TYPENAME)                   \
   WireFormat::Encode##WIRE_TYPENAME(                                         \
     field->tag(),                                                            \
-    *reinterpret_cast<const CPP_TYPE*>(msg_addr + field->field_offset()),    \
+    *reinterpret_cast<const CPP_TYPE*>(msg_addr + FieldOffset(field)),    \
     sdprim->mutable_ostream());
 
 
@@ -241,7 +247,7 @@ MessageReflection::CreateSerializedRepeatedPrimitive(
   indent_num++;
   SerializedPrimitive* sdprim = new SerializedPrimitive(field->type());
   const char* field_addr =
-      reinterpret_cast<const char*>(message) + field->field_offset();
+      reinterpret_cast<const char*>(message) + FieldOffset(field);
   switch (field->type()) {
     case UINT32: {
       ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_VARIANT, uint32, UInt32)
@@ -320,7 +326,7 @@ template <typename T>
 inline T* MessageReflection::Mutable_Raw(
     Message* message,
     const FieldDescriptor* field) const {
-  char* ptr = reinterpret_cast<char*>(message) + field->field_offset();
+  char* ptr = reinterpret_cast<char*>(message) + FieldOffset(field);
   return reinterpret_cast<T*>(ptr);
 }
 
@@ -401,7 +407,7 @@ void MessageReflection::SetHasBit(Message* message, const uint32 tag) const {
 void MessageReflection::CheckWireType(
     WireFormat::WireType wire_type,
     FieldType type,
-    FieldLabel modifier) const {
+    FieldLabel label) const {
   if (type == UINT32 || type == UINT64 || type == INT32  || type == INT64  ||
       type == BOOL   || type == ENUMTYPE) {
     if (wire_type == WireFormat::WIRETYPE_VARIANT) {
@@ -421,7 +427,7 @@ void MessageReflection::CheckWireType(
   throw std::runtime_error(
       "WireType " + WireFormat::WireTypeAsString(wire_type) +
       " mismatch with  " +
-      FieldDescriptor::GetModifierAsString(modifier) + " "
+      GetLabelAsString(label) + " "
       " FieldType " + ProtoParser::PbCommon::GetTypeAsString(type));
 }
 
@@ -447,7 +453,7 @@ void MessageReflection::DeSerialize(
         " has no field with tag " + std::to_string(tag));
     }
 
-    CheckWireType(wire_type, field->type(), field->modifier());
+    CheckWireType(wire_type, field->type(), field->label());
 
     if (field->IsMessageType()) {
       if (field->IsSingularType()) {
@@ -482,18 +488,18 @@ uint32 MessageReflection::DeSerializeSingularMessage(
   uint32 offset = 0;
   uint32 obj_size = WireFormat::DecodeUInt32(buf, &offset);
   std::string class_name = 
-      field->type_class()->FullNameWithPackagePrefix();
+      field->container_message()->full_name();
   const MessageReflection* nested_msg_reflection = 
       MessageFactory::GetMessageReflection(class_name);
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        field->type_class()->FullNameWithPackagePrefix() +
+        field->container_message()->full_name() +
         " exists.");
   }
   Message* new_obj = nested_msg_reflection->defatult_instance()->New();
   nested_msg_reflection->DeSerialize(new_obj, buf + offset, obj_size);
-  char* field_addr = reinterpret_cast<char*>(message) + field->field_offset();
+  char* field_addr = reinterpret_cast<char*>(message) + FieldOffset(field);
   *reinterpret_cast<Message**>(field_addr) = new_obj;
   SetHasBit(message, field->tag());
   indent_num--;
@@ -509,17 +515,17 @@ uint32 MessageReflection::DeSerializeRepeatedMessage(
   uint32 offset = 0;
   uint32 list_size = WireFormat::DecodeUInt32(buf, &offset);
   std::string class_name = 
-      field->type_class()->FullNameWithPackagePrefix();
+      field->container_message()->full_name();
   const MessageReflection* nested_msg_reflection =
       MessageFactory::GetMessageReflection(class_name);
   if (!nested_msg_reflection) {
     throw std::runtime_error(
         "No cpp generated class type " +
-        field->type_class()->FullNameWithPackagePrefix() +
+        field->container_message()->full_name() +
         " exists.");
   }
 
-  char* field_addr = reinterpret_cast<char*>(message) + field->field_offset();
+  char* field_addr = reinterpret_cast<char*>(message) + FieldOffset(field);
   // std::cout << indent()
   //           << "DeSerializing " << list_size << " objects" << std::endl;
   for (uint32 i = 0; i < list_size; i++) {
@@ -531,7 +537,8 @@ uint32 MessageReflection::DeSerializeRepeatedMessage(
     // Deserialize object data.
     Message* new_obj = nested_msg_reflection->defatult_instance()->New();
     nested_msg_reflection->DeSerialize(new_obj, buf + offset, obj_size);
-    reinterpret_cast<RepeatedPtrFieldBase*>(field_addr)->Add_Allocated_Raw(new_obj);
+    reinterpret_cast<RepeatedPtrFieldBase*>(field_addr)->
+                                                Add_Allocated_Raw(new_obj);
     offset += obj_size;
   }
   indent_num--;
