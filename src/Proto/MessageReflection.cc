@@ -22,12 +22,8 @@ MessageReflection::MessageReflection(
     int has_bits_offset) :
   message_descirptor_(message_descirptor),
   defatult_instance_(defatult_instance),
-  has_bits_offset_(has_bits_offset) {
-  int num_fields = message_descirptor->num_fields();
-  fields_offset_ = new int[num_fields];
-  for (int i = 0; i < num_fields; i++) {
-    fields_offset_[i] = fields_offset[i];
-  }
+  fields_offset_(fields_offset),
+  has_bits_offset_(has_bits_offset) { 
 }
 
 MessageReflection::~MessageReflection() {

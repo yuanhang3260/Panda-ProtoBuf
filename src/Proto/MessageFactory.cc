@@ -1,7 +1,6 @@
 #include <iostream>
 
 #include "Proto/MessageFactory.h"
-#include "Proto/Descriptors_internal.h"
 
 namespace proto {
 

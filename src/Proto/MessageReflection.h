@@ -181,7 +181,7 @@ class MessageReflection {
 
   std::shared_ptr<const ::proto::MessageDescriptor> message_descirptor_;
   const Message* defatult_instance_;
-  int* fields_offset_ = nullptr;
+  const int* fields_offset_ = nullptr;
   int has_bits_offset_;
 
   FORBID_COPY_AND_ASSIGN(MessageReflection);
