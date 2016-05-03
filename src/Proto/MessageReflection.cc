@@ -27,9 +27,6 @@ MessageReflection::MessageReflection(
 }
 
 MessageReflection::~MessageReflection() {
-  if (fields_offset_) {
-    delete[] fields_offset_;
-  }
 }
 
 const MessageDescriptor* MessageReflection::descriptor() const {
