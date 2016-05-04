@@ -32,6 +32,8 @@ class RpcRequestHeader: public ::proto::Message {
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
   static const RpcRequestHeader& default_instance();
+  const ::proto::MessageDescriptor* GetDescriptor() const override;
+  const ::proto::MessageReflection* GetReflection() const override;
   void Print(int indent_num=0) const override;
 
   // --- Field accessors --- //
@@ -111,6 +113,8 @@ class RpcResponseHeader: public ::proto::Message {
   ::proto::SerializedMessage* Serialize() const override;
   void DeSerialize(const char* buf, unsigned int size) override;
   static const RpcResponseHeader& default_instance();
+  const ::proto::MessageDescriptor* GetDescriptor() const override;
+  const ::proto::MessageReflection* GetReflection() const override;
   void Print(int indent_num=0) const override;
 
   // --- Field accessors --- //

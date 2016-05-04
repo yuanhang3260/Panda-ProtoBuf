@@ -253,6 +253,14 @@ const RpcRequestHeader& RpcRequestHeader::default_instance() {
 
 RpcRequestHeader* RpcRequestHeader::default_instance_ = nullptr;
 
+const ::proto::MessageDescriptor* RpcRequestHeader::GetDescriptor() const {
+  return RpcRequestHeader_descriptor_;
+}
+
+const ::proto::MessageReflection* RpcRequestHeader::GetReflection() const {
+  return RpcRequestHeader_reflection_;
+}
+
 // destructor
 RpcRequestHeader::~RpcRequestHeader() {
 }
@@ -514,6 +522,14 @@ const RpcResponseHeader& RpcResponseHeader::default_instance() {
 }
 
 RpcResponseHeader* RpcResponseHeader::default_instance_ = nullptr;
+
+const ::proto::MessageDescriptor* RpcResponseHeader::GetDescriptor() const {
+  return RpcResponseHeader_descriptor_;
+}
+
+const ::proto::MessageReflection* RpcResponseHeader::GetReflection() const {
+  return RpcResponseHeader_reflection_;
+}
 
 // destructor
 RpcResponseHeader::~RpcResponseHeader() {

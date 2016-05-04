@@ -92,7 +92,7 @@ Message* MessageReflection::NewObj() const {
                TypeAsString(TYPE).c_str(),TypeAsString(field->type()).c_str());\
     }                                                                          \
 
-#define DEFINE_PRITIMIVE_GETTERS(NAME, CPP_TYPE, TYPE)                         \
+#define DEFINE_PRIMITIVE_GETTERS(NAME, CPP_TYPE, TYPE)                         \
   CPP_TYPE MessageReflection::Get##NAME(const Message* message,                \
                                         const FieldDescriptor* field) const {  \
     CHECK_ACCESSORS_ARGS(TYPE)                                                 \
@@ -100,8 +100,7 @@ Message* MessageReflection::NewObj() const {
       LogFATAL("Expect optional/required field, given repeated field %s",      \
                field->name().c_str());                                         \
     }                                                                          \
-    const char* ptr = reinterpret_cast<const char*>(message);                  \
-    return *reinterpret_cast<const CPP_TYPE*>(ptr + FieldOffset(field));       \
+    return GetField<CPP_TYPE>(message, field);                                 \
   }                                                                            \
                                                                                \
   CPP_TYPE MessageReflection::GetRepeated##NAME(const Message* message,        \
@@ -112,22 +111,16 @@ Message* MessageReflection::NewObj() const {
       LogFATAL("Expect repeated field, given field is of label_%s",            \
                field->name().c_str());                                         \
     }                                                                          \
-    const char* ptr = reinterpret_cast<const char*>(message);                  \
-    auto array = reinterpret_cast<const RepeatedField<CPP_TYPE>*>(             \
-                                                ptr + FieldOffset(field));     \
-    if (index < 0 || index >= (int)array->size()) {                            \
-      LogFATAL("index out of repeated field bound");                           \
-    }                                                                          \
-    return array->Get(index);                                                  \
+    return GetRepeatedField<CPP_TYPE>(message, field, index);                  \
   }                                                                            \
 
-DEFINE_PRITIMIVE_GETTERS(UInt32, uint32, UINT32);
-DEFINE_PRITIMIVE_GETTERS(UInt64, uint64, UINT64);
-DEFINE_PRITIMIVE_GETTERS(Int32, int32, INT32);
-DEFINE_PRITIMIVE_GETTERS(Int64, int64, INT64);
-DEFINE_PRITIMIVE_GETTERS(Double, double, DOUBLE);
-DEFINE_PRITIMIVE_GETTERS(Bool, bool, BOOL);
-DEFINE_PRITIMIVE_GETTERS(Enum, uint32, ENUMTYPE);
+DEFINE_PRIMITIVE_GETTERS(UInt32, uint32, UINT32);
+DEFINE_PRIMITIVE_GETTERS(UInt64, uint64, UINT64);
+DEFINE_PRIMITIVE_GETTERS(Int32, int32, INT32);
+DEFINE_PRIMITIVE_GETTERS(Int64, int64, INT64);
+DEFINE_PRIMITIVE_GETTERS(Double, double, DOUBLE);
+DEFINE_PRIMITIVE_GETTERS(Bool, bool, BOOL);
+DEFINE_PRIMITIVE_GETTERS(Enum, uint32, ENUMTYPE);
 
 std::string MessageReflection::GetString(const Message* message,
                                          const FieldDescriptor* field) const {
@@ -136,8 +129,7 @@ std::string MessageReflection::GetString(const Message* message,
     LogFATAL("Expect optional/required field, given repeated field %s",
              field->name().c_str());
   }
-  const char* ptr = reinterpret_cast<const char*>(message);
-  return *reinterpret_cast<const std::string*>(ptr + FieldOffset(field));
+  return GetField<std::string>(message, field);
 }
 
 std::string MessageReflection::GetRepeatedString(const Message* message,
@@ -148,9 +140,7 @@ std::string MessageReflection::GetRepeatedString(const Message* message,
     LogFATAL("Expect repeated field, given repeated field %s",
              field->name().c_str());
   }
-  const char* ptr = reinterpret_cast<const char*>(message);
-  const auto array = reinterpret_cast<const RepeatedPtrField<std::string>*>(
-                                                  ptr + FieldOffset(field));
+  auto array = Const_Raw<const RepeatedPtrField<std::string>>(message, field);
   if (index < 0 || index >= (int)array->size()) {
     LogFATAL("index out of repeated field bound");
   }
@@ -189,7 +179,7 @@ MessageReflection::GetRepeatedMessage(const Message* message,
 }
 
 /// Field setters
-#define DEFINE_PRITIMIVE_SETTERS(NAME, CPP_TYPE, TYPE)                         \
+#define DEFINE_PRIMITIVE_SETTERS(NAME, CPP_TYPE, TYPE)                         \
   void MessageReflection::Set##NAME(Message* message,                          \
                                     const FieldDescriptor* field,              \
                                     CPP_TYPE value) const {                    \
@@ -198,8 +188,7 @@ MessageReflection::GetRepeatedMessage(const Message* message,
       LogFATAL("Expect optional/required field, given repeated field %s",      \
                field->name().c_str());                                         \
     }                                                                          \
-    char* ptr = reinterpret_cast<char*>(message);                              \
-    *reinterpret_cast<CPP_TYPE*>(ptr + FieldOffset(field)) = value;            \
+    SetField<CPP_TYPE>(message, field, value);                                 \
   }                                                                            \
                                                                                \
   void MessageReflection::SetRepeated##NAME(Message* message,                  \
@@ -210,13 +199,7 @@ MessageReflection::GetRepeatedMessage(const Message* message,
       LogFATAL("Expect repeated field, given field is of label_%s",            \
                field->name().c_str());                                         \
     }                                                                          \
-    char* ptr = reinterpret_cast<char*>(message);                              \
-    auto array = reinterpret_cast<RepeatedField<CPP_TYPE>*>(                   \
-                                                ptr + FieldOffset(field));     \
-    if (index < 0 || index >= (int)array->size()) {                            \
-      LogFATAL("index out of repeated field bound");                           \
-    }                                                                          \
-    return array->Set(index, value);                                           \
+    SetRepeatedField<CPP_TYPE>(message, field, index, value);                  \
   }                                                                            \
                                                                                \
   void MessageReflection::Add##NAME(Message* message,                          \
@@ -227,18 +210,15 @@ MessageReflection::GetRepeatedMessage(const Message* message,
       LogFATAL("Expect optional/required field, given repeated field %s",      \
                field->name().c_str());                                         \
     }                                                                          \
-    char* ptr = reinterpret_cast<char*>(message);                              \
-    auto array = reinterpret_cast<RepeatedField<CPP_TYPE>*>(                   \
-                                                ptr + FieldOffset(field));     \
-    array->Add(value);                                                         \
+    AddField<CPP_TYPE>(message, field, value);                                 \
   }                                                                            \
 
-DEFINE_PRITIMIVE_SETTERS(UInt32, uint32, UINT32);
-DEFINE_PRITIMIVE_SETTERS(UInt64, uint64, UINT64);
-DEFINE_PRITIMIVE_SETTERS(Int32, int32, INT32);
-DEFINE_PRITIMIVE_SETTERS(Int64, int64, INT64);
-DEFINE_PRITIMIVE_SETTERS(Double, double, DOUBLE);
-DEFINE_PRITIMIVE_SETTERS(Bool, bool, BOOL);
+DEFINE_PRIMITIVE_SETTERS(UInt32, uint32, UINT32);
+DEFINE_PRIMITIVE_SETTERS(UInt64, uint64, UINT64);
+DEFINE_PRIMITIVE_SETTERS(Int32, int32, INT32);
+DEFINE_PRIMITIVE_SETTERS(Int64, int64, INT64);
+DEFINE_PRIMITIVE_SETTERS(Double, double, DOUBLE);
+DEFINE_PRIMITIVE_SETTERS(Bool, bool, BOOL);
 
 void MessageReflection::SetEnum(Message* message,
                                 const FieldDescriptor* field,
@@ -254,8 +234,7 @@ void MessageReflection::SetEnum(Message* message,
     LogFATAL("enum type %s doesn't contain enum value %d",
              enum_descriptor->full_name().c_str(), value);
   }
-  char* ptr = reinterpret_cast<char*>(message);
-  *reinterpret_cast<uint32*>(ptr + FieldOffset(field)) = value;
+  SetField<uint32>(message, field, value);
 }
 
 void MessageReflection::SetRepeatedEnum(Message* message,
@@ -272,13 +251,7 @@ void MessageReflection::SetRepeatedEnum(Message* message,
     LogFATAL("enum type %s doesn't contain enum value %d",
              enum_descriptor->full_name().c_str(), value);
   }
-  char* ptr = reinterpret_cast<char*>(message);
-  auto array = reinterpret_cast<RepeatedField<uint32>*>(
-                                              ptr + FieldOffset(field));
-  if (index < 0 || index >= (int)array->size()) {
-    LogFATAL("index out of repeated field bound");
-  }
-  return array->Set(index, value);
+  SetRepeatedField<uint32>(message, field, index, value);
 }
 
 void MessageReflection::AddEnum(Message* message,
@@ -295,10 +268,7 @@ void MessageReflection::AddEnum(Message* message,
     LogFATAL("enum type %s doesn't contain enum value %d",
              enum_descriptor->full_name().c_str(), value);
   }
-  char* ptr = reinterpret_cast<char*>(message);
-  auto array = reinterpret_cast<RepeatedField<uint32>*>(
-                                              ptr + FieldOffset(field));
-  return array->Add(value);
+  AddField<uint32>(message, field, value);
 }
 
 void MessageReflection::SetString(Message* message,
@@ -309,8 +279,7 @@ void MessageReflection::SetString(Message* message,
     LogFATAL("Expect optional/required field, given repeated field %s",
              field->name().c_str());
   }
-  char* ptr = reinterpret_cast<char*>(message);
-  *reinterpret_cast<std::string*>(ptr + FieldOffset(field)) = value;
+  SetField<std::string>(message, field, value);
 }
 
 void MessageReflection::SetRepeatedString(Message* message,
@@ -712,10 +681,49 @@ inline T* MessageReflection::Mutable_Raw(
 }
 
 template <typename T>
+inline const T* MessageReflection::Const_Raw(
+    const Message* message,
+    const FieldDescriptor* field) const {
+  const char* ptr = reinterpret_cast<const char*>(message) + FieldOffset(field);
+  return reinterpret_cast<const T*>(ptr);
+}
+
+template <typename T>
+inline T MessageReflection::GetField(
+    const Message* message,
+    const FieldDescriptor* field) const {
+  return *Const_Raw<T>(message, field);
+}
+
+template <typename T>
+inline T MessageReflection::GetRepeatedField(
+    const Message* message,
+    const FieldDescriptor* field,
+    int index) const {
+  auto array = Const_Raw<RepeatedField<T>>(message, field);
+  if (index < 0 || index >= (int)array->size()) {
+    LogFATAL("index out of repeated field bound");
+  }
+  return array->Get(index);
+}
+
+template <typename T>
 inline void MessageReflection::SetField(
     Message* message,
     const FieldDescriptor* field, T value) const {
   *Mutable_Raw<T>(message, field) = value;
+}
+
+template <typename T>
+inline void MessageReflection::SetRepeatedField(
+    Message* message,
+    const FieldDescriptor* field,
+    int index, T value) const {
+  auto array = Mutable_Raw<RepeatedField<T>>(message, field);
+  if (index < 0 || index >= (int)array->size()) {
+    LogFATAL("index out of repeated field bound");
+  }
+  array->Set(index, value);
 }
 
 template <typename T>

@@ -159,7 +159,11 @@ class MessageReflection {
   void DeSerialize(Message* message, const char* buf, uint32 size) const;
 
  private:
-  // Get mutable raw field ptr from message.
+  // Get raw field ptr from message.
+  template <typename T>
+  inline const T* Const_Raw(const Message* message,
+                            const FieldDescriptor* field) const;
+
   template <typename T>
   inline T* Mutable_Raw(Message* message,
                         const FieldDescriptor* field) const;
@@ -169,12 +173,25 @@ class MessageReflection {
       const Message* message,
       const FieldDescriptor* field) const;
 
-  // Set field in message.
+  // Field accessors.
+  template <typename T>
+  inline T GetField(const Message* message,
+                    const FieldDescriptor* field) const;
+
+  template <typename T>
+  inline T GetRepeatedField(const Message* message,
+                            const FieldDescriptor* field,
+                            int index) const;
+
   template <typename T>
   inline void SetField(Message* message,
                        const FieldDescriptor* field, T value) const;
 
-  // Set field in message.
+  template <typename T>
+  inline void SetRepeatedField(Message* message,
+                               const FieldDescriptor* field,
+                               int index, T value) const;
+
   template <typename T>
   inline void AddField(Message* message,
                        const FieldDescriptor* field, T value) const;
