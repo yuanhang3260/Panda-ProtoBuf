@@ -26,7 +26,8 @@ enum FieldType {
   SERVICETYPE,
 };
 
-std::string GetLabelAsString(FieldLabel label);
+std::string LabelAsString(FieldLabel label);
+std::string TypeAsString(FieldType type);
 
 using FIELD_TYPE = FieldType;
 using FIELD_MODIFIER = FieldLabel;

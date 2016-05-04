@@ -113,7 +113,8 @@ class EnumDescriptor: public TypeDescriptor {
   FieldType type() override { return ENUMTYPE; }
 
   int NumberEnums() const;
-  bool ContainsEnum(const std::string& enum_value) const;
+  bool ContainsEnum(uint32 enum_value) const;
+  bool ContainsEnum(const std::string& enum_value_str) const;
 
   bool is_nested() const;
 

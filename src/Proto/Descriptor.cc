@@ -139,6 +139,10 @@ int EnumDescriptor::NumberEnums() const {
   return impl_->enums_map_.size();
 }
 
+bool EnumDescriptor::ContainsEnum(uint32 enum_value) const {
+  return impl_->enums_map_.find(enum_value) != impl_->enums_map_.end();
+}
+
 bool EnumDescriptor::ContainsEnum(const std::string& enum_value) const {
   return impl_->enums_str_set_.find(enum_value) != impl_->enums_str_set_.end();
 }

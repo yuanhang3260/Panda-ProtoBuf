@@ -215,6 +215,8 @@ void CppCodeGenerator::DeclarePrimitiveMethods(Message* message) {
       "  ::proto::SerializedMessage* Serialize() const override;\n"
       "  void DeSerialize(const char* buf, unsigned int size) override;\n"
       "  static const ${msg_name}& default_instance();\n"
+      "  const ::proto::MessageDescriptor* GetDescriptor() const override;\n"
+      "  const ::proto::MessageReflection* GetReflection() const override;\n"
       "  void Print(int indent_num=0) const override;\n\n",
       msg_match);
 }
@@ -838,6 +840,12 @@ void CppCodeGenerator::DefineGetDefaultInstance(Message* message) {
                 "}\n\n"
                 "${msg_name}* ${msg_name}::default_instance_ = nullptr;\n\n",
                 matches);
+  printer.Print("const ::proto::MessageDescriptor* ${msg_name}::GetDescriptor() const {\n"
+                "  return ${msg_name}_descriptor_;\n"
+                "}\n\n", matches);
+  printer.Print("const ::proto::MessageReflection* ${msg_name}::GetReflection() const {\n"
+                "  return ${msg_name}_reflection_;\n"
+                "}\n\n", matches);
 }
 
 void CppCodeGenerator::DefineSwapper(Message* message) {
