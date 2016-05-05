@@ -62,6 +62,15 @@ MessageReflection::FindNestedEnumByName(const std::string& name) const {
 }
 
 bool MessageReflection::HasField(const Message* message, int tag) const {
+  if (message_descirptor_.get() != message->GetDescriptor()) {
+    LogFATAL("reflection is of message %s, but given message is %s",
+             message_descirptor_->full_name().c_str(),
+             message->GetDescriptor()->full_name().c_str());
+  }
+  if (message_descirptor_->FindFieldByTag(tag) == nullptr) {
+    LogERROR("No field has tag %d in message %s",
+             tag,  message_descirptor_->full_name().c_str());
+  }
   const char* has_bits =
     reinterpret_cast<const char*>(message) + has_bits_offset_;
   return (has_bits[tag / 8] & (0x1 << (tag % 8))) != 0;
@@ -69,7 +78,24 @@ bool MessageReflection::HasField(const Message* message, int tag) const {
 
 bool MessageReflection::HasField(const Message* message,
                                  const FieldDescriptor* field) const {
-  return HasField(message, field->tag());
+  if (!message || !field ||
+      !field->container_message() ||! message->GetDescriptor()) {
+    LogFATAL("nullptr input to HasField");
+  }
+  if (field->container_message() != message->GetDescriptor()) {
+    LogFATAL("field %s is in message %s, but given message is %s",
+             field->name().c_str(),
+             field->container_message()->full_name().c_str(),
+             message->GetDescriptor()->full_name().c_str());
+  }
+  if (message_descirptor_.get() != message->GetDescriptor()) {
+    LogFATAL("reflection is of message %s, but given message is %s",
+             message_descirptor_->full_name().c_str(),
+             message->GetDescriptor()->full_name().c_str());
+  }
+  const char* has_bits =
+    reinterpret_cast<const char*>(message) + has_bits_offset_;
+  return (has_bits[field->tag() / 8] & (0x1 << (field->tag() % 8))) != 0;
 }
 
 Message* MessageReflection::NewObj() const {
@@ -85,6 +111,11 @@ Message* MessageReflection::NewObj() const {
       LogFATAL("field %s is in message %s, but given message is %s",           \
                field->name().c_str(),                                          \
                field->container_message()->full_name().c_str(),                \
+               message->GetDescriptor()->full_name().c_str());                 \
+    }                                                                          \
+    if (message_descirptor_.get() != message->GetDescriptor()) {               \
+      LogFATAL("reflection is of message %s, but given message is %s",         \
+               message_descirptor_->full_name().c_str(),                       \
                message->GetDescriptor()->full_name().c_str());                 \
     }                                                                          \
     if (field->type() != TYPE) {                                               \
