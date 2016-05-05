@@ -65,12 +65,15 @@ TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
           $(OBJ_DIR)/Utility/Strings_test.o \
           $(OBJ_DIR)/Proto/RepeatedField_test.o \
           $(OBJ_DIR)/Proto/DescriptorsBuilder_test.o \
+          $(OBJ_DIR)/Proto/MessageReflection_test.o \
+          
 
 TESTEXE = test/TextPrinter_test.out \
 					test/StringBuilder_test.out \
 					test/Strings_test.out \
 					test/RepeatedField_test.out \
 					test/DescriptorsBuilder_test.out \
+					test/MessageReflection_test.out \
 
 COMPILEROBJ = $(OBJ_DIR)/Compiler/ccCompiler_main.o
 

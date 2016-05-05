@@ -19,7 +19,7 @@ bool Message::AddField(std::shared_ptr<MessageField> field) {
   // Check duplicate tag.
   if (tag_set_.find(field->tag()) != tag_set_.end()) {
     fprintf(stderr,
-            "ERROR: tag %d already exisits in Message as field \"%s\"\n",
+            "ERROR: tag %d already exisits in Message, can't add field \"%s\"\n",
             field->tag(), field->name().c_str());
     return false;
   }

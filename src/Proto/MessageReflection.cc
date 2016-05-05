@@ -78,7 +78,7 @@ Message* MessageReflection::NewObj() const {
 
 #define CHECK_ACCESSORS_ARGS(TYPE)                                             \
     if (!message || !field ||                                                  \
-        !field->container_message() || message->GetDescriptor()) {             \
+        !field->container_message() ||! message->GetDescriptor()) {            \
       LogFATAL("nullptr input to get %s", TypeAsString(TYPE).c_str());         \
     }                                                                          \
     if (field->container_message() != message->GetDescriptor()) {              \
@@ -104,8 +104,8 @@ Message* MessageReflection::NewObj() const {
   }                                                                            \
                                                                                \
   CPP_TYPE MessageReflection::GetRepeated##NAME(const Message* message,        \
-                                        const FieldDescriptor* field,          \
-                                        int index) const {                     \
+                                                const FieldDescriptor* field,  \
+                                                int index) const {             \
     CHECK_ACCESSORS_ARGS(TYPE)                                                 \
     if (!field->IsRepeatedType()) {                                            \
       LogFATAL("Expect repeated field, given field is of label_%s",            \
@@ -189,6 +189,7 @@ MessageReflection::GetRepeatedMessage(const Message* message,
                field->name().c_str());                                         \
     }                                                                          \
     SetField<CPP_TYPE>(message, field, value);                                 \
+    SetHasBit(message, field->tag());                                                 \
   }                                                                            \
                                                                                \
   void MessageReflection::SetRepeated##NAME(Message* message,                  \
@@ -206,8 +207,8 @@ MessageReflection::GetRepeatedMessage(const Message* message,
                                     const FieldDescriptor* field,              \
                                     CPP_TYPE value) const {                    \
     CHECK_ACCESSORS_ARGS(TYPE)                                                 \
-    if (field->IsRepeatedType()) {                                             \
-      LogFATAL("Expect optional/required field, given repeated field %s",      \
+    if (!field->IsRepeatedType()) {                                            \
+      LogFATAL("Expect repeated field, given repeated field %s",               \
                field->name().c_str());                                         \
     }                                                                          \
     AddField<CPP_TYPE>(message, field, value);                                 \
@@ -235,6 +236,7 @@ void MessageReflection::SetEnum(Message* message,
              enum_descriptor->full_name().c_str(), value);
   }
   SetField<uint32>(message, field, value);
+  SetHasBit(message, field->tag());
 }
 
 void MessageReflection::SetRepeatedEnum(Message* message,
@@ -316,7 +318,7 @@ void MessageReflection::AddString(Message* message,
 
 Message* MessageReflection::MutableMessage(Message* message,
                                            const FieldDescriptor* field) const {
-  CHECK_ACCESSORS_ARGS(STRING)
+  CHECK_ACCESSORS_ARGS(MESSAGETYPE)
   if (field->IsRepeatedType()) {
     LogFATAL("Expect optional/required field, given repeated field %s",
              field->name().c_str());
@@ -336,7 +338,7 @@ Message* MessageReflection::MutableMessage(Message* message,
 void MessageReflection::SetAllocatedMessage(Message* message,
                                             const FieldDescriptor* field,
                                             Message* submessage) const {
-  CHECK_ACCESSORS_ARGS(STRING)
+  CHECK_ACCESSORS_ARGS(MESSAGETYPE)
   if (field->IsRepeatedType()) {
     LogFATAL("Expect optional/required field, given repeated field %s",
              field->name().c_str());
@@ -352,7 +354,7 @@ void MessageReflection::SetAllocatedMessage(Message* message,
 
 Message* MessageReflection::ReleaseMessage(Message* message,
                                            const FieldDescriptor* field) const {
-  CHECK_ACCESSORS_ARGS(STRING)
+  CHECK_ACCESSORS_ARGS(MESSAGETYPE)
   if (field->IsRepeatedType()) {
     LogFATAL("Expect optional/required field, given repeated field %s",
              field->name().c_str());

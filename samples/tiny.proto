@@ -9,7 +9,9 @@ message FamilyInfo {
 
 enum FriendType{
   Human,
-  Animal,
+  Dog,
+  Panda,
+  Food,
 }
 
 package AA.BB;
@@ -19,13 +21,15 @@ message DogInfo {
 		MALE,
 		FEMALE,
 	}
-  optional int32 age =1;
-  optional string name= 3;
-  repeated string alias = 18;
-  repeated double weight = 5;
-  optional AA.FamilyInfo family = 13;
-  repeated AA.FamilyInfo neighbors = 25;
-  optional Sex sex = 4;
-  optional AA.FriendType friend_type = 10;
+  optional int32 age =1;  // singluar primitive
+  optional Sex sex = 4;   // singular enum
+  optional AA.FriendType best_friend_type = 10;  // singular enum
+  optional string name= 3;  // singular string
+  optional AA.FamilyInfo family = 13;  // singular string
+
+  repeated double weight = 5;  // repeated primitive
+  repeated string alias = 18;  // repeated string
+  repeated AA.FriendType other_friend_type = 2;  // repeated enum
+  repeated AA.FamilyInfo neighbors = 25;  // repeated message
 }
 
