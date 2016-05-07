@@ -273,14 +273,14 @@ class MessageReflectionTest: public UnitTest {
     dog.mutable_family()->set_numberdogs(1);
     AssertTrue(dog.has_family(), "has family 1 begin");
 
-    const auto& family_1 = static_cast<const AA::FamilyInfo&>(
+    const auto& family_1 = dynamic_cast<const AA::FamilyInfo&>(
                            dog_reflection->GetMessage(&dog, family_descriptor));
     AssertEqual(std::string("Shishan Xincun"), family_1.address());
     AssertEqual(1, family_1.numberdogs());
     dog.clear_family();
     AssertFalse(dog.has_family(), "has family 1 end");
 
-    AA::FamilyInfo* family_2 = static_cast<AA::FamilyInfo*>(
+    AA::FamilyInfo* family_2 = dynamic_cast<AA::FamilyInfo*>(
                                         dog_reflection->MutableMessage(
                                             &dog, family_descriptor));
     AssertTrue(dog.has_family(), "has family 2 begin");
@@ -300,7 +300,7 @@ class MessageReflectionTest: public UnitTest {
     AssertTrue(dog.has_family(), "has family 3 end");
 
     AssertTrue(dog.has_family(), "has family 4 begin");
-    AA::FamilyInfo* family_4 = static_cast<AA::FamilyInfo*>(
+    AA::FamilyInfo* family_4 = dynamic_cast<AA::FamilyInfo*>(
                                         dog_reflection->ReleaseMessage(
                                             &dog, family_descriptor));
     AssertEqual(std::string("Shishan Huating"), family_4->address());
@@ -363,13 +363,13 @@ class MessageReflectionTest: public UnitTest {
     dog.mutable_neighbors(1)->set_address("Haimen City");
     dog.mutable_neighbors(1)->set_numberdogs(2);
 
-    const AA::FamilyInfo& neighbors_0 = static_cast<const AA::FamilyInfo&>(
+    const AA::FamilyInfo& neighbors_0 = dynamic_cast<const AA::FamilyInfo&>(
                                         dog_reflection->GetRepeatedMessage(
                                             &dog, neighbors_descriptor, 0));
     AssertEqual(std::string("Shishan Road"), neighbors_0.address());
     AssertEqual(1, neighbors_0.numberdogs());
 
-    AA::FamilyInfo* neighbors_1 = static_cast<AA::FamilyInfo*>(
+    AA::FamilyInfo* neighbors_1 = dynamic_cast<AA::FamilyInfo*>(
                                       dog_reflection->MutableRepeatedMessage(
                                           &dog, neighbors_descriptor, 1));
     AssertEqual(std::string("Haimen City"), neighbors_1->address());

@@ -261,7 +261,7 @@ void MessageReflection::SetEnum(Message* message,
              field->name().c_str());
   }
   auto enum_descriptor =
-            static_cast<const EnumDescriptor*>(field->type_descriptor());
+            dynamic_cast<const EnumDescriptor*>(field->type_descriptor());
   if (!enum_descriptor->ContainsEnum(value)) {
     LogFATAL("enum type %s doesn't contain enum value %d",
              enum_descriptor->full_name().c_str(), value);
@@ -279,7 +279,7 @@ void MessageReflection::SetRepeatedEnum(Message* message,
              field->name().c_str());
   }
   auto enum_descriptor =
-            static_cast<const EnumDescriptor*>(field->type_descriptor());
+            dynamic_cast<const EnumDescriptor*>(field->type_descriptor());
   if (!enum_descriptor->ContainsEnum(value)) {
     LogFATAL("enum type %s doesn't contain enum value %d",
              enum_descriptor->full_name().c_str(), value);
@@ -296,7 +296,7 @@ void MessageReflection::AddEnum(Message* message,
              field->name().c_str());
   }
   auto enum_descriptor =
-            static_cast<const EnumDescriptor*>(field->type_descriptor());
+            dynamic_cast<const EnumDescriptor*>(field->type_descriptor());
   if (!enum_descriptor->ContainsEnum(value)) {
     LogFATAL("enum type %s doesn't contain enum value %d",
              enum_descriptor->full_name().c_str(), value);
