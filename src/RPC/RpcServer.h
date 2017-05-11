@@ -77,7 +77,7 @@ class RpcServer {
 
   // Listening socket
   int port_;
-  std::shared_ptr<Network::Socket> listen_socket_;
+  std::shared_ptr<net::Socket> listen_socket_;
 };
 
 class RpcSession {
@@ -100,7 +100,7 @@ class RpcSession {
 
   // socket
   int getFd() const { return fd_; }
-  Network::Socket* socket() { return channel_->socket(); }
+  net::Socket* socket() { return channel_->socket(); }
   RpcServerChannel* channel() { return channel_.get(); }
 
   // rpc packet meta

@@ -2,7 +2,7 @@
 
 namespace RPC {
 
-RpcChannelBase::RpcChannelBase(Network::Socket* socket) {
+RpcChannelBase::RpcChannelBase(net::Socket* socket) {
   socket_.reset(socket);
 }
 

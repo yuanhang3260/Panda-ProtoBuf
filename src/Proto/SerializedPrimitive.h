@@ -1,9 +1,9 @@
-#ifndef SERIALIZED_PRIMITIVE
-#define SERIALIZED_PRIMITIVE
+#ifndef SERIALIZED_PRIMITIVE_
+#define SERIALIZED_PRIMITIVE_
 
-#include "../Utility/StringBuilder.h"
-#include "../Compiler/PbCommon.h"
+#include "Compiler/PbCommon.h"
 #include "SerializedObjectInterface.h"
+#include "Strings/StringBuilder.h"
 
 namespace proto {
 
@@ -15,15 +15,15 @@ class SerializedPrimitive: public SerializedObjectInterface {
 
   int CopyTo(char* buf) const override;
 
-  ::Utility::StringBuilder* mutable_ostream() { return &internal_buf_; }
+  ::Strings::StringBuilder* mutable_ostream() { return &internal_buf_; }
 
   unsigned int size() const override { return internal_buf_.size(); }
 
  private:
   FieldType type_;
-  ::Utility::StringBuilder internal_buf_;
+  ::Strings::StringBuilder internal_buf_;
 };
 
 }  // namespace proto
 
-#endif  /* SERIALIZED_PRIMITIVE */
+#endif  /* SERIALIZED_PRIMITIVE_ */

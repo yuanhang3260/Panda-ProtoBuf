@@ -2,7 +2,6 @@
 #include "Proto/Descriptors_internal.h"
 
 #include "Base/Log.h"
-#include "Base/MacroUtils.h"
 
 namespace proto {
 
@@ -68,11 +67,6 @@ TypeDescriptor::TypeDescriptor(const ProtoFileDescriptor* file,
 }
 
 TypeDescriptor::~TypeDescriptor() {}
-
-
-DEFINE_GETTER(TypeDescriptor, name, std::string);
-DEFINE_GETTER(TypeDescriptor, package, std::string);
-DEFINE_CONST_PTR_GETTER(TypeDescriptor, file, ProtoFileDescriptor);
 
 std::string TypeDescriptor::full_name() const {
   return package_ + "." + name_;
@@ -176,14 +170,6 @@ FieldDescriptor::FieldDescriptor(std::string name,
     type_descriptor_(type_descriptor),
     parse_index_(parse_index) {
 }
-
-DEFINE_GETTER(FieldDescriptor, name, std::string);
-DEFINE_GETTER(FieldDescriptor, label, FieldLabel);
-DEFINE_GETTER(FieldDescriptor, type, FieldType);
-DEFINE_GETTER(FieldDescriptor, tag, uint32);
-DEFINE_GETTER(FieldDescriptor, default_value, std::string);
-DEFINE_CONST_PTR_GETTER(FieldDescriptor, container_message, MessageDescriptor);
-DEFINE_CONST_PTR_GETTER(FieldDescriptor, type_descriptor, TypeDescriptor);
 
 std::string FieldDescriptor::full_name() const {
   return type_descriptor_->package() + "." + name_;

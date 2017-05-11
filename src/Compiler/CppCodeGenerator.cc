@@ -1,9 +1,10 @@
 #include <iostream>
 
-#include "Utility/Strings.h"
-#include "Utility/Utils.h"
-#include "IO/FileUtils.h"
 #include "CppCodeGenerator.h"
+#include "IO/FileSystemUtils.h"
+#include "Strings/Split.h"
+#include "Strings/Utils.h"
+#include "Utility/Utils.h"
 
 namespace proto {
 namespace ProtoParser {
@@ -33,11 +34,11 @@ void CppCodeGenerator::GenerateHeader() {
     fprintf(stderr, "ERROR: Open output file %s.h failed\n", outfile.c_str());
   }
 
-  std::vector<std::string> result = StringUtils::Split(outfile, '/');
+  std::vector<std::string> result = Strings::Split(outfile, '/');
   std::string filename = result[result.size() - 1];
 
-  printer.Print("#ifndef " + StringUtils::Upper(filename) + "_H_\n");
-  printer.Print("#define " + StringUtils::Upper(filename) + "_H_\n\n");
+  printer.Print("#ifndef " + Strings::Upper(filename) + "_H_\n");
+  printer.Print("#define " + Strings::Upper(filename) + "_H_\n\n");
   printer.Print("#include <string>\n");
   printer.Print("#include <vector>\n\n");
   printer.Print("#include \"Proto/Message.h\"\n");
@@ -75,20 +76,20 @@ void CppCodeGenerator::GenerateHeader() {
   }
 
   CheckoutNameSpace(pkg_stack_, std::vector<std::string>());
-  printer.Print("\n#endif  /* " + StringUtils::Upper(filename) + "_H_ */\n");
+  printer.Print("\n#endif  /* " + Strings::Upper(filename) + "_H_ */\n");
   printer.Flush();
 }
 
 void CppCodeGenerator::GenerateProtoPathName() {
-  proto_file_ = IO::FileUtils::GetAbstractPath(proto_file_);
+  proto_file_ = FileSystem::GetAbstractPath(proto_file_);
   std::string proto_name = proto_file_.substr(0, proto_file_.length() - 6);
-  proto_path_name_ = StringUtils::replaceWith(proto_name, '/', '_');
+  proto_path_name_ = Strings::ReplaceWith(proto_name, "/", "_");
   FormatPath(proto_path_name_);
 }
 
 void CppCodeGenerator::FormatPath(std::string& path) {
   for (unsigned int i = 0; i < path.length(); i++) {
-    if (!StringUtils::IsLetterOrDigitOrUnderScore(path[i])) {
+    if (!Strings::IsLetterOrDigitOrUnderScore(path[i])) {
       path[i] = '_';
     }
   }
@@ -279,7 +280,7 @@ void CppCodeGenerator::GenerateCC() {
   }
 
   // Include proto_name.pb.h file
-  std::vector<std::string> result = StringUtils::Split(outfile, '/');
+  std::vector<std::string> result = Strings::Split(outfile, '/');
   std::string filename = result[result.size() - 1];
   printer.Print("#include <memory>\n");
   printer.Print("#include <mutex>\n");
@@ -1558,7 +1559,7 @@ void CppCodeGenerator::DefineServiceClassMethods(ServiceType* service) {
 
   // Init descriptor.
   matches["full_service_name_underscore"] =
-      StringUtils::replaceWith(service->FullNameWithPackagePrefix(), ".", "_");
+      Strings::ReplaceWith(service->FullNameWithPackagePrefix(), ".", "_");
   matches["package"] = service->package();
   printer.Print("static const RPC::RpcDescriptor* Init_${full_service_name_underscore}_Descriptor() {\n"
                 "  ::RPC::RpcDescriptor* descriptor =\n"
@@ -1585,7 +1586,7 @@ void CppCodeGenerator::DefineServiceClassMethods(ServiceType* service) {
                 "}\n\n");
 
   matches["full_service_name_underscore"] =
-      StringUtils::replaceWith(service->FullNameWithPackagePrefix(), ".", "_");
+      Strings::ReplaceWith(service->FullNameWithPackagePrefix(), ".", "_");
   printer.Print("const RPC::RpcDescriptor* ${service_name}::descriptor_ =\n"
                 "    Init_${full_service_name_underscore}_Descriptor();\n\n",
                 matches);
@@ -1660,7 +1661,7 @@ CppCodeGenerator::GetFieldMatchMap(Message* message, MessageField* field) {
     {"default_value", default_value},
     {"tag", std::to_string(field->tag())},
     {"tag_byte_index", std::to_string(field->tag()/8)},
-    {"tag_bit", StringUtils::IntToHexString(1<<(field->tag()%8))},
+    {"tag_bit", Strings::IntToHexString(1<<(field->tag()%8))},
   };
   return matches;
 }

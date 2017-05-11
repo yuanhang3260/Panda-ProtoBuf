@@ -1,9 +1,10 @@
 #ifndef SERVICE_TYPE_
 #define SERVICE_TYPE_
 
+#include <map>
+#include <memory>
 #include <string>
 #include <vector>
-#include <map>
 
 #include "Type.h"
 

@@ -12,7 +12,7 @@ namespace RPC {
 class RpcServerChannel : public RpcChannelBase {
  public:
   RpcServerChannel() = default;
-  RpcServerChannel(Network::Socket* socket);
+  RpcServerChannel(net::Socket* socket);
   RpcServerChannel(const RpcServerChannel&) = delete;
   RpcServerChannel& operator=(const RpcServerChannel&) = delete;
 

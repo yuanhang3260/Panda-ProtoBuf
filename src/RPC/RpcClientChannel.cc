@@ -5,11 +5,11 @@ namespace RPC {
 RpcClientChannel::RpcClientChannel(std::string hostname, int port) :
     hostname_(hostname),
     port_(port) {
-  socket_.reset(Network::Socket::CreateClientSocket(hostname_, port_));
+  socket_.reset(new net::ClientSocket(hostname_, port_));
 }
 
 int RpcClientChannel::ConnectToServer() {
-  if (socket_->ClientConnect() == 0) {
+  if ((dynamic_cast<net::ClientSocket*>(socket_.get()))->Connect() == 0) {
     connected_ = true;
     return 0;
   }

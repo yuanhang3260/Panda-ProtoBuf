@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Base/BaseTypes.h"
+#include "Base/MacroUtils.h"
 #include "Proto/Common.h"
 
 namespace proto {
@@ -17,7 +18,6 @@ class MessageDescriptor;
 class EnumDescriptor;
 class FieldDescriptor;
 class ServiceDescriptor;
-class FieldDescriptor;
 class DescriptorsBuilder;
 class MessageReflection;
 
@@ -59,10 +59,10 @@ class TypeDescriptor {
 
   virtual void Print() {}
   virtual FieldType type() = 0;
-  const ProtoFileDescriptor* file() const;
 
-  std::string name() const;
-  std::string package() const;
+  DEFINE_GETTER(name, std::string);
+  DEFINE_GETTER(package, std::string);
+  DEFINE_CONST_PTR_GETTER(file, ProtoFileDescriptor);
   std::string full_name() const;
 
  protected:
@@ -158,14 +158,15 @@ class FieldDescriptor {
   // combination of message package path plus field name, which looks a bit
   // unreasonable. But it's useful because it can uniquely identify a message
   // field within global scope.
+  DEFINE_GETTER(name, std::string);
+  DEFINE_GETTER(label, FieldLabel);
+  DEFINE_GETTER(type, FieldType);
+  DEFINE_GETTER(tag, uint32);
+  DEFINE_GETTER(default_value, std::string);
   std::string full_name() const;
-  std::string name() const;
-  FieldLabel label() const;
-  FieldType type() const;
-  uint32 tag() const;
-  std::string default_value() const;
-  const MessageDescriptor* container_message() const;
-  const TypeDescriptor* type_descriptor() const;
+
+  DEFINE_CONST_PTR_GETTER(container_message, MessageDescriptor);
+  DEFINE_CONST_PTR_GETTER(type_descriptor, TypeDescriptor);
 
   int field_offset() const;
   bool has_default_value() const;

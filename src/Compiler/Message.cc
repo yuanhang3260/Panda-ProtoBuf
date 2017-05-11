@@ -2,9 +2,9 @@
 #include <algorithm>
 #include <vector>
 
-#include "Utility/Strings.h"
-#include "Utility/Utils.h"
 #include "Message.h"
+#include "Strings/Utils.h"
+#include "Utility/Utils.h"
 
 namespace proto {
 namespace ProtoParser {

@@ -2,12 +2,11 @@
 #include <stdio.h>
 #include <stdarg.h>
 
+#include "IO/FileDescriptor.h"
 #include "ProtoParser.h"
-#include "../IO/FileDescriptor.h"
-#include "../Utility/BufferedDataReader.h"
-#include "../Utility/BufferedDataWriter.h"
-#include "../Utility/Strings.h"
-#include "../Utility/Utils.h"
+#include "Strings/Split.h"
+#include "Strings/Utils.h"
+#include "Utility/BufferedDataReader.h"
 
 namespace proto {
 namespace ProtoParser {
@@ -15,7 +14,7 @@ namespace ProtoParser {
 Parser::Parser(LANGUAGE lang, std::string file) :
     lang_(lang),
     proto_file_(file) {
-  if (!StringUtils::EndWith(proto_file_, ".proto")) {
+  if (!Strings::EndWith(proto_file_, ".proto")) {
     init_success_ = false;
     fprintf(stderr, "ERROR: proto file name must have \".proto\" postfix.\n");
     return;
@@ -39,45 +38,45 @@ bool Parser::ReadProtoFile() {
 
   // Read each line and parse in a finite state machine.
   std::string line;
-  while (br.ReadLine(&line)) {
+  while (br.ReadLine(&line, "\n") == Utility::BufferedDataReader::NEW_LINE) {
     line_number_++;
-    line = StringUtils::Strip(line);
+    line = Strings::Strip(line);
     //std::cout << "--------------------------------------------" << std::endl;
     //PrintParseState();
     //std::cout << "Parsing: \"" << line << "\"\n" << std::endl;
 
     // Skip empty and comment lines.
-    if (line.length() == 0 || StringUtils::StartWith(line, "//")) {
+    if (line.length() == 0 || Strings::StartWith(line, "//")) {
       continue;
     }
     // remove comment in the line.
     std::size_t pos;
     if ((pos = line.find("//")) != std::string::npos) {
-      line = StringUtils::Strip(line.substr(0, pos));
+      line = Strings::Strip(line.substr(0, pos));
     }
 
     // Parse in Global state: Only accept line start with "package ",
     // "message ", "enum ", "service".
     if (state_ == GLOBAL) {
-      if (StringUtils::StartWith(line, "package ")) {
+      if (Strings::StartWith(line, "package ")) {
         if (!ParsePackageName(line)) {
           return false;
         }
       }
       // Parse message.
-      else if (StringUtils::StartWith(line, "message ")) {
+      else if (Strings::StartWith(line, "message ")) {
         if (!ParseMessageName(line)) {
           return false;
         }
         state_ = PARSINGMSG;
       }
-      else if (StringUtils::StartWith(line, "enum ")) {
+      else if (Strings::StartWith(line, "enum ")) {
         if (!ParseEnumName(line)) {
           return false;
         }
         state_ = PARSINGENUM;
       }
-      else if (StringUtils::StartWith(line, "service ")) {
+      else if (Strings::StartWith(line, "service ")) {
         if (!ParseServiceName(line)) {
           return false;
         }
@@ -92,7 +91,7 @@ bool Parser::ReadProtoFile() {
     // Parse a message state.
     else if (state_ == PARSINGMSG) {
       // Parse message field.
-      if (StringUtils::StartWith(line, "enum ")) {
+      if (Strings::StartWith(line, "enum ")) {
         if (!ParseEnumName(line)) {
           return false;
         }
@@ -109,7 +108,7 @@ bool Parser::ReadProtoFile() {
         pkg_stack_.pop_back();
         current_package_ =
             current_package_.substr(
-                0, StringUtils::findLastMatch(current_package_, "."));
+                0, Strings::FindLastMatch(current_package_, "."));
         state_ = GLOBAL;
       }
       else if (IsMessageFiledLine(line)) {
@@ -155,13 +154,13 @@ bool Parser::ReadProtoFile() {
 
     // Parse a service
     else if (state_ == PARSESERVICE) {
-      if (StringUtils::StartWith(line, "rpc ")) {
+      if (Strings::StartWith(line, "rpc ")) {
         if (!ParseRpcName(line)) {
           return false;
         }
         state_ = PARSERPC;
       }
-      else if (StringUtils::StartWith(line, "option ")) {
+      else if (Strings::StartWith(line, "option ")) {
         if (!ParseRpcOption(line)) {
           return false;
         }
@@ -182,7 +181,7 @@ bool Parser::ReadProtoFile() {
 
     // Parse a nested rpc in service
     else if (state_ == PARSERPC) {
-      if (StringUtils::StartWith(line, "option ")) {
+      if (Strings::StartWith(line, "option ")) {
         if (!ParseRpcOption(line)) {
           return false;
         }
@@ -214,8 +213,8 @@ bool Parser::ParsePackageName(std::string line) {
     LogError("Expect \";\" at line end");
     return false;
   }
-  line = StringUtils::Strip(line, ";");
-  std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
+  line = Strings::Strip(line, ";");
+  auto result = Strings::Split(line, ' ', Strings::SkipWhiteSpace());
   if (result.size() != 2) {
     LogError("Expect 2 tokens, actual %d", result.size());
     return false;
@@ -225,7 +224,7 @@ bool Parser::ParsePackageName(std::string line) {
     return false;
   }
   current_package_ = result[1];
-  result = StringUtils::Split(current_package_, '.');
+  result = Strings::Split(current_package_, '.');
   pkg_stack_.clear();
   for (auto& pkg: result) {
     if (!IsValidVariableName(pkg)) {
@@ -239,7 +238,7 @@ bool Parser::ParsePackageName(std::string line) {
 }
 
 bool Parser::ParseMessageName(std::string line) {
-  std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
+  auto result = Strings::Split(line, ' ', Strings::SkipWhiteSpace());
   if (result.size() != 2 && result.size() != 3) {
     LogError("Expect 2 or 3 tokens, actual %d", result.size());
     return false;
@@ -293,9 +292,8 @@ bool Parser::ParseMessageField(std::string line) {
     LogError("Expect \";\" at line end");
     return false;
   }
-  line = StringUtils::Strip(line, ";");
-  std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
-
+  line = Strings::Strip(line, ";");
+  auto result = Strings::Split(line, ' ', Strings::SkipWhiteSpace());
   if (result.size() < 3) {
     LogError("Syntax error");
     return false;
@@ -329,13 +327,13 @@ bool Parser::ParseMessageField(std::string line) {
   std::string nametag = remain, defaultblock = "";
   std::size_t pos = remain.find("[");
   if (pos != std::string::npos) {
-    nametag = StringUtils::Strip(remain.substr(0, pos));
-    defaultblock = StringUtils::Strip(remain.substr(pos));
+    nametag = Strings::Strip(remain.substr(0, pos));
+    defaultblock = Strings::Strip(remain.substr(pos));
     if (defaultblock[defaultblock.length()-1] != ']') {
       LogError("Expect \"]\" after default assignement");
       return false;
     }
-    defaultblock = StringUtils::Strip(defaultblock, "[]");   
+    defaultblock = Strings::Strip(defaultblock, "[]");   
   }
 
   std::string name, tag;
@@ -391,7 +389,7 @@ bool Parser::ParseMessageField(std::string line) {
 }
 
 bool Parser::ParseEnumName(std::string line) {
-  std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
+  auto result = Strings::Split(line, ' ', Strings::SkipWhiteSpace());
   if (result.size() != 2 && result.size() != 3) {
     LogError("Expect 2 or 3 least tokens, actual %d", result.size());
     return false;
@@ -452,7 +450,7 @@ bool Parser::ParseEnumName(std::string line) {
 }
 
 bool Parser::ParseServiceName(std::string line) {
-  std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
+  auto result = Strings::Split(line, ' ', Strings::SkipWhiteSpace());
   if (result.size() != 2 && result.size() != 3) {
     LogError("Expect 2 or 3 least tokens, actual %d", result.size());
     return false;
@@ -497,13 +495,13 @@ bool Parser::ParseServiceName(std::string line) {
 
 bool Parser::ParseRpcName(std::string line) {
   std::vector<std::string> rpc_params =
-      StringUtils::ExtractTokens(&line, '(', ')');
+      Strings::ExtractTokens(&line, '(', ')');
   if (rpc_params.size() != 2) {
     LogError("Expect (rpc arg) and (rpc return) to be defined");
     return false;
   }
 
-  std::vector<std::string> result = StringUtils::SplitGreedy(line, ' ');
+  auto result = Strings::Split(line, ' ', Strings::SkipWhiteSpace());
   if (result.size() != 4) {
     LogError("Expect 4 least tokens, actual %d", result.size());
     return false;
@@ -519,10 +517,10 @@ bool Parser::ParseRpcName(std::string line) {
   const std::string& rpc_name = result[1];
   std::shared_ptr<RpcMethod> new_rpc(new RpcMethod(rpc_name));
   // Parse and check all rpc arg type.
-  std::vector<std::string> args =
-      StringUtils::SplitGreedy(StringUtils::Strip(rpc_params[0], "()"), ',');
+  auto args = Strings::Split(
+      Strings::Strip(rpc_params[0], "()"), ',', Strings::SkipWhiteSpace());
   for (auto& token: args) {
-    token = StringUtils::Strip(token);
+    token = Strings::Strip(token);
     PbType* type_class = nullptr;
     FIELD_TYPE type;
     if ((type = PbCommon::GetMessageFieldType(token)) == UNDETERMINED) {
@@ -543,10 +541,10 @@ bool Parser::ParseRpcName(std::string line) {
   }
 
   // Parse and check all rpc return type.
-  std::vector<std::string> returns =
-      StringUtils::SplitGreedy(StringUtils::Strip(rpc_params[1], "()"), ',');
+  auto returns = Strings::Split(
+      Strings::Strip(rpc_params[1], "()"), ',', Strings::SkipWhiteSpace());
   for (auto& token: returns) {
-    token = StringUtils::Strip(token);
+    token = Strings::Strip(token);
     PbType* type_class = nullptr;
     FIELD_TYPE type;
     if ((type = PbCommon::GetMessageFieldType(token)) == UNDETERMINED) {
@@ -578,15 +576,15 @@ bool Parser::ParseRpcOption(std::string line) {
     LogError("Expect \";\" at line end");
     return false;
   }
-  line = StringUtils::Strip(line, "option ;");
-  int index = StringUtils::findFirstMatch(line, "=");
+  line = Strings::Strip(line, "option ;");
+  int index = Strings::FindFirstMatch(line, "=");
   if (index < 0) {
     LogError("Invalid rpc option %s, expect assignement with \'=\'",
              line.c_str());
     return false;
   }
-  std::string key = StringUtils::Strip(line.substr(0, index));
-  std::string value = StringUtils::Strip(line.substr(index + 1));
+  std::string key = Strings::Strip(line.substr(0, index));
+  std::string value = Strings::Strip(line.substr(index + 1));
   current_rpc_->AddOption(key, value);
   
   return true;
@@ -607,23 +605,23 @@ bool Parser::ParseEnumValue(std::string line) {
 }
 
 bool Parser::IsMessageFiledLine(std::string line) {
-  return StringUtils::StartWith(line, "optional ") ||
-         StringUtils::StartWith(line, "required ") ||
-         StringUtils::StartWith(line, "repeated ");
+  return Strings::StartWith(line, "optional ") ||
+         Strings::StartWith(line, "required ") ||
+         Strings::StartWith(line, "repeated ");
 }
 
 bool Parser::ParseAssignExpression(std::string line,
                                         std::string* left,
                                         std::string* right,
                                         FIELD_TYPE type) const {
-  line = StringUtils::Strip(line);
+  line = Strings::Strip(line);
   std::size_t pos = line.find("=");
   if (pos == std::string::npos) {
     LogError("Expect \"variable = value\" but actual \"%s\"", line.c_str());
     return false;
   }
-  *left = StringUtils::Strip(line.substr(0, pos));
-  *right = StringUtils::Strip(line.substr(pos + 1));
+  *left = Strings::Strip(line.substr(0, pos));
+  *right = Strings::Strip(line.substr(pos + 1));
   if ((*left).length() == 0 || !IsValidVariableName(*left)) {
     LogError("invalid variable name \"%s\"", (*left).c_str());
     return false;
@@ -693,14 +691,14 @@ bool Parser::ParseAssignExpression(std::string line,
     case STRING:
       {
         std::string value = *right;
-        if (!StringUtils::StartWith(value, "\"") ||
-            !StringUtils::EndWith(value, "\"")) {
+        if (!Strings::StartWith(value, "\"") ||
+            !Strings::EndWith(value, "\"")) {
           LogError(
               "Invalid string value %s : must be double quotated",
               (*right).c_str());
           return false;
         }
-        *right = StringUtils::Strip(*right, "\"");
+        *right = Strings::Strip(*right, "\"");
       }
       break;
     default:
@@ -739,7 +737,7 @@ bool Parser::IsValidVariableName(std::string str) {
     return false;
   }
   for (unsigned int i = 0; i < str.length(); i++) {
-    if (!StringUtils::IsLetterOrDigitOrUnderScore(str[i])) {
+    if (!Strings::IsLetterOrDigitOrUnderScore(str[i])) {
       return false;
     }
   }

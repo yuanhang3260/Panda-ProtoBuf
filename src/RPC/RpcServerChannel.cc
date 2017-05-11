@@ -2,7 +2,7 @@
 
 namespace RPC {
 
-RpcServerChannel::RpcServerChannel(Network::Socket* socket) :
+RpcServerChannel::RpcServerChannel(net::Socket* socket) :
     RpcChannelBase(socket) {
 }
 

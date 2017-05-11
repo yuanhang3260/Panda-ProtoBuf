@@ -6,27 +6,14 @@
 CC=g++ -std=c++11
 CFLAGS=-Wall -Werror -O2
 LFLAGS=-lssl -lcrypto -pthread
-IFLAGS=-Isrc/
+IFLAGS=-Isrc/ -Isrc/Public/
 
 SRC_DIR=src
 OBJ_DIR=lib
 VPATH=$(SOURCE)
-      
-OBJ = $(OBJ_DIR)/Base/Log.o \
-			$(OBJ_DIR)/Base/Utils.o \
-			$(OBJ_DIR)/Utility/BufferedDataReader.o \
-      $(OBJ_DIR)/Utility/BufferedDataWriter.o \
-      $(OBJ_DIR)/Utility/Strings.o \
-      $(OBJ_DIR)/Utility/StringBuilder.o \
-      $(OBJ_DIR)/Utility/Utils.o \
-      $(OBJ_DIR)/Utility/ThreadPool.o \
-      $(OBJ_DIR)/Utility/EventManager.o \
-      $(OBJ_DIR)/IO/FileDescriptorInterface.o \
-      $(OBJ_DIR)/IO/FileDescriptor.o \
-      $(OBJ_DIR)/IO/FileUtils.o \
-      $(OBJ_DIR)/IO/TextPrinter.o \
-      $(OBJ_DIR)/Log/Log.o \
-      $(OBJ_DIR)/Network/Socket.o \
+
+HYLIB_DIR=../HyLib/
+HYLIB=../HyLib/libhy.a
       
 COMPILER_OBJ = \
       $(OBJ_DIR)/Compiler/ProtoParser.o \
@@ -39,16 +26,16 @@ COMPILER_OBJ = \
       $(OBJ_DIR)/Compiler/Type.o \
       
 PROTO_OBJ = \
-			$(OBJ_DIR)/Proto/Common.o \
-			$(OBJ_DIR)/Proto/MessageReflection.o \
-			$(OBJ_DIR)/Proto/MessageFactory.o \
-			$(OBJ_DIR)/Proto/SerializedPrimitive.o \
-			$(OBJ_DIR)/Proto/SerializedMessage.o \
-			$(OBJ_DIR)/Proto/WireFormat.o \
-			$(OBJ_DIR)/Proto/Message.o \
-			$(OBJ_DIR)/Proto/Descriptor.o \
-			$(OBJ_DIR)/Proto/Descriptors_internal.o \
-			$(OBJ_DIR)/Proto/DescriptorsBuilder.o \
+      $(OBJ_DIR)/Proto/Common.o \
+      $(OBJ_DIR)/Proto/MessageReflection.o \
+      $(OBJ_DIR)/Proto/MessageFactory.o \
+      $(OBJ_DIR)/Proto/SerializedPrimitive.o \
+      $(OBJ_DIR)/Proto/SerializedMessage.o \
+      $(OBJ_DIR)/Proto/WireFormat.o \
+      $(OBJ_DIR)/Proto/Message.o \
+      $(OBJ_DIR)/Proto/Descriptor.o \
+      $(OBJ_DIR)/Proto/Descriptors_internal.o \
+      $(OBJ_DIR)/Proto/DescriptorsBuilder.o \
 
 RPC_OBJ = \
       $(OBJ_DIR)/RPC/Rpc.o \
@@ -60,66 +47,47 @@ RPC_OBJ = \
       $(OBJ_DIR)/RPC/RpcServerChannel.o \
       $(OBJ_DIR)/RPC/RpcPacket_pb.o \
 
-TESTOBJ = $(OBJ_DIR)/IO/TextPrinter_test.o \
-          $(OBJ_DIR)/Utility/StringBuilder_test.o \
-          $(OBJ_DIR)/Utility/Strings_test.o \
-          $(OBJ_DIR)/Proto/RepeatedField_test.o \
+TESTOBJ = $(OBJ_DIR)/Proto/RepeatedField_test.o \
           $(OBJ_DIR)/Proto/DescriptorsBuilder_test.o \
           $(OBJ_DIR)/Proto/MessageReflection_test.o \
           
 
-TESTEXE = test/TextPrinter_test.out \
-					test/StringBuilder_test.out \
-					test/Strings_test.out \
-					test/RepeatedField_test.out \
+TESTEXE = test/RepeatedField_test.out \
 					test/DescriptorsBuilder_test.out \
 					test/MessageReflection_test.out \
 
-COMPILEROBJ = $(OBJ_DIR)/Compiler/ccCompiler_main.o
+COMPILEROBJ = $(OBJ_DIR)/Compiler/Compiler_main.o
 
 default: full
 
-full: proto_library library compiler
+full: libhy proto_library library compiler
+
+libhy:
+	+$(MAKE) -C $(HYLIB_DIR)
 
 proto: proto_library compiler
 
 test: $(TESTEXE) proto_library
 
-proto_library: $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ)
-	ar cr libproto.a $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ)
+# basic proto and compiler library
+proto_library: $(COMPILER_OBJ) $(PROTO_OBJ)
+	ar cr libproto.a $(COMPILER_OBJ) $(PROTO_OBJ)
 
-library: $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
-	ar cr libfull.a $(OBJ) $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
+# full library contains RPC
+library: $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
+	ar cr libfull.a $(COMPILER_OBJ) $(PROTO_OBJ) $(RPC_OBJ)
 
-compiler: $(SRC_DIR)/Compiler/Compiler_main.cc proto_library
+compiler: $(SRC_DIR)/Compiler/Compiler_main.cc proto_library $(HYLIB)
 	$(CC) $(CFLAGS) $(IFLAGS) -c $(SRC_DIR)/Compiler/Compiler_main.cc -o $(COMPILEROBJ)
-	$(CC) $(CFLAGS) $(LFLAGS) $(COMPILEROBJ) libproto.a -o $@
+	$(CC) $(CFLAGS) $(LFLAGS) $(COMPILEROBJ) libproto.a $(HYLIB) -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cc $(SRC_DIR)/%.h
-	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
-
-$(OBJ_DIR)/Utility/%.o: $(SRC_DIR)/Utility/%.cc $(SRC_DIR)/Utility/%.h
-	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
-
-$(OBJ_DIR)/Utility/%.o: $(SRC_DIR)/Utility/%.cc
-	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
-
-$(OBJ_DIR)/IO/%.o: $(SRC_DIR)/IO/%.cc
-	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
-
-$(OBJ_DIR)/Network/%.o: $(SRC_DIR)/Network/%.cc
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Compiler/%.o: $(SRC_DIR)/Compiler/%.cc
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Compiler/%.o: $(SRC_DIR)/Compiler/%.cc $(SRC_DIR)/Compiler/%.h
-	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
-
-$(OBJ_DIR)/Base/%.o: $(SRC_DIR)/Base/%.cc $(SRC_DIR)/Base/%.h
-	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
-
-$(OBJ_DIR)/Base/%.o: $(SRC_DIR)/Base/%.cc
 	$(CC) $(CFLAGS) $(IFLAGS) -c $< -o $@
 
 $(OBJ_DIR)/Proto/%.o: $(SRC_DIR)/Proto/%.cc $(SRC_DIR)/Proto/%.h
@@ -146,12 +114,7 @@ clean:
 	rm -rf libfull.a
 	rm -rf compiler
 	rm -rf $(OBJ_DIR)/*.o
-	rm -rf $(OBJ_DIR)/Base/*.o
-	rm -rf $(OBJ_DIR)/Utility/*.o
-	rm -rf $(OBJ_DIR)/IO/*.o
-	rm -rf $(OBJ_DIR)/Network/*.o
 	rm -rf $(OBJ_DIR)/Compiler/*.o
-	rm -rf $(OBJ_DIR)/Log/*.o
 	rm -rf $(OBJ_DIR)/Proto/*.o
 	rm -rf $(OBJ_DIR)/RPC/*.o
 	rm -rf test/*.out

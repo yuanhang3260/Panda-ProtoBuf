@@ -1,7 +1,7 @@
-#include <iostream>
 #include <exception>
-
+#include <iostream>
 #include <map>
+
 #include "WireFormat.h"
 
 namespace proto {
@@ -25,13 +25,13 @@ std::string WireFormat::WireTypeAsString(const WireType wire_type) {
 }
 
 void WireFormat::WriteVariant32(uint32 value,
-                                Utility::StringBuilder* outstream) {
+                                Strings::StringBuilder* outstream) {
   //printf("writing 0x%x\n", value);
   WriteVariant64(static_cast<uint64>(value), outstream);
 }
 
 void WireFormat::WriteVariant64(uint64 value,
-                                Utility::StringBuilder* outstream) {
+                                Strings::StringBuilder* outstream) {
    do {
     char b = static_cast<char>(value & kTagByteMask);
     value = value >> kTagByteSize;
@@ -43,7 +43,7 @@ void WireFormat::WriteVariant64(uint64 value,
 }
 
 void WireFormat::WriteFixed64(uint64 value,
-                              Utility::StringBuilder* outstream) {
+                              Strings::StringBuilder* outstream) {
   outstream->Append(reinterpret_cast<const char*>(&value), sizeof(uint64));
 }
 
@@ -77,50 +77,50 @@ double WireFormat::RawCastUint64ToDouble(uint64 value) {
 
 // -------------------- Encode functions ------------------------ //
 void WireFormat::EncodeTag(const uint32 tag, WireType wire_type,
-                           Utility::StringBuilder* outstream) {
+                           Strings::StringBuilder* outstream) {
   //std::cout << "encoding tag = " << tag << ", wire = " << wire_type << std::endl;
   WriteVariant32((tag << kWireTypeBits) | wire_type, outstream);
 }
 
 void WireFormat::EncodeUInt32(const uint32 tag, const uint32 value,
-                              Utility::StringBuilder* outstream) {
+                              Strings::StringBuilder* outstream) {
   //std::cout << "encoding uint32 value = " << value << std::endl;
   EncodeTag(tag, WIRETYPE_VARIANT, outstream);
   WriteVariant32(value, outstream);
 }
 
 void WireFormat::EncodeUInt64(const uint32 tag, const uint64 value,
-                              Utility::StringBuilder* outstream) {
+                              Strings::StringBuilder* outstream) {
   EncodeTag(tag, WIRETYPE_VARIANT, outstream);
   WriteVariant64(value, outstream);
 }
 
 void WireFormat::EncodeSInt32(const uint32 tag, const int32 value,
-                              Utility::StringBuilder* outstream) {
+                              Strings::StringBuilder* outstream) {
   EncodeTag(tag, WIRETYPE_VARIANT, outstream);
   WriteVariant32(ZigZag32(value), outstream);
 }
 
 void WireFormat::EncodeSInt64(const uint32 tag, const int64 value,
-                              Utility::StringBuilder* outstream) {
+                              Strings::StringBuilder* outstream) {
   EncodeTag(tag, WIRETYPE_VARIANT, outstream);
   WriteVariant64(ZigZag64(value), outstream);
 }
 
 void WireFormat::EncodeDouble(const uint32 tag, const double value,
-                              Utility::StringBuilder* outstream) {
+                              Strings::StringBuilder* outstream) {
   EncodeTag(tag, WIRETYPE_FIXD64, outstream);
   WriteVariant64(RawCastDoubleToUint64(value), outstream);
 }
 
 void WireFormat::EncodeBool(const uint32 tag, const bool value,
-                            Utility::StringBuilder* outstream) {
+                            Strings::StringBuilder* outstream) {
   EncodeTag(tag, WIRETYPE_VARIANT, outstream);
   WriteVariant32(static_cast<uint32>(value), outstream);
 }
 
 void WireFormat::EncodeString(const uint32 tag, const std::string& str,
-                              Utility::StringBuilder* outstream) {
+                              Strings::StringBuilder* outstream) {
   EncodeTag(tag, WIRETYPE_LENGTH_DELIMITED, outstream);
   WriteVariant32(str.length(), outstream);
   for (uint32 i = 0; i < str.length(); i++) {

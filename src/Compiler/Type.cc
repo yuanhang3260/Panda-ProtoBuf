@@ -1,6 +1,8 @@
 #include <iostream>
+
 #include "Type.h"
-#include "../Utility/Strings.h"
+#include "Strings/Split.h"
+#include "Strings/Utils.h"
 
 namespace proto {
 namespace ProtoParser {
@@ -8,7 +10,7 @@ namespace ProtoParser {
 PbType::PbType(const std::string& name, const std::string& package) :
     name_(name),
     package_(package) {
-  std::vector<std::string> result = StringUtils::Split(package_, '.');
+  std::vector<std::string> result = Strings::Split(package_, '.');
   for (auto& pkg: result) {
     pkg_stack_.push_back(pkg);
   }
@@ -19,7 +21,7 @@ PbType::PbType(const std::string& name, const std::string& package,
     name_(name),
     package_(package),
     message_(message) {
-  std::vector<std::string> result = StringUtils::Split(package_, '.');
+  std::vector<std::string> result = Strings::Split(package_, '.');
   for (auto& pkg: result) {
     pkg_stack_.push_back(pkg);
   }

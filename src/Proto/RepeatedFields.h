@@ -1,6 +1,7 @@
 #ifndef PROTO_REPEATED_FIELDS_
 #define PROTO_REPEATED_FIELDS_
 
+#include "Base/BaseTypes.h"
 #include <iostream>
 #include <vector>
 #include <stdexcept>
@@ -22,10 +23,10 @@ class RepeatedFieldBase {
   RepeatedFieldBase() = default;
   virtual ~RepeatedFieldBase() {}
 
-  virtual unsigned int size() const = 0;
+  virtual uint32 size() const = 0;
   virtual void Clear() = 0;
   virtual bool empty() const = 0;
-  virtual const char* GetElementPtr(unsigned int index) const = 0;
+  virtual const char* GetElementPtr(uint32 index) const = 0;
 };
 
 class RepeatedPtrFieldBase : public RepeatedFieldBase {
@@ -33,7 +34,7 @@ class RepeatedPtrFieldBase : public RepeatedFieldBase {
   RepeatedPtrFieldBase() = default;
   virtual ~RepeatedPtrFieldBase() {}
 
-  virtual char* GetMutableRaw(unsigned int index) = 0;
+  virtual char* GetMutableRaw(uint32 index) = 0;
   virtual void Add_Allocated_Raw(void* p) = 0;
 };
 
@@ -54,14 +55,14 @@ class RepeatedField: public RepeatedFieldBase {
 
   void Add(const T value);
   void RemoveLast();
-  unsigned int size() const override;
-  const T Get(const int index) const;
-  void Set(const int index, const T& value);
+  uint32 size() const override;
+  const T Get(uint32 index) const;
+  void Set(uint32 index, const T& value);
   void Clear() override;
   bool empty() const override { return elements.size() == 0; }
   const std::vector<T>& GetElements() const { return elements; }
   std::vector<T>& Mutable_Elements() { return elements; }
-  const char* GetElementPtr(unsigned int index) const override;
+  const char* GetElementPtr(uint32 index) const override;
 
   typedef typename std::vector<T>::iterator iterator;
   typedef typename std::vector<T>::const_iterator const_iterator;
@@ -70,14 +71,14 @@ class RepeatedField: public RepeatedFieldBase {
   typedef const value_type& const_reference;
   typedef value_type* pointer;
   typedef const value_type* const_pointer;
-  typedef int size_type;
+  typedef uint32 size_type;
   // typedef ptrdiff_t difference_type;
 
-  const value_type at(int index) const {
+  const value_type at(uint32 index) const {
     return elements[index];
   }
 
-  reference operator[](int index) {
+  reference operator[](uint32 index) {
     return elements[index];
   }
 
@@ -113,18 +114,18 @@ class RepeatedPtrField: public RepeatedPtrFieldBase {
 
   void AddAllocated(T* value);
   void Add_Allocated_Raw(void* value) override;
-  void Set(int index, const T& value); // Only used for repeated string type.
+  void Set(uint32 index, const T& value); // Only used for repeated string type.
   T* Add();
   void RemoveLast();
-  unsigned int size() const override;
-  const T& Get(const int index) const;
-  char* GetMutableRaw(unsigned int index) override;
-  T* GetMutable(unsigned int index);
+  uint32 size() const override;
+  const T& Get(uint32 index) const;
+  char* GetMutableRaw(uint32 index) override;
+  T* GetMutable(uint32 index);
   void Clear() override;
   bool empty() const override { return elements.size() == 0; }
   const std::vector<T*>& GetElements() const { return elements; }
   std::vector<T*>& Mutable_Elements() { return elements; }
-  const char* GetElementPtr(unsigned int index) const override;
+  const char* GetElementPtr(uint32 index) const override;
 
   typedef RepeatedPtrIterator<T, false> iterator;
   typedef RepeatedPtrIterator<T, true> const_iterator;
@@ -133,14 +134,14 @@ class RepeatedPtrField: public RepeatedPtrFieldBase {
   typedef const value_type& const_reference;
   typedef value_type* pointer;
   typedef const value_type* const_pointer;
-  typedef int size_type;
+  typedef uint32 size_type;
   // typedef ptrdiff_t difference_type;
 
-  const reference at(int index) const {
+  const reference at(uint32 index) const {
     return *(elements[index]);
   }
 
-  reference operator[](int index) {
+  reference operator[](uint32 index) {
     return *(elements[index]);
   }
 
@@ -173,7 +174,7 @@ class RepeatedPtrIterator :
 
   RepeatedPtrIterator() : v_(NULL) {}
   explicit RepeatedPtrIterator(const std::vector<T*>* v) : v_(v) {}
-  RepeatedPtrIterator(const std::vector<T*>* v, const int index) :
+  RepeatedPtrIterator(const std::vector<T*>* v, uint32 index) :
       v_(v),
       index_(index) {}
 
@@ -193,7 +194,7 @@ class RepeatedPtrIterator :
 
   pointer operator->() const { return &(operator*()); }
 
-  reference operator[](int index) const {
+  reference operator[](uint32 index) const {
     return *((*v_)[index]);
   }
 
@@ -231,7 +232,7 @@ class RepeatedPtrIterator :
 
  private:
   const std::vector<T*>* v_;
-  int index_ = 0;
+  uint32 index_ = 0;
   template <typename OtherT, bool is_const_iterator_other>
   friend class RepeatedPtrIterator;
 };
@@ -256,12 +257,12 @@ void RepeatedField<T>::RemoveLast() {
 }
 
 template <typename T>
-unsigned int RepeatedField<T>::size() const {
+uint32 RepeatedField<T>::size() const {
   return elements.size();
 }
 
 template <typename T>
-const T RepeatedField<T>::Get(const int index) const {
+const T RepeatedField<T>::Get(uint32 index) const {
   if (index >= elements.size()) {
     throw std::runtime_error(
         "RepeatedField index " + std::to_string(index) + " out of bound");
@@ -270,7 +271,7 @@ const T RepeatedField<T>::Get(const int index) const {
 }
 
 template <typename T>
-const char* RepeatedField<T>::GetElementPtr(unsigned int index) const {
+const char* RepeatedField<T>::GetElementPtr(uint32 index) const {
   if (index < elements.size()) {
     return reinterpret_cast<const char*>(&(elements[index]));
   }
@@ -278,8 +279,8 @@ const char* RepeatedField<T>::GetElementPtr(unsigned int index) const {
 }
 
 template <typename T>
-void RepeatedField<T>::Set(const int index, const T& value) {
-  if (index < (int)elements.size()) {
+void RepeatedField<T>::Set(uint32 index, const T& value) {
+  if (index < elements.size()) {
     elements[index] = value;
   }
   else {
@@ -352,8 +353,8 @@ void RepeatedPtrField<T>::Add_Allocated_Raw(void* value) {
 }
 
 template <typename T>
-void RepeatedPtrField<T>::Set(const int index, const T& value) {
-  if (index < (int)elements.size()) {
+void RepeatedPtrField<T>::Set(uint32 index, const T& value) {
+  if (index < elements.size()) {
     if (elements[index]) {
       *elements[index] = value;
     }
@@ -383,12 +384,12 @@ void RepeatedPtrField<T>::RemoveLast() {
 }
 
 template <typename T>
-unsigned int RepeatedPtrField<T>::size() const {
+uint32 RepeatedPtrField<T>::size() const {
   return elements.size();
 }
 
 template <typename T>
-const T& RepeatedPtrField<T>::Get(const int index) const {
+const T& RepeatedPtrField<T>::Get(const uint32 index) const {
   if (index >= elements.size()) {
     throw std::runtime_error(
         "RepeatedPtrField index " + std::to_string(index) + " out of bound");
@@ -397,7 +398,7 @@ const T& RepeatedPtrField<T>::Get(const int index) const {
 }
 
 template <typename T>
-const char* RepeatedPtrField<T>::GetElementPtr(unsigned int index) const {
+const char* RepeatedPtrField<T>::GetElementPtr(uint32 index) const {
   if (index < elements.size()) {
     return reinterpret_cast<const char*>(elements[index]);
   }
@@ -405,7 +406,7 @@ const char* RepeatedPtrField<T>::GetElementPtr(unsigned int index) const {
 }
 
 template <typename T>
-T* RepeatedPtrField<T>::GetMutable(unsigned int index) {
+T* RepeatedPtrField<T>::GetMutable(uint32 index) {
   if (index >= elements.size()) {
     throw std::runtime_error(
         "RepeatedPtrField index " + std::to_string(index) + " out of bound");
@@ -414,7 +415,7 @@ T* RepeatedPtrField<T>::GetMutable(unsigned int index) {
 }
 
 template <typename T>
-char* RepeatedPtrField<T>::GetMutableRaw(unsigned int index) {
+char* RepeatedPtrField<T>::GetMutableRaw(uint32 index) {
   if (index >= elements.size()) {
     throw std::runtime_error(
         "RepeatedPtrField index " + std::to_string(index) + " out of bound");

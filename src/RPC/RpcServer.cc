@@ -24,7 +24,7 @@ RpcServer::RpcServer(int port, int recv_em_size) :
 
 void RpcServer::StartServing() {
   // Create listening socket.
-  listen_socket_.reset(Network::Socket::CreateServerSocket(port_, true));
+  listen_socket_.reset(new net::ServerSocket(port_, true));
   if (listen_socket_->closed()) {
     fprintf(stderr, "FAIL: Server not successfully initialized yet.\n");
     return;
@@ -33,7 +33,7 @@ void RpcServer::StartServing() {
   std::cout << lineseperator << std::endl;
   std::cout << "Start serving" << std::endl;
   recv_em_.AddTask(
-      Base::NewCallBack(&RpcServer::RpcConnectionListenerHandler, this));;
+      std::bind(&RpcServer::RpcConnectionListenerHandler, this));;
   recv_em_.Start();
   run_em_.Start();
 
@@ -46,9 +46,10 @@ void RpcServer::RpcConnectionListenerHandler() {
   unsigned int clilen = sizeof(cli_addr);
   /* Accept actual connection from the client */
   while (1) {
-    int newsockfd = accept(listen_socket_->getFd(),
+    int newsockfd = accept(listen_socket_->fd(),
                            (struct sockaddr*)&cli_addr,
                            &clilen);
+    // Set server socket as non-block.
     int x = fcntl(newsockfd, F_GETFL, 0);
     fcntl(newsockfd, F_SETFL, x | O_NONBLOCK);
 
@@ -68,13 +69,13 @@ void RpcServer::RpcConnectionListenerHandler() {
     }
     // Submit it to event manager.
     recv_em_.AddTaskWaitingReadable(newsockfd,
-        Base::NewCallBack(&RpcServer::ReadRpcRequestHandler, this, newsockfd));
+        std::bind(&RpcServer::ReadRpcRequestHandler, this, newsockfd));
   }
 }
 
 void RpcServer::ReadRpcRequestHandler(int fd) {
   std::cout << "Read_Handler(" << fd << ") ..." << std::endl;
-  
+
   // Find the session control block.
   RpcSession* session = nullptr;
   {
@@ -180,7 +181,7 @@ void RpcServer::ReadRpcRequestHandler(int fd) {
   else {
     // Continue reading request.
     recv_em_.ModifyTaskWaitingStatus(fd, EPOLLIN | EPOLLONESHOT,
-        Base::NewCallBack(&RpcServer::ReadRpcRequestHandler, this, fd));
+        std::bind(&RpcServer::ReadRpcRequestHandler, this, fd));
   }
 }
 
@@ -229,7 +230,7 @@ void RpcServer::WriteRpcResponseHandler(int fd) {
         session->set_state(RpcSession::INIT);
         session->ResetAll();
         recv_em_.AddTaskWaitingReadable(fd,
-          Base::NewCallBack(&RpcServer::ReadRpcRequestHandler, this, fd));
+          std::bind(&RpcServer::ReadRpcRequestHandler, this, fd));
       }
       else {
         RemoveSession(fd);
@@ -238,7 +239,7 @@ void RpcServer::WriteRpcResponseHandler(int fd) {
     else {
       // Continue writing response.
       run_em_.ModifyTaskWaitingStatus(fd, EPOLLOUT | EPOLLONESHOT,
-          Base::NewCallBack(&RpcServer::WriteRpcResponseHandler, this, fd));
+          std::bind(&RpcServer::WriteRpcResponseHandler, this, fd));
     }
   }
   return;
@@ -246,7 +247,7 @@ void RpcServer::WriteRpcResponseHandler(int fd) {
 
 void RpcServer::EnqueueRpcBanckendProcessing(RpcSession* session) {
   recv_em_.RemoveAwaitingTask(session->getFd());
-  run_em_.AddTask(Base::NewCallBack(
+  run_em_.AddTask(std::bind(
                       &RpcServer::BackendRpcProcess, this, session));
 }
 
@@ -443,7 +444,7 @@ RpcHandler* RpcServer::FindRpcHandler(const std::string& name) {
 RpcSession::RpcSession(int fd) {
   // Create server channel
   fd_ = fd;
-  channel_.reset(new RpcServerChannel(new Network::Socket(fd)));
+  channel_.reset(new RpcServerChannel(new net::Socket(fd)));
   channel_->Initialize();
 
   // prepare to receive rpc packet header = 12 byts.

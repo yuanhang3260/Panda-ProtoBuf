@@ -1,3 +1,4 @@
+#include <functional>
 #include <iostream>
 #include <memory>
 
@@ -175,7 +176,7 @@ int main(int argc, char** argv) {
   pool.Start();
 
   for (int i = 0; i < 1000; i++) {
-    pool.AddTask(new Base::Closure(LoadTest, port));
+    pool.AddTask(std::bind(LoadTest, port));
   }
 
   pool.Stop();

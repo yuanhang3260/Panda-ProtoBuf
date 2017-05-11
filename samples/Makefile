@@ -1,7 +1,9 @@
 CC=g++ -std=c++11
 CFLAGS=-Wall -Werror -O2
 LFLAGS=-lssl -lcrypto -pthread
-IFLAGS=-I../src/
+IFLAGS=-I../src/ -I../src/Public/
+
+HYLIB=../../HyLib/libhy.a
 
 OBJ=tiny_pb.o simple_pb.o
 
@@ -19,20 +21,20 @@ simple_pb.o: simple_pb.cc simple_pb.h
 ProtoBuf_main.o: ProtoBuf_main.cc
 	$(CC) $(CFLAGS) $(IFLAGS) -c ProtoBuf_main.cc
 
-test: $(OBJ) $(OBJ) ProtoBuf_main.o ../libfull.a
-	$(CC) $(CFLAGS) $(OBJ) ProtoBuf_main.o ../libfull.a -o $@
+test: $(OBJ) ProtoBuf_main.o ../libfull.a $(HYLIB)
+	$(CC) $(CFLAGS) $(LFLAGS) $(OBJ) ProtoBuf_main.o ../libfull.a $(HYLIB) -o $@
 
 RpcServer_main.o: RpcServer_main.cc
 	$(CC) $(CFLAGS) $(IFLAGS) -c RpcServer_main.cc
 
-server: $(OBJ) simple_pb.o RpcServer_main.o ../libfull.a
-	$(CC) $(CFLAGS) $(LFLAGS) simple_pb.o RpcServer_main.o ../libfull.a -o $@
+server: $(OBJ) simple_pb.o RpcServer_main.o ../libfull.a $(HYLIB)
+	$(CC) $(CFLAGS) $(LFLAGS) simple_pb.o RpcServer_main.o ../libfull.a $(HYLIB) -o $@
 
 RpcClient_main.o: RpcClient_main.cc
 	$(CC) $(CFLAGS) $(IFLAGS) -c RpcClient_main.cc
 
-client: $(OBJ) simple_pb.o RpcClient_main.o ../libfull.a
-	$(CC) $(CFLAGS) $(LFLAGS) simple_pb.o RpcClient_main.o ../libfull.a -o $@
+client: $(OBJ) simple_pb.o RpcClient_main.o ../libfull.a $(HYLIB)
+	$(CC) $(CFLAGS) $(LFLAGS) simple_pb.o RpcClient_main.o ../libfull.a $(HYLIB) -o $@
 
 clean:
 	rm -rf *.o

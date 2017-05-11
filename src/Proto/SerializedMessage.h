@@ -4,7 +4,7 @@
 #include <vector>
 #include <memory>
 
-#include "../Utility/StringBuilder.h"
+#include "Strings/StringBuilder.h"
 #include "SerializedObjectInterface.h"
 
 namespace proto {
@@ -22,13 +22,13 @@ class SerializedMessage: public SerializedObjectInterface {
   int CopyTo(char* buf) const override;
 
   void AddField(std::shared_ptr<SerializedObjectInterface> new_field);
-  ::Utility::StringBuilder* meta_data() { return &meta_data_; }
+  ::Strings::StringBuilder* meta_data() { return &meta_data_; }
   void ReCalculateSize();
 
  private:
   std::vector<std::shared_ptr<SerializedObjectInterface>> fields_;
   bool is_repeated_ = false;
-  ::Utility::StringBuilder meta_data_;
+  ::Strings::StringBuilder meta_data_;
 };
 
 }  // namespace proto

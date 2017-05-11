@@ -13,13 +13,13 @@ namespace RPC {
 class RpcChannelBase {
  public:
   RpcChannelBase() = default;
-  RpcChannelBase(Network::Socket* socket);
+  RpcChannelBase(net::Socket* socket);
   RpcChannelBase(const RpcChannelBase&) = delete;
   RpcChannelBase& operator=(const RpcChannelBase&) = delete;
 
   void Initialize();
   bool IsReady() const;
-  Network::Socket* socket() { return socket_.get(); } 
+  net::Socket* socket() { return socket_.get(); } 
 
   int ReceiveData(char* buf, unsigned int size);
   int SendData(const char* buf, unsigned int size);
@@ -31,7 +31,7 @@ class RpcChannelBase {
  protected:
   std::string hostname_;
   int port_;
-  std::unique_ptr<Network::Socket> socket_;
+  std::unique_ptr<net::Socket> socket_;
   std::unique_ptr<Utility::BufferedDataReader> sock_reader_;
   std::unique_ptr<Utility::BufferedDataWriter> sock_writer_;
 
