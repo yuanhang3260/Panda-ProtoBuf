@@ -6,6 +6,6 @@ It's a very simple implementation of protocol buffer framework. The syntax and A
 2. C++ message reflection and serialization.
 3. RPC service framwork.
 
-#####Compile a .proto file to generate C++ code:
+##### Compile a .proto file to generate C++ code:
     make
     ./compile cpp $proto_file
