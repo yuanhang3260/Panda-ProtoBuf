@@ -21,8 +21,8 @@ MessageFactory::ReflectionMap& MessageFactory::message_map() {
   return instance()->message_map_;
 }
 
-MessageFactory::ProtoFileMap& MessageFactory::file_map() {
-  return instance()->file_map_;
+MessageFactory::ProtoFileSet& MessageFactory::proto_files() {
+  return instance()->proto_files_;
 }
 
 int MessageFactory::NumMessagesRegistered() {
@@ -50,20 +50,19 @@ MessageFactory::GetMessageReflection(std::string name) {
 
 void MessageFactory::RegisterParsedProtoFile(
                           const ProtoFileDescriptor* file) {
-  std::cout << "Reigstering parsed proto file "
-            << file->path() << std::endl;
-  file_map().emplace(file->path(),
-                     std::shared_ptr<const ProtoFileDescriptor>(file));
+  // std::cout << "Reigstering parsed proto file "
+  //           << file->path() << std::endl;
+  proto_files().insert(std::shared_ptr<const ProtoFileDescriptor>(file));
 }
 
-const ProtoFileDescriptor*
-MessageFactory::GetParsedProtoFile(std::string name) {
-  if (file_map().find(name) != file_map().end()) {
-    return file_map().at(name).get();
-  }
-  else {
-    return nullptr;
-  }
-}
+// const ProtoFileDescriptor*
+// MessageFactory::GetParsedProtoFile(std::string name) {
+//   if (file_map().find(name) != file_map().end()) {
+//     return file_map().at(name).get();
+//   }
+//   else {
+//     return nullptr;
+//   }
+// }
 
 }  //  namespace proto

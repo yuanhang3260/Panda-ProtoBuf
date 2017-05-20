@@ -18,8 +18,10 @@ class DescriptorsBuilder;
 
 class ProtoFileDescriptor::ProtoFileDescriptorImpl {
  public:
-  ProtoFileDescriptorImpl(std::string path) : path_(path) {}
+  ProtoFileDescriptorImpl(const std::string& content);
   ~ProtoFileDescriptorImpl() {}
+
+  const std::string& proto_content() const { return proto_content_; } 
 
   // Add descriptors.
   void AddMessageDescriptor(std::shared_ptr<MessageDescriptor> descriptor);
@@ -27,7 +29,7 @@ class ProtoFileDescriptor::ProtoFileDescriptorImpl {
   void AddServiceDescriptor(std::shared_ptr<ServiceDescriptor> descriptor);
 
  private:
-  std::string path_;
+  std::string proto_content_;
   int num_nested_enums_ = 0;
 
   std::map<std::string, std::shared_ptr<MessageDescriptor>> messages_map_;

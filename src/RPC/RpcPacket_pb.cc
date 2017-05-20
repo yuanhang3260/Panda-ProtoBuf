@@ -16,6 +16,8 @@ const ::proto::MessageReflection* RpcRequestHeader_reflection_ = nullptr;
 const ::proto::MessageDescriptor* RpcResponseHeader_descriptor_ = nullptr;
 const ::proto::MessageReflection* RpcResponseHeader_reflection_ = nullptr;
 
+std::string GetProtoContent();
+
 }  // namepsace
 
 void static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
@@ -34,11 +36,9 @@ void static_init_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket() {
   if (already_called) return;
   already_called = true;
 
-  ::proto::DescriptorsBuilder descriptors_builder(
-      "/home/hy/Desktop/Projects/ProtoBuf/src/RPC/RpcPacket.proto");
+  ::proto::DescriptorsBuilder descriptors_builder(GetProtoContent());
   auto file_dscpt = descriptors_builder.BuildDescriptors();
-  CHECK(file_dscpt != nullptr, "static class initialization for "
-        "/home/hy/Desktop/Projects/ProtoBuf/src/RPC/RpcPacket.proto failed");
+  CHECK(file_dscpt != nullptr, "build class descriptor failed.");
   ::proto::MessageFactory::RegisterParsedProtoFile(file_dscpt);
 
   static_init_default_instances_home_hy_Desktop_Projects_ProtoBuf_src_RPC_RpcPacket();
@@ -607,4 +607,39 @@ void RpcResponseHeader::clear_rpc_response_length() {
 }
 
 }  // namespace RPC
+
+namespace {
+
+std::string GetProtoContent() {
+  return "// RpcSession proto\n"
+"\n"
+"package RPC;\n"
+"\n"
+"message RpcRequestHeader {\n"
+"	optional string service_name = 1;\n"
+"	optional string method_name = 2;\n"
+"	optional uint32 rpc_request_length = 3;\n"
+"	optional bool keep_alive = 4 [default = false];\n"
+"}\n"
+"\n"
+"message RpcResponseHeader {\n"
+"	enum RpcReturnCode {\n"
+"    OK,\n"
+"    INVALID_RPC_PKT_HEADER,\n"
+"    REQ_LENG_MISMATCH,\n"
+"    UNKNOWN_SERVICE,\n"
+"    INTERNAL_SERVER_ERROR,\n"
+"    NONE,\n"
+"  }\n"
+"\n"
+"	optional RpcReturnCode rpc_return_code = 1 [default = NONE];\n"
+"	optional string rpc_return_msg = 2;\n"
+"	optional uint32 rpc_response_length = 3;\n"
+"}\n"
+"\n"
+"\n"
+;
+}
+
+}  // namepsace
 

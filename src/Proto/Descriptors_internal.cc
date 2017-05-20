@@ -6,6 +6,12 @@
 namespace proto {
 
 /// ProtoFileDescriptorImpl
+
+ProtoFileDescriptor::ProtoFileDescriptorImpl::ProtoFileDescriptorImpl(
+    const std::string& content) :
+  proto_content_(content) {
+}
+
 void ProtoFileDescriptor::ProtoFileDescriptorImpl::AddMessageDescriptor(
           std::shared_ptr<MessageDescriptor> descriptor) {
   auto it = messages_map_.emplace(descriptor->full_name(), descriptor);

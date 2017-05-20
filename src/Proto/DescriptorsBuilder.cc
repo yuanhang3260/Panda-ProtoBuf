@@ -19,24 +19,25 @@ namespace proto {
 
 using ProtoParser::Parser;
 
-DescriptorsBuilder::DescriptorsBuilder(const std::string& proto_file) :
-    proto_file_(proto_file) {
+DescriptorsBuilder::DescriptorsBuilder(const std::string& proto_content) :
+    proto_content_(proto_content) {
 }
 
 ProtoFileDescriptor* DescriptorsBuilder::BuildDescriptors() {
   ProtoFileDescriptor* file_dscpt = nullptr;
-  if (proto_file_.empty()) {
+  if (proto_content_.empty()) {
     LogERROR("No proto file path specified");
     return file_dscpt;
   }
 
-  std::unique_ptr<Parser> parser(new Parser(ProtoParser::CPP, proto_file_));
+  std::unique_ptr<Parser> parser(new Parser(ProtoParser::CPP));
+  parser->set_proto_content(proto_content_);
   if (!parser->ParseProto()) {
-    LogERROR("Failed to parse proto file %s", proto_file_.c_str());
+    LogERROR("Failed to parse proto content");
     return file_dscpt;
   }
 
-  file_dscpt = new ProtoFileDescriptor(proto_file_);
+  file_dscpt = new ProtoFileDescriptor(proto_content_);
 
   // Build file-level enum descriptors.
   for (auto& enum_type: parser->enums_map_) {

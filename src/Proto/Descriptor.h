@@ -24,10 +24,10 @@ class MessageReflection;
 /// ProtoFileDescriptor
 class ProtoFileDescriptor {
  public:
-  ProtoFileDescriptor(const std::string& path);
+  ProtoFileDescriptor(const std::string& proto_content);
   ~ProtoFileDescriptor();
 
-  std::string path() const;
+  const std::string& proto_content() const;
   int num_messages() const;
   int num_enums() const;
   int num_nested_enums() const;

@@ -1,10 +1,12 @@
 #include <iostream>
 
-#include "CppCodeGenerator.h"
+#include "Base/MacroUtils.h"
 #include "IO/FileSystemUtils.h"
 #include "Strings/Split.h"
 #include "Strings/Utils.h"
 #include "Utility/Utils.h"
+
+#include "CppCodeGenerator.h"
 
 namespace proto {
 namespace ProtoParser {
@@ -20,6 +22,7 @@ std::map<FIELD_TYPE, std::string> pbCppTypeMap{
 };
 
 void CppCodeGenerator::GenerateCode() {
+  SANITY_CHECK(!proto_file_.empty(), "proto_file is not specified.");
   pkg_stack_.clear();
   GenerateHeader();
   GenerateCC();
@@ -307,6 +310,8 @@ void CppCodeGenerator::GenerateCC() {
   }
 
   CheckoutNameSpace(pkg_stack_, std::vector<std::string>());
+
+  PrintProtoContent();
   printer.Flush();
 }
 
@@ -320,6 +325,7 @@ void CppCodeGenerator::DefineStaticMetadata() {
                   "const ::proto::MessageReflection* ${msg_name}_reflection_ = nullptr;\n",
                   matches);
   }
+  printer.Print("\nstd::string GetProtoContent();\n");
   printer.Print("\n}  // namepsace\n\n");
 }
 
@@ -355,11 +361,9 @@ void CppCodeGenerator::DefineStaticInit() {
                 "  if (already_called) return;\n"
                 "  already_called = true;\n"
                 "\n"
-                "  ::proto::DescriptorsBuilder descriptors_builder(\n"
-                "      \"${proto_file_}\");\n"
+                "  ::proto::DescriptorsBuilder descriptors_builder(GetProtoContent());\n"
                 "  auto file_dscpt = descriptors_builder.BuildDescriptors();\n"
-                "  CHECK(file_dscpt != nullptr, \"static class initialization for \"\n"
-                "        \"${proto_file_} failed\");\n"
+                "  CHECK(file_dscpt != nullptr, \"Build class descriptor failed.\");\n"
                 "  ::proto::MessageFactory::RegisterParsedProtoFile(file_dscpt);\n"
                 "\n",
                 matches);
@@ -411,6 +415,22 @@ void CppCodeGenerator::DefineStaticInit() {
                 "  }\n"
                 "} ${static_init_forcer_obj}_;\n\n",
                 matches);
+}
+
+void CppCodeGenerator::PrintProtoContent() {
+  printer.Print("namespace {\n\n");
+  printer.Print("std::string GetProtoContent() {\n"
+                "  return ");
+  // escape " and "\"
+  std::string escaped = Strings::ReplaceWith(proto_content_, "\\", "\\\\");
+  escaped = Strings::ReplaceWith(proto_content_, "\"", "\\\"");
+  auto lines = Strings::Split(escaped, "\n");
+  for (const auto& line : lines) {
+    printer.Print(Strings::StrCat("\"", line, "\\n\"\n"));
+  }
+  printer.Print(";\n");
+  printer.Print("}\n");
+  printer.Print("\n}  // namepsace\n\n");
 }
 
 void CppCodeGenerator::DefineClassMethods(Message* message) {

@@ -6,15 +6,14 @@
 #include <map>
 #include <memory>
 
-#include "Type.h"
-#include "Message.h"
-#include "ServiceType.h"
+#include "Compiler/Type.h"
+#include "Compiler/Message.h"
+#include "Compiler/ServiceType.h"
 
 namespace proto {
 class DescriptorsBuilder;
 
 namespace ProtoParser {
-class CppGeneratorImpl;
 
 class Parser {
  public:
@@ -27,10 +26,13 @@ class Parser {
     PARSERPC,
   };
 
-  Parser(LANGUAGE lang, std::string file);
+  explicit Parser(LANGUAGE lang);
+  Parser(LANGUAGE lang, const std::string& file);
   virtual ~Parser();
   Parser(const Parser&) = delete;
   Parser& operator=(const Parser&) = delete;
+
+  void set_proto_content(const std::string& proto_content);
 
   bool ParseProto();
   void PrintParsedProto() const;
@@ -41,15 +43,15 @@ class Parser {
   std::vector<std::shared_ptr<Message>>& mutable_messages_list();
 
  protected:
-  bool ReadProtoFile();
+  bool Do_ParseProto();
 
   void PrintToken(std::string description, std::string str);
 
-  void LogError(const char* error_msg, ...) const;
   void PrintParseState() const;
 
   LANGUAGE lang_;
   std::string proto_file_;
+  std::string proto_content_;
 
   std::map<std::string, std::shared_ptr<Message>> messages_map_;
   std::vector<std::shared_ptr<Message>> messages_list_;

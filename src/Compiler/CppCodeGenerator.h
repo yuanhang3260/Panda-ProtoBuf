@@ -65,6 +65,8 @@ class CppCodeGenerator : public Parser {
   void DefineStaticInitDefaultInstances();
   void DefineStaticInit();
 
+  void PrintProtoContent();
+
   // Define all methods of a message.
   void DefineClassMethods(Message* message);
 

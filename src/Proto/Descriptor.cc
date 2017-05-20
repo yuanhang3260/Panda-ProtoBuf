@@ -6,14 +6,14 @@
 namespace proto {
 
 /// ProtoFileDescriptor
-ProtoFileDescriptor::ProtoFileDescriptor(const std::string& path) :
-    impl_(new ProtoFileDescriptorImpl(path)) {
+ProtoFileDescriptor::ProtoFileDescriptor(const std::string& proto_content) :
+    impl_(new ProtoFileDescriptorImpl(proto_content)) {
 }
 
 ProtoFileDescriptor::~ProtoFileDescriptor() {}
 
-std::string ProtoFileDescriptor::path() const {
-  return impl_->path_;
+const std::string& ProtoFileDescriptor::proto_content() const {
+  return impl_->proto_content_;
 }
 
 int ProtoFileDescriptor::num_messages() const {

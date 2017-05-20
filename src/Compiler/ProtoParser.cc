@@ -2,16 +2,21 @@
 #include <stdio.h>
 #include <stdarg.h>
 
-#include "IO/FileDescriptor.h"
-#include "ProtoParser.h"
+#include "Base/Log.h"
+#include "IO/File.h"
 #include "Strings/Split.h"
 #include "Strings/Utils.h"
-#include "Utility/BufferedDataReader.h"
+
+#include "Compiler/ProtoParser.h"
 
 namespace proto {
 namespace ProtoParser {
 
-Parser::Parser(LANGUAGE lang, std::string file) :
+Parser::Parser(LANGUAGE lang) :
+  lang_(lang) {
+}
+
+Parser::Parser(LANGUAGE lang, const std::string& file) :
     lang_(lang),
     proto_file_(file) {
   if (!Strings::EndWith(proto_file_, ".proto")) {
@@ -19,26 +24,30 @@ Parser::Parser(LANGUAGE lang, std::string file) :
     fprintf(stderr, "ERROR: proto file name must have \".proto\" postfix.\n");
     return;
   }
+
+  if (!File::GetContent(proto_file_, &proto_content_)) {
+    LogERROR("Failed to read proto file %s", proto_file_.c_str());
+    return;
+  }
+
   init_success_ = true;
 }
 
 Parser::~Parser() {}
 
-bool Parser::ReadProtoFile() {
+void Parser::set_proto_content(const std::string& proto_content) {
+  proto_content_ = proto_content;
+  init_success_ = true;
+}
+
+bool Parser::Do_ParseProto() {
   if (!init_success_) {
     return false;
   }
 
-  IO::FileDescriptor* fd =
-      new IO::FileDescriptor(proto_file_, IO::FileDescriptor::READ_ONLY);
-  if (fd->closed()) {
-    return false;
-  }
-  Utility::BufferedDataReader br(fd);
-
   // Read each line and parse in a finite state machine.
-  std::string line;
-  while (br.ReadLine(&line, "\n") == Utility::BufferedDataReader::NEW_LINE) {
+  auto lines = Strings::Split(proto_content_, "\n", Strings::SkipWhiteSpace());
+  for (std::string line : lines) {
     line_number_++;
     line = Strings::Strip(line);
     //std::cout << "--------------------------------------------" << std::endl;
@@ -83,7 +92,7 @@ bool Parser::ReadProtoFile() {
         state_ = PARSESERVICE;
       }
       else {
-        LogError("Illegal line in global");
+        LogERROR("Illegal line in global");
         return false;
       }
     }
@@ -100,7 +109,7 @@ bool Parser::ReadProtoFile() {
       else if (line == "}") {
         if (current_message_->fields_list().empty() &&
             current_message_->enums_map().empty()) {
-          LogError("Parsed %s contains nothing",
+          LogERROR("Parsed %s contains nothing",
                    current_message_->name().c_str());
           return false;
         }
@@ -117,7 +126,7 @@ bool Parser::ReadProtoFile() {
         }
       }
       else {
-        LogError("Illegal line in Parsing a message");
+        LogERROR("Illegal line in Parsing a message");
         return false;
       }
     }
@@ -126,7 +135,7 @@ bool Parser::ReadProtoFile() {
     else if (state_ == PARSINGENUM) {
       if (line == "}") {
         if (current_enum_->enums().empty()) {
-          LogError("Enum %s contains nothing",
+          LogERROR("Enum %s contains nothing",
                    current_enum_->name().c_str());
           return false;
         }
@@ -141,7 +150,7 @@ bool Parser::ReadProtoFile() {
     else if (state_ == PARSINGNESTEDENUM) {
       if (line == "}") {
         if (current_enum_->enums().empty()) {
-          LogError("Nested enum %s contains nothing",
+          LogERROR("Nested enum %s contains nothing",
                    current_enum_->name().c_str());
           return false;
         }
@@ -167,14 +176,14 @@ bool Parser::ReadProtoFile() {
       }
       else if (line == "}") {
         if (current_service_->RpcMethods().empty()) {
-          LogError("service %s contains nothing",
+          LogERROR("service %s contains nothing",
                    current_service_->name().c_str());
           return false;
         }
         state_ = GLOBAL;
       }
       else {
-        LogError("Illegal line in parsing a service");
+        LogERROR("Illegal line in parsing a service");
         return false;
       }
     }
@@ -190,14 +199,14 @@ bool Parser::ReadProtoFile() {
         state_ = PARSESERVICE;
       }
       else {
-        LogError("Illegal line in parsing a rpc");
+        LogERROR("Illegal line in parsing a rpc");
         return false;
       }
     }
 
     // Syntax Error
     else {
-      LogError("Illegal global line, can't parse");
+      LogERROR("Illegal global line, can't parse");
       return false;
     }
   }
@@ -210,17 +219,17 @@ bool Parser::ReadProtoFile() {
 
 bool Parser::ParsePackageName(std::string line) {
   if (line[line.length()-1] != ';') {
-    LogError("Expect \";\" at line end");
+    LogERROR("Expect \";\" at line end");
     return false;
   }
   line = Strings::Strip(line, ";");
   auto result = Strings::Split(line, ' ', Strings::SkipWhiteSpace());
   if (result.size() != 2) {
-    LogError("Expect 2 tokens, actual %d", result.size());
+    LogERROR("Expect 2 tokens, actual %d", result.size());
     return false;
   }
   if (result[0] != "package") {
-    LogError("Unknown key word", result[0].c_str());
+    LogERROR("Unknown key word", result[0].c_str());
     return false;
   }
   current_package_ = result[1];
@@ -228,7 +237,7 @@ bool Parser::ParsePackageName(std::string line) {
   pkg_stack_.clear();
   for (auto& pkg: result) {
     if (!IsValidVariableName(pkg)) {
-      LogError("Invalid package name %s in %s",
+      LogERROR("Invalid package name %s in %s",
                pkg.c_str(), current_package_.c_str());
       return false;
     }
@@ -240,19 +249,19 @@ bool Parser::ParsePackageName(std::string line) {
 bool Parser::ParseMessageName(std::string line) {
   auto result = Strings::Split(line, ' ', Strings::SkipWhiteSpace());
   if (result.size() != 2 && result.size() != 3) {
-    LogError("Expect 2 or 3 tokens, actual %d", result.size());
+    LogERROR("Expect 2 or 3 tokens, actual %d", result.size());
     return false;
   }
   if (result[0] != "message") {
-    LogError("Unknown keyword \"%s\"\n", result[0].c_str());
+    LogERROR("Unknown keyword \"%s\"\n", result[0].c_str());
     return false;
   }
   if (result.size() > 2 && result[2] != "{") {
-    LogError("Syntax error, expect \"{\" at line end\n");
+    LogERROR("Syntax error, expect \"{\" at line end\n");
     return false;
   }
   if (result.size() == 2 && result[1][result[1].length()-1] != '{') {
-    LogError("Syntax error, expect \"{\" at line end\n");
+    LogERROR("Syntax error, expect \"{\" at line end\n");
     return false;
   }
 
@@ -262,14 +271,14 @@ bool Parser::ParseMessageName(std::string line) {
     message_name = message_name.substr(0, message_name.length() - 1);
   }
   if (!IsValidVariableName(message_name)) {
-    LogError("invalid message name \"%s\"", message_name.c_str());
+    LogERROR("invalid message name \"%s\"", message_name.c_str());
     return false;
   }
   // Check name duplication.
   const std::string& full_msg_name =
       PbType::GeneratePackagePrefix(PYTHON, pkg_stack_) + message_name;
   if (messages_map_.find(full_msg_name) != messages_map_.end()) {
-    LogError("message name \"%s\" already exists", full_msg_name.c_str());
+    LogERROR("message name \"%s\" already exists", full_msg_name.c_str());
     return false;
   }
 
@@ -289,20 +298,20 @@ bool Parser::ParseMessageName(std::string line) {
 
 bool Parser::ParseMessageField(std::string line) {
   if (line[line.length()-1] != ';') {
-    LogError("Expect \";\" at line end");
+    LogERROR("Expect \";\" at line end");
     return false;
   }
   line = Strings::Strip(line, ";");
   auto result = Strings::Split(line, ' ', Strings::SkipWhiteSpace());
   if (result.size() < 3) {
-    LogError("Syntax error");
+    LogERROR("Syntax error");
     return false;
   }
   // Parse field modifier.
   FieldLabel modifier;
   if ((modifier = MessageField::GetMessageFieldModifier(result[0])) ==
       UNKNOWN_MODIFIER) {
-    LogError("Unknown modifier \"%s\"", result[0].c_str());
+    LogERROR("Unknown modifier \"%s\"", result[0].c_str());
     return false;
   }
   // Parse field type.
@@ -312,7 +321,7 @@ bool Parser::ParseMessageField(std::string line) {
   if ((type = PbCommon::GetMessageFieldType(type_name)) == UNDETERMINED) {
     type_class = FindParsedMessageOrEnumType(type_name);
     if (!type_class) {
-      LogError("Unknown field type \"%s\"", type_name.c_str());
+      LogERROR("Unknown field type \"%s\"", type_name.c_str());
       return false;
     }
     type = type_class->type();
@@ -330,7 +339,7 @@ bool Parser::ParseMessageField(std::string line) {
     nametag = Strings::Strip(remain.substr(0, pos));
     defaultblock = Strings::Strip(remain.substr(pos));
     if (defaultblock[defaultblock.length()-1] != ']') {
-      LogError("Expect \"]\" after default assignement");
+      LogERROR("Expect \"]\" after default assignement");
       return false;
     }
     defaultblock = Strings::Strip(defaultblock, "[]");   
@@ -346,11 +355,11 @@ bool Parser::ParseMessageField(std::string line) {
   std::string default_name, default_value = "";
   if (defaultblock.length() > 0) {
     if (type == MESSAGETYPE) {
-      LogError("message type cannot have default value");
+      LogERROR("message type cannot have default value");
       return false;
     }
     if (modifier == REPEATED) {
-      LogError("message type cannot have default value");
+      LogERROR("message type cannot have default value");
       return false;
     }
 
@@ -363,13 +372,13 @@ bool Parser::ParseMessageField(std::string line) {
     if (type == ENUMTYPE) {
       EnumType* enumclass = static_cast<EnumType*>(type_class);
       if (!enumclass->ContainsEnum(default_value)) {
-        LogError("Enum value \"%s\" is not a valid value in enum type %s",
+        LogERROR("Enum value \"%s\" is not a valid value in enum type %s",
                  default_value.c_str(), type_class->name().c_str());
         return false;
       }
     }
     if (default_name != "default") {
-      LogError("Can't recognize \"%s\", should be \"default\"",
+      LogERROR("Can't recognize \"%s\", should be \"default\"",
                default_name.c_str());
       return false;
     }
@@ -380,7 +389,7 @@ bool Parser::ParseMessageField(std::string line) {
       new MessageField(modifier, type, type_class, name, tag_num,
                        default_value));
   if (!current_message_->AddField(new_field)) {
-    LogError("Add field \"%s\" to message \"%s\" failed",
+    LogERROR("Add field \"%s\" to message \"%s\" failed",
              name.c_str(), current_message_->name().c_str());
     return false;
   }
@@ -391,19 +400,19 @@ bool Parser::ParseMessageField(std::string line) {
 bool Parser::ParseEnumName(std::string line) {
   auto result = Strings::Split(line, ' ', Strings::SkipWhiteSpace());
   if (result.size() != 2 && result.size() != 3) {
-    LogError("Expect 2 or 3 least tokens, actual %d", result.size());
+    LogERROR("Expect 2 or 3 least tokens, actual %d", result.size());
     return false;
   }
   if (result[0] != "enum") {
-    LogError("Unknown keyword \"%s\"\n", result[0].c_str());
+    LogERROR("Unknown keyword \"%s\"\n", result[0].c_str());
     return false;
   }
   if (result.size() > 2 && result[2] != "{") {
-    LogError("Syntax error, expect \"{\" at line end\n");
+    LogERROR("Syntax error, expect \"{\" at line end\n");
     return false;
   }
   if (result.size() == 2 && result[1][result[1].length()-1] != '{') {
-    LogError("Syntax error, expect \"{\" at line end\n");
+    LogERROR("Syntax error, expect \"{\" at line end\n");
     return false;
   }
 
@@ -413,7 +422,7 @@ bool Parser::ParseEnumName(std::string line) {
     enum_name = enum_name.substr(0, enum_name.length() - 1);
   }
   if (!IsValidVariableName(enum_name)) {
-    LogError("invalid enum name \"%s\"", enum_name.c_str());
+    LogERROR("invalid enum name \"%s\"", enum_name.c_str());
     return false;
   }
   // Check name duplication
@@ -422,13 +431,13 @@ bool Parser::ParseEnumName(std::string line) {
   if (state_ == PARSINGMSG && 
       current_message_->enums_map().find(full_enum_name) !=
           current_message_->enums_map().end()) {
-    LogError("enum name \"%s\" already exists in message \"%s\"",
+    LogERROR("enum name \"%s\" already exists in message \"%s\"",
              full_enum_name.c_str(), current_message_->name().c_str());
     return false;
   }
   if (state_ == GLOBAL && 
       enums_map_.find(full_enum_name) != enums_map_.end()) {
-    LogError("enum name \"%s\" already exists", full_enum_name.c_str());
+    LogERROR("enum name \"%s\" already exists", full_enum_name.c_str());
     return false;
   }
 
@@ -452,19 +461,19 @@ bool Parser::ParseEnumName(std::string line) {
 bool Parser::ParseServiceName(std::string line) {
   auto result = Strings::Split(line, ' ', Strings::SkipWhiteSpace());
   if (result.size() != 2 && result.size() != 3) {
-    LogError("Expect 2 or 3 least tokens, actual %d", result.size());
+    LogERROR("Expect 2 or 3 least tokens, actual %d", result.size());
     return false;
   }
   if (result[0] != "service") {
-    LogError("Unknown keyword \"%s\"\n", result[0].c_str());
+    LogERROR("Unknown keyword \"%s\"\n", result[0].c_str());
     return false;
   }
   if (result.size() > 2 && result[2] != "{") {
-    LogError("Syntax error, expect \"{\" at line end\n");
+    LogERROR("Syntax error, expect \"{\" at line end\n");
     return false;
   }
   if (result.size() == 2 && result[1][result[1].length()-1] != '{') {
-    LogError("Syntax error, expect \"{\" at line end\n");
+    LogERROR("Syntax error, expect \"{\" at line end\n");
     return false;
   }
 
@@ -474,14 +483,14 @@ bool Parser::ParseServiceName(std::string line) {
     service_name = service_name.substr(0, service_name.length() - 1);
   }
   if (!IsValidVariableName(service_name)) {
-    LogError("invalid enum name \"%s\"", service_name.c_str());
+    LogERROR("invalid enum name \"%s\"", service_name.c_str());
     return false;
   }
   // Check name duplication
   const std::string& full_service_name =
       PbType::GeneratePackagePrefix(PYTHON, pkg_stack_) + service_name;
   if (services_map_.find(full_service_name) != services_map_.end()) {
-    LogError("service name \"%s\" already exists", full_service_name.c_str());
+    LogERROR("service name \"%s\" already exists", full_service_name.c_str());
     return false;
   }
 
@@ -497,21 +506,21 @@ bool Parser::ParseRpcName(std::string line) {
   std::vector<std::string> rpc_params =
       Strings::ExtractTokens(&line, '(', ')');
   if (rpc_params.size() != 2) {
-    LogError("Expect (rpc arg) and (rpc return) to be defined");
+    LogERROR("Expect (rpc arg) and (rpc return) to be defined");
     return false;
   }
 
   auto result = Strings::Split(line, ' ', Strings::SkipWhiteSpace());
   if (result.size() != 4) {
-    LogError("Expect 4 least tokens, actual %d", result.size());
+    LogERROR("Expect 4 least tokens, actual %d", result.size());
     return false;
   }
   if (result[2] != "returns") {
-    LogError("Unknown keyword \"%s\"\n", result[0].c_str());
+    LogERROR("Unknown keyword \"%s\"\n", result[0].c_str());
     return false;
   }
   if (result[3] != "{") {
-    LogError("Syntax error, expect \"{\" at line end\n");
+    LogERROR("Syntax error, expect \"{\" at line end\n");
     return false;
   }
   const std::string& rpc_name = result[1];
@@ -526,7 +535,7 @@ bool Parser::ParseRpcName(std::string line) {
     if ((type = PbCommon::GetMessageFieldType(token)) == UNDETERMINED) {
       type_class = FindParsedMessageOrEnumType(token);
       if (!type_class) {
-        LogError("Unknown field type \"%s\"", token.c_str());
+        LogERROR("Unknown field type \"%s\"", token.c_str());
         return false;
       }
       new_rpc->AddArg(token, type_class);
@@ -535,7 +544,7 @@ bool Parser::ParseRpcName(std::string line) {
       new_rpc->AddArg(token);
     }
     else {
-      LogError("Unknown rpc arg type %s\n", token.c_str());
+      LogERROR("Unknown rpc arg type %s\n", token.c_str());
       return false;
     }
   }
@@ -550,7 +559,7 @@ bool Parser::ParseRpcName(std::string line) {
     if ((type = PbCommon::GetMessageFieldType(token)) == UNDETERMINED) {
       type_class = FindParsedMessageOrEnumType(token);
       if (!type_class) {
-        LogError("Unknown field type \"%s\"", token.c_str());
+        LogERROR("Unknown field type \"%s\"", token.c_str());
         return false;
       }
       new_rpc->AddReturn(token, type_class);
@@ -559,7 +568,7 @@ bool Parser::ParseRpcName(std::string line) {
       new_rpc->AddReturn(token);
     }
     else {
-      LogError("Unknown rpc arg type %s\n", token.c_str());
+      LogERROR("Unknown rpc arg type %s\n", token.c_str());
       return false;
     }
   }
@@ -573,13 +582,13 @@ bool Parser::ParseRpcName(std::string line) {
 
 bool Parser::ParseRpcOption(std::string line) {
   if (line[line.length()-1] != ';') {
-    LogError("Expect \";\" at line end");
+    LogERROR("Expect \";\" at line end");
     return false;
   }
   line = Strings::Strip(line, "option ;");
   int index = Strings::FindFirstMatch(line, "=");
   if (index < 0) {
-    LogError("Invalid rpc option %s, expect assignement with \'=\'",
+    LogERROR("Invalid rpc option %s, expect assignement with \'=\'",
              line.c_str());
     return false;
   }
@@ -592,12 +601,12 @@ bool Parser::ParseRpcOption(std::string line) {
 
 bool Parser::ParseEnumValue(std::string line) {
   if (line[line.length()-1] != ',') {
-    LogError("Expect \",\" at line end");
+    LogERROR("Expect \",\" at line end");
     return false;
   }
   std::string name = line.substr(0, line.length() - 1);
   if (!IsValidVariableName(name)) {
-    LogError("invalid enum field name \"%s\"", name.c_str());
+    LogERROR("invalid enum field name \"%s\"", name.c_str());
     return false;
   }
   current_enum_->AddEnumValue(name);
@@ -617,17 +626,17 @@ bool Parser::ParseAssignExpression(std::string line,
   line = Strings::Strip(line);
   std::size_t pos = line.find("=");
   if (pos == std::string::npos) {
-    LogError("Expect \"variable = value\" but actual \"%s\"", line.c_str());
+    LogERROR("Expect \"variable = value\" but actual \"%s\"", line.c_str());
     return false;
   }
   *left = Strings::Strip(line.substr(0, pos));
   *right = Strings::Strip(line.substr(pos + 1));
   if ((*left).length() == 0 || !IsValidVariableName(*left)) {
-    LogError("invalid variable name \"%s\"", (*left).c_str());
+    LogERROR("invalid variable name \"%s\"", (*left).c_str());
     return false;
   }
   if ((*right).length() == 0) {
-    LogError("value of %s must not be empty", (*left).c_str());
+    LogERROR("value of %s must not be empty", (*left).c_str());
     return false;
   }
   switch (type) {
@@ -637,7 +646,7 @@ bool Parser::ParseAssignExpression(std::string line,
         (void)value;
       }
       catch (std::exception& err) {
-        LogError("Can't parse \"%s\" as int32 value", (*right).c_str());
+        LogERROR("Can't parse \"%s\" as int32 value", (*right).c_str());
         return false;
       }
       break;
@@ -647,7 +656,7 @@ bool Parser::ParseAssignExpression(std::string line,
         (void)value;
       }
       catch (std::exception& err) {
-        LogError("Can't parse \"%s\" as uint32 value", (*right).c_str());
+        LogERROR("Can't parse \"%s\" as uint32 value", (*right).c_str());
         return false;
       }
       break;
@@ -657,7 +666,7 @@ bool Parser::ParseAssignExpression(std::string line,
         (void)value;
       }
       catch (std::exception& err) {
-        LogError("Can't parse \"%s\" as int64 value", (*right).c_str());
+        LogERROR("Can't parse \"%s\" as int64 value", (*right).c_str());
         return false;
       }
       break;
@@ -667,7 +676,7 @@ bool Parser::ParseAssignExpression(std::string line,
         (void)value;
       }
       catch (std::exception& err) {
-        LogError("Can't parse %s as int64 value", (*right).c_str());
+        LogERROR("Can't parse %s as int64 value", (*right).c_str());
         return false;
       }
       break;
@@ -677,14 +686,14 @@ bool Parser::ParseAssignExpression(std::string line,
         (void)value;
       }
       catch (std::exception& err) {
-        LogError("Can't parse \"%s\" as double value", (*right).c_str());
+        LogERROR("Can't parse \"%s\" as double value", (*right).c_str());
         return false;
       }
       break;
     case BOOL:
       if (*right != "true" && *right != "false" &&
           *right != "True" && *right != "False") {
-        LogError("Invalid boolean value \"%s\"", (*right).c_str());
+        LogERROR("Invalid boolean value \"%s\"", (*right).c_str());
         return false;
       }
       break;
@@ -693,7 +702,7 @@ bool Parser::ParseAssignExpression(std::string line,
         std::string value = *right;
         if (!Strings::StartWith(value, "\"") ||
             !Strings::EndWith(value, "\"")) {
-          LogError(
+          LogERROR(
               "Invalid string value %s : must be double quotated",
               (*right).c_str());
           return false;
@@ -709,8 +718,8 @@ bool Parser::ParseAssignExpression(std::string line,
 }
 
 bool Parser::ParseProto() {
-  if (!ReadProtoFile()) {
-    fprintf(stderr, "ERROR: Can't parse proto %s\n", proto_file_.c_str());
+  if (!Do_ParseProto()) {
+    LogERROR("Parse proto failed");
     return false;
   }
   PrintParsedProto();
@@ -824,15 +833,6 @@ LANGUAGE Parser::GetLanguageFromString(std::string lang) {
 
 void Parser::PrintToken(std::string description, std::string str) {
   std::cout << "[" << description << "] = \"" << str << "\"" << std::endl;
-}
-
-void Parser::LogError(const char* error_msg, ...) const {
-  fprintf(stderr, "%s:%d: ", proto_file_.c_str(), line_number_);
-  va_list args;
-  va_start(args, error_msg);
-  vfprintf(stderr, error_msg, args);
-  va_end(args);
-  fprintf(stderr, ".\n");
 }
 
 void Parser::PrintParseState() const {

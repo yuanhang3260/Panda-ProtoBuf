@@ -19,7 +19,7 @@ class MessageField;
 class DescriptorsBuilder {
  public:
   DescriptorsBuilder() = default;
-  DescriptorsBuilder(const std::string& proto_file);
+  DescriptorsBuilder(const std::string& proto_content);
 
   ProtoFileDescriptor* BuildDescriptors();
 
@@ -35,7 +35,7 @@ class DescriptorsBuilder {
                       const ProtoFileDescriptor* file,
                       const MessageDescriptor* container_message);
 
-  std::string proto_file_;
+  std::string proto_content_;
 
   FORBID_COPY_AND_ASSIGN(DescriptorsBuilder);
 };

@@ -22,11 +22,10 @@ class MessageFactory {
   using ReflectionMap =
     std::map<std::string, std::shared_ptr<const MessageReflection>>;
 
-  using ProtoFileMap = 
-    std::map<std::string, std::shared_ptr<const ProtoFileDescriptor>>;
+  using ProtoFileSet = std::set<std::shared_ptr<const ProtoFileDescriptor>>;
 
   static const MessageReflection* GetMessageReflection(std::string name);
-  static const ProtoFileDescriptor* GetParsedProtoFile(std::string name);
+  //static const ProtoFileDescriptor* GetParsedProtoFile(std::string name);
 
  private:
   MessageFactory();
@@ -34,11 +33,11 @@ class MessageFactory {
   FORBID_COPY_AND_ASSIGN(MessageFactory);
 
   static ReflectionMap& message_map();
-  static ProtoFileMap& file_map();
+  static ProtoFileSet& proto_files();
   static MessageFactory* instance_;
 
   ReflectionMap message_map_;
-  ProtoFileMap file_map_;
+  ProtoFileSet proto_files_;
 };
 
 }//  namespace proto
