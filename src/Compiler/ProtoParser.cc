@@ -722,7 +722,7 @@ bool Parser::ParseProto() {
     LogERROR("Parse proto failed");
     return false;
   }
-  PrintParsedProto();
+  //PrintParsedProto();
   return true;
 }
 

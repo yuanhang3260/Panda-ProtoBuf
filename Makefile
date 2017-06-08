@@ -58,7 +58,10 @@ TESTEXE = test/RepeatedField_test.out \
 
 COMPILEROBJ = $(OBJ_DIR)/Compiler/Compiler_main.o
 
-default: full
+default: pre_build full
+
+pre_build:
+	mkdir -p $(OBJ_DIR)/Compiler $(OBJ_DIR)/Proto $(OBJ_DIR)/RPC
 
 full: libhy proto_library library compiler
 
