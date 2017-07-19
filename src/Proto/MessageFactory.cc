@@ -31,9 +31,9 @@ int MessageFactory::NumMessagesRegistered() {
 
 void MessageFactory::RegisterGeneratedMessage(
                           const MessageReflection* reflection) {
-  std::cout << "Reigstering Genereated Cpp Clsss "
-            << reflection->descriptor()->full_name()
-            << std::endl;
+  // std::cout << "Reigstering Genereated Cpp Clsss "
+  //           << reflection->descriptor()->full_name()
+  //           << std::endl;
   message_map().emplace(reflection->descriptor()->full_name(),
                         std::shared_ptr<const MessageReflection>(reflection));
 }
