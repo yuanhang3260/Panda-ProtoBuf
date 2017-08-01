@@ -61,6 +61,7 @@ class MessageReflection {
   bool GetBool(const Message* message, const FieldDescriptor* field) const;
   double GetDouble(const Message* message, const FieldDescriptor* field) const;
   uint32 GetEnum(const Message* message, const FieldDescriptor* field) const;
+  char GetChar(const Message* message, const FieldDescriptor* field) const;
   std::string GetString(const Message* message,
                         const FieldDescriptor* field) const;
   const Message& GetMessage(const Message* message,
@@ -76,6 +77,8 @@ class MessageReflection {
   int64 GetRepeatedInt64(const Message* message,
                          const FieldDescriptor* field, int index) const;
   bool GetRepeatedBool(const Message* message,
+                       const FieldDescriptor* field, int index) const;
+  char GetRepeatedChar(const Message* message,
                        const FieldDescriptor* field, int index) const;
   double GetRepeatedDouble(const Message* message,
                            const FieldDescriptor* field, int index) const;
@@ -98,6 +101,8 @@ class MessageReflection {
                 const FieldDescriptor* field, int64 value) const;
   void SetBool(Message* message,
                const FieldDescriptor* field, bool value) const;
+  void SetChar(Message* message,
+               const FieldDescriptor* field, char value) const;
   void SetDouble(Message* message,
                  const FieldDescriptor* field, double value) const;
   void SetEnum(Message* message,
@@ -123,6 +128,8 @@ class MessageReflection {
                         int index, int64 value) const;
   void SetRepeatedBool(Message* message, const FieldDescriptor* field,
                        int index, bool value) const;
+  void SetRepeatedChar(Message* message, const FieldDescriptor* field,
+                       int index, char value) const;
   void SetRepeatedDouble(Message* message, const FieldDescriptor* field,
                          int index, double value) const;
   void SetRepeatedEnum(Message* message, const FieldDescriptor* field,
@@ -144,6 +151,8 @@ class MessageReflection {
                 const FieldDescriptor* field, int64 value) const;
   void AddBool(Message* message,
                const FieldDescriptor* field, bool value) const;
+  void AddChar(Message* message,
+               const FieldDescriptor* field, char value) const;
   void AddDouble(Message* message,
                  const FieldDescriptor* field, double value) const;
   void AddEnum(Message* message,
@@ -217,6 +226,10 @@ class MessageReflection {
       Message* message,
       const FieldDescriptor* field, const char* buf) const;
 
+  inline uint32 SetCharFromCord(
+      Message* message,
+      const FieldDescriptor* field, const char* buf) const;
+
   inline uint32 SetDoubleFromCord(
       Message* message,
       const FieldDescriptor* field, const char* buf) const;
@@ -243,6 +256,10 @@ class MessageReflection {
       const FieldDescriptor* field, const char* buf) const;
 
   inline uint32 AddBoolFromCord(
+      Message* message,
+      const FieldDescriptor* field, const char* buf) const;
+
+  inline uint32 AddCharFromCord(
       Message* message,
       const FieldDescriptor* field, const char* buf) const;
 

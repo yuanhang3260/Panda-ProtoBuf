@@ -12,12 +12,13 @@ namespace proto {
 namespace ProtoParser {
 
 std::map<FIELD_TYPE, std::string> pbCppTypeMap{
-  {INT32, "int"},
-  {INT64, "long long"},
-  {UINT32, "unsigned int"},
-  {UINT64, "unsigned long long"},
+  {INT32, "int32"},
+  {INT64, "int64"},
+  {UINT32, "uint32"},
+  {UINT64, "uint64"},
   {DOUBLE, "double"},
   {STRING, "std::string"},
+  {CHAR, "char"},
   {BOOL, "bool"},
 };
 
@@ -44,6 +45,7 @@ void CppCodeGenerator::GenerateHeader() {
   printer.Print("#define " + Strings::Upper(filename) + "_H_\n\n");
   printer.Print("#include <string>\n");
   printer.Print("#include <vector>\n\n");
+  printer.Print("#include \"Base/BaseTypes.h\"\n");
   printer.Print("#include \"Proto/Message.h\"\n");
   printer.Print("#include \"Proto/Descriptor.h\"\n");
   printer.Print("#include \"Proto/RepeatedFields.h\"\n");

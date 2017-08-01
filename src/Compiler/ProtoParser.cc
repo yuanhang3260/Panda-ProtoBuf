@@ -620,9 +620,9 @@ bool Parser::IsMessageFiledLine(std::string line) {
 }
 
 bool Parser::ParseAssignExpression(std::string line,
-                                        std::string* left,
-                                        std::string* right,
-                                        FIELD_TYPE type) const {
+                                   std::string* left,
+                                   std::string* right,
+                                   FIELD_TYPE type) const {
   line = Strings::Strip(line);
   std::size_t pos = line.find("=");
   if (pos == std::string::npos) {
@@ -697,6 +697,19 @@ bool Parser::ParseAssignExpression(std::string line,
         return false;
       }
       break;
+    case CHAR:
+      {
+        std::string value = *right;
+        if (!Strings::StartWith(value, "'") ||
+            !Strings::EndWith(value, "'")) {
+          LogERROR(
+              "Invalid char value %s : must be quotated with ''",
+              (*right).c_str());
+          return false;
+        }
+        *right = Strings::Strip(*right, "'");
+      }
+      break;  
     case STRING:
       {
         std::string value = *right;
@@ -760,7 +773,7 @@ bool Parser::IsValidPrimitiveTypeName(std::string str) {
   return str == "int32" || str == "int64" ||
          str == "uint32" || str == "uint64" ||
          str == "bool" || str == "double" ||
-         str == "string";
+         str == "string" || str == "char";
 }
 
 PbType* Parser::FindParsedMessageOrEnumType(std::string type_name) const {

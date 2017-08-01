@@ -98,8 +98,9 @@ void test_Serialize() {
   // stu1.set_def(17375839784);
   stu1.set_ghi(-53159748968);
   stu1.set_graduated(true);
-  stu1.set_weight(70.5);
-  stu1.set_sex(::HaiZhong::Student::FEMALE);
+  stu1.set_weight(67.5);
+  stu1.set_symbol('h');
+  stu1.set_sex(::HaiZhong::Student::MALE);
   stu1.add_scores(10);
   stu1.add_scores(20);
   stu1.add_scores(30);

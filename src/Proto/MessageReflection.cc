@@ -151,6 +151,7 @@ DEFINE_PRIMITIVE_GETTERS(Int32, int32, INT32);
 DEFINE_PRIMITIVE_GETTERS(Int64, int64, INT64);
 DEFINE_PRIMITIVE_GETTERS(Double, double, DOUBLE);
 DEFINE_PRIMITIVE_GETTERS(Bool, bool, BOOL);
+DEFINE_PRIMITIVE_GETTERS(Char, char, CHAR);
 DEFINE_PRIMITIVE_GETTERS(Enum, uint32, ENUMTYPE);
 
 std::string MessageReflection::GetString(const Message* message,
@@ -251,6 +252,7 @@ DEFINE_PRIMITIVE_SETTERS(Int32, int32, INT32);
 DEFINE_PRIMITIVE_SETTERS(Int64, int64, INT64);
 DEFINE_PRIMITIVE_SETTERS(Double, double, DOUBLE);
 DEFINE_PRIMITIVE_SETTERS(Bool, bool, BOOL);
+DEFINE_PRIMITIVE_SETTERS(Char, char, CHAR);
 
 void MessageReflection::SetEnum(Message* message,
                                 const FieldDescriptor* field,
@@ -595,6 +597,9 @@ MessageReflection::CreateSerializedSingularPrimitive(
     case BOOL:
       ENCODE_SINGULAR_PRITIMIVE(bool, Bool)
       break;
+    case CHAR:
+      ENCODE_SINGULAR_PRITIMIVE(char, Char)
+      break;
     case DOUBLE:
       ENCODE_SINGULAR_PRITIMIVE(double, Double)
       break;
@@ -656,6 +661,10 @@ MessageReflection::CreateSerializedRepeatedPrimitive(
     }
     case BOOL:{
       ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_VARIANT, bool, Bool)
+      break;
+    }
+    case CHAR:{
+      ENCODE_REPEATED_PRITIMIVE(WireFormat::WIRETYPE_VARIANT, char, Char)
       break;
     }
     case DOUBLE: {
@@ -794,6 +803,7 @@ DEFINE_PRIMITIVE_DECODERS(uint64, UInt64)
 DEFINE_PRIMITIVE_DECODERS(int32, SInt32)
 DEFINE_PRIMITIVE_DECODERS(int64, SInt64)
 DEFINE_PRIMITIVE_DECODERS(bool, Bool)
+DEFINE_PRIMITIVE_DECODERS(char, Char)
 DEFINE_PRIMITIVE_DECODERS(double, Double)
 
 // String is special. Singular string type is nested while repeated string
@@ -837,7 +847,7 @@ void MessageReflection::CheckWireType(
     FieldType type,
     FieldLabel label) const {
   if (type == UINT32 || type == UINT64 || type == INT32  || type == INT64  ||
-      type == BOOL   || type == ENUMTYPE) {
+      type == BOOL || type == CHAR || type == ENUMTYPE) {
     if (wire_type == WireFormat::WIRETYPE_VARIANT) {
       return;
     }
@@ -854,8 +864,8 @@ void MessageReflection::CheckWireType(
   }
   throw std::runtime_error(
       "WireType " + WireFormat::WireTypeAsString(wire_type) +
-      " mismatch with  " +
-      LabelAsString(label) + " "
+      " mismatch with " +
+      LabelAsString(label) +
       " FieldType " + ProtoParser::PbCommon::GetTypeAsString(type));
 }
 
@@ -998,6 +1008,10 @@ uint32 MessageReflection::DeSerializeSingularPrimitive(
       offset = SetBoolFromCord(message, field, buf);
       break;
     }
+    case CHAR:{
+      offset = SetCharFromCord(message, field, buf);
+      break;
+    }
     case DOUBLE: {
       offset = SetDoubleFromCord(message, field, buf);
       break;
@@ -1057,6 +1071,12 @@ uint32 MessageReflection::DeSerializeRepeatedPrimitive(
     case BOOL:{
       for (uint32 i = 0; i < list_size; i++) {
         offset += AddBoolFromCord(message, field, buf + offset);
+      }
+      break;
+    }
+    case CHAR:{
+      for (uint32 i = 0; i < list_size; i++) {
+        offset += AddCharFromCord(message, field, buf + offset);
       }
       break;
     }

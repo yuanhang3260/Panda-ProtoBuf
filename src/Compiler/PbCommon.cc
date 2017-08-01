@@ -24,6 +24,9 @@ PbCommon::GetMessageFieldType(std::string type) {
   if (type == "string") {
     return STRING;
   }
+  if (type == "char") {
+    return CHAR;
+  }
   if (type == "bool") {
     return BOOL;
   }
@@ -49,6 +52,9 @@ PbCommon::GetTypeAsString(FIELD_TYPE type) {
   }
   if (type == STRING) {
     return "string";
+  }
+  if (type == CHAR) {
+    return "char";
   }
   if (type == BOOL) {
     return "bool";

@@ -20,6 +20,7 @@ enum FieldType {
   UINT64,
   DOUBLE,
   BOOL,
+  CHAR,
   STRING,
   ENUMTYPE,
   MESSAGETYPE,

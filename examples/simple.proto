@@ -30,6 +30,7 @@ message Student {
   optional Pet first_pet = 12;
   repeated Pet pets = 9;
   optional Student partner = 18;
+  optional char symbol = 19;
 }
 
 message SchoolClass {

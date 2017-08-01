@@ -34,6 +34,9 @@ std::string TypeAsString(FieldType type) {
   if (type == STRING) {
     return "string";
   }
+  if (type == CHAR) {
+    return "char";
+  }
   if (type == BOOL) {
     return "bool";
   }

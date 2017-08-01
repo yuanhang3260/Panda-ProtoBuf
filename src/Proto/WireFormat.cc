@@ -119,6 +119,12 @@ void WireFormat::EncodeBool(const uint32 tag, const bool value,
   WriteVariant32(static_cast<uint32>(value), outstream);
 }
 
+void WireFormat::EncodeChar(const uint32 tag, const char value,
+                            Strings::StringBuilder* outstream) {
+  EncodeTag(tag, WIRETYPE_VARIANT, outstream);
+  outstream->Append(value);
+}
+
 void WireFormat::EncodeString(const uint32 tag, const std::string& str,
                               Strings::StringBuilder* outstream) {
   EncodeTag(tag, WIRETYPE_LENGTH_DELIMITED, outstream);
@@ -194,14 +200,16 @@ bool WireFormat::DecodeBool(const char* buf, uint32* size) {
   return static_cast<bool>(raw_uint32);
 }
 
+char WireFormat::DecodeChar(const char* buf, uint32* size) {
+  *size = 1;
+  return *buf;
+}
+
 std::string WireFormat::DecodeString(const char* buf, uint32 *size) {
   uint32 str_size_size;
   uint32 str_size = DecodeUInt32(buf, &str_size_size);
   *size = str_size_size + str_size;
   return std::string(buf + str_size_size, str_size);
 }
-
-
-
 
 }  // namespace proto

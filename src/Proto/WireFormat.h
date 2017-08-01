@@ -1,14 +1,10 @@
 #ifndef WIRE_FORMAT_
 #define WIRE_FORMAT_
 
+#include "Base/BaseTypes.h"
 #include "Strings/StringBuilder.h"
 
 namespace proto {
-
-typedef int int32;
-typedef long long int64;
-typedef unsigned int uint32;
-typedef unsigned long long uint64;
 
 class DecodeException: public std::exception {
  private:
@@ -58,13 +54,15 @@ class WireFormat {
   static void WriteVariant64(uint64 value, Strings::StringBuilder* outstream);
 
   // -------------------- write functions ------------------------ //
-  static void WriteUInt32(const uint32 value, Strings::StringBuilder* outstream);
-  static void WriteUInt64(const uint64 value, Strings::StringBuilder* outstream);
-  static void WriteSInt32(const int32 value, Strings::StringBuilder* outstream);
-  static void WriteSInt64(const int64 value, Strings::StringBuilder* outstream);
-  static void WriteDouble(const double value, Strings::StringBuilder* outstream);
-  static void WriteBool(const bool value, Strings::StringBuilder* outstream);
-  static void WriteString(const std::string& str, Strings::StringBuilder* outstream);
+  static void WriteUInt32(uint32 value, Strings::StringBuilder* outstream);
+  static void WriteUInt64(uint64 value, Strings::StringBuilder* outstream);
+  static void WriteSInt32(int32 value, Strings::StringBuilder* outstream);
+  static void WriteSInt64(int64 value, Strings::StringBuilder* outstream);
+  static void WriteDouble(double value, Strings::StringBuilder* outstream);
+  static void WriteBool(bool value, Strings::StringBuilder* outstream);
+  static void WriteChar(char value, Strings::StringBuilder* outstream);
+  static void WriteString(const std::string& str,
+                          Strings::StringBuilder* outstream);
 
   // ------------------- Encode functions ------------------------- //
   static void EncodeTag(const uint32 tag, WireType wire_type,
@@ -86,6 +84,9 @@ class WireFormat {
   static void EncodeBool(const uint32 tag, const bool value,
                          Strings::StringBuilder* outstream);
 
+  static void EncodeChar(const uint32 tag, char value,
+                         Strings::StringBuilder* outstream);  
+
   static void EncodeString(const uint32 tag, const std::string& str,
                            Strings::StringBuilder* outstream);
 
@@ -103,39 +104,46 @@ class WireFormat {
 
   static bool DecodeBool(const char* buf, uint32* size);
 
+  static char DecodeChar(const char* buf, uint32* size);
+
   static std::string DecodeString(const char* buf, uint32* size);
 
  private:
 };
 
-inline void WireFormat::WriteUInt32(const uint32 value,
+inline void WireFormat::WriteUInt32(uint32 value,
                                     Strings::StringBuilder* outstream) {
   WriteVariant32(value, outstream);
 }
 
-inline void WireFormat::WriteUInt64(const uint64 value,
+inline void WireFormat::WriteUInt64(uint64 value,
                                     Strings::StringBuilder* outstream) {
   WriteVariant64(value, outstream);
 }
 
-inline void WireFormat::WriteSInt32(const int32 value,
+inline void WireFormat::WriteSInt32(int32 value,
                                     Strings::StringBuilder* outstream) {
   WriteVariant32(ZigZag32(value), outstream);
 }
 
-inline void WireFormat::WriteSInt64(const int64 value,
+inline void WireFormat::WriteSInt64(int64 value,
                                     Strings::StringBuilder* outstream) {
   WriteVariant64(ZigZag64(value), outstream);
 }
 
-inline void WireFormat::WriteDouble(const double value,
+inline void WireFormat::WriteDouble(double value,
                                     Strings::StringBuilder* outstream) {
   WriteFixed64(RawCastDoubleToUint64(value), outstream);
 }
 
-inline void WireFormat::WriteBool(const bool value,
+inline void WireFormat::WriteBool(bool value,
                                   Strings::StringBuilder* outstream) {
   WriteVariant32(static_cast<uint32>(value), outstream);
+}
+
+inline void WireFormat::WriteChar(char value,
+                                  Strings::StringBuilder* outstream) {
+  outstream->Append(value);
 }
 
 inline void WireFormat::WriteString(const std::string& str,
