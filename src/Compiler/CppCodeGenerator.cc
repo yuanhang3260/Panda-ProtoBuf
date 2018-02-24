@@ -1512,19 +1512,19 @@ void CppCodeGenerator::DefineServiceClassMethods(ServiceType* service) {
                 matches);
   // NewStub
   printer.Print("StudentManagement* ${service_name}::NewStub(::RPC::RpcClientChannel* channel) {\n"
-                "  return new ${service_name}::Stub(\"${service_name}\", channel, ::RPC::RpcStubOptions());\n"
+                "  return new ${service_name}::Stub(\"${full_service_name}\", channel, ::RPC::RpcStubOptions());\n"
                 "}\n\n"
                 "StudentManagement* ${service_name}::NewStub(\n"
                 "    ::RPC::RpcClientChannel* channel, const ::RPC::RpcStubOptions options) {\n"
-                "  return new ${service_name}::Stub(\"${service_name}\", channel, options);\n"
+                "  return new ${service_name}::Stub(\"${full_service_name}\", channel, options);\n"
                 "}\n\n", matches);
   // Register and De-Register service.
   printer.Print("void ${service_name}::RegisterToServer(::RPC::RpcServer* server) {\n"
-                "  server->RegisterService(\"${service_name}\", this);\n"
+                "  server->RegisterService(\"${full_service_name}\", this);\n"
                 "  InternalRegisterHandlers(server);\n"
                 "}\n\n", matches);
   printer.Print("void ${service_name}::DeRegisterFromServer(::RPC::RpcServer* server) {\n"
-                "  server->DeRegisterService(\"${service_name}\");\n"
+                "  server->DeRegisterService(\"${full_service_name}\");\n"
                 "  InternalDeRegisterHandlers(server);\n"
                 "}\n\n", matches);
   // Internal register handler to server's handler_map

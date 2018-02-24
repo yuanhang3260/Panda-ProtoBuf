@@ -352,12 +352,11 @@ int RpcServer::ParseRpcPacketHeader(RpcSession* session) {
 }
 
 int RpcServer::ParseRpcRequestHeader(RpcSession* session) {
-  RpcRequestHeader* req_hdr = new RpcRequestHeader();
+  std::unique_ptr<RpcRequestHeader> req_hdr(new RpcRequestHeader());
 
   req_hdr->DeSerialize(session->InternalBuf(), session->bufSize());
   // Verify rpc requst length with data in packet header.
   if (req_hdr->rpc_request_length() != session->req_size()) {
-    delete req_hdr;
     session->rpc()->SetRpcReturnCode(RpcResponseHeader::REQ_LENG_MISMATCH);
     return -1;
   }
@@ -377,7 +376,7 @@ int RpcServer::ParseRpcRequestHeader(RpcSession* session) {
   // Check rpc options
   session->set_keep_alive(req_hdr->keep_alive());
 
-  session->SetRequestHeader(req_hdr);
+  session->SetRequestHeader(req_hdr.release());
   return 0;
 }
 
